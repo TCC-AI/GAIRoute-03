@@ -442,17 +442,6 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
         .radio-group {
             display: flex;
             gap: 1rem;
@@ -672,58 +661,6 @@
             gap: 0.5rem;
         }
 
-        /* 響應式設計 */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s;
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .filter-group {
-                flex-direction: column;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .navbar {
-                padding: 1rem;
-            }
-
-            .nav-brand h1 {
-                font-size: 1rem;
-            }
-
-            .login-card {
-                padding: 2rem;
-            }
-        }
-
-        /* 優化容器 */
-        .optimization-container {
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        @media (min-width: 768px) {
-            .optimization-container {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
         /* 通知樣式 */
         .notification {
             position: fixed;
@@ -795,6 +732,58 @@
             font-size: 3rem;
             margin-bottom: 1rem;
             color: var(--warning-color);
+        }
+
+        /* 優化容器 */
+        .optimization-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .optimization-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .navbar {
+                padding: 1rem;
+            }
+
+            .nav-brand h1 {
+                font-size: 1rem;
+            }
+
+            .login-card {
+                padding: 2rem;
+            }
         }
     </style>
 </head>
@@ -975,10 +964,10 @@
                 <!-- 搜尋與篩選 -->
                 <div class="filter-section">
                     <div class="filter-group">
-                        <input type="text" id="routeSearch" placeholder="搜尋路線..." class="form-input">
+                                               <input type="text" id="routeSearch" placeholder="搜尋路線..." class="form-input">
                         <select id="regionFilter" class="form-select">
                             <option value="">全部區域</option>
-                                                        <option value="north">北部</option>
+                            <option value="north">北部</option>
                             <option value="central">中部</option>
                             <option value="south">南部</option>
                             <option value="east">東部</option>
@@ -1236,28 +1225,28 @@
                 REALTIME: '即時監控',
                 SETTINGS: '系統設定',
                 LOGS: '報表分析',
-                USERS: '管制名單' // 使用者管制名單
+                USERS: '管制名單'
             }
         };
 
         // 權限配置
         const PERMISSIONS = {
-            's4': { // 管理者
+            's4': {
                 level: 4,
                 name: '管理者',
                 pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'system-settings', 'reports']
             },
-            's3': { // 主要執行者
+            's3': {
                 level: 3,
                 name: '主要執行者',
                 pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'reports']
             },
-            's2': { // 次要執行者
+            's2': {
                 level: 2,
                 name: '次要執行者',
                 pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor']
             },
-            's1': { // 初階使用者
+            's1': {
                 level: 1,
                 name: '初階使用者',
                 pages: ['dashboard']
@@ -1771,758 +1760,13 @@
                 return icons[status] || 'question';
             }
 
-            // 以下是原有的方法，保持不變...
+            // API 呼叫
+            async apiCall(action, data = {}) {
+                const payload = {
             // API 呼叫
             async apiCall(action, data = {}) {
                 const payload = {
                     action,
-                                        data,
-                    timestamp: new Date().getTime(),
-                    user: currentUser.username || 'anonymous'
-                };
-
-                try {
-                    const response = await fetch(CONFIG.GAS_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain',
-                        },
-                        body: JSON.stringify(payload),
-                        mode: 'cors',
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const textResult = await response.text();
-                    const result = JSON.parse(textResult);
-                    
-                    if (!result.success) {
-                        throw new Error(result.error || '未知錯誤');
-                    }
-
-                    // 連線成功，更新狀態
-                    if (!this.isOnline) {
-                        this.isOnline = true;
-                        this.updateConnectionStatus('online', '已連線');
-                        CONFIG.USE_MOCK_DATA = false;
-                    }
-
-                    return result.data;
-                    
-                } catch (error) {
-                    console.error('API 呼叫失敗:', error);
-                    
-                    // 如果是網路錯誤，切換到離線模式
-                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                        this.isOnline = false;
-                        this.updateConnectionStatus('offline', '離線模式');
-                        CONFIG.USE_MOCK_DATA = true;
-                        console.warn('切換至離線模式，使用模擬資料');
-                        return this.getMockData(action);
-                    }
-                    
-                    throw error;
-                }
-            }
-
-            // 模擬資料方法
-            getMockData(action) {
-                const mockData = {
-                    authenticateUser: {
-                        success: true,
-                        user: {
-                            username: 'admin',
-                            name: '系統管理員',
-                            role: '管理者',
-                            level: 's4'
-                        }
-                    },
-                    getDashboardData: {
-                        todayDeliveries: 156,
-                        vehicleUsage: 78,
-                        onTimeRate: 94,
-                        alertCount: 2
-                    },
-                    getRoutes: [
-                        {
-                            id: 'R001',
-                            name: '台北市區線',
-                            startPoint: '台北車站',
-                            endPoint: '信義區',
-                            stopCount: 8,
-                            estimatedTime: 120,
-                            status: '啟用'
-                        },
-                        {
-                            id: 'R002', 
-                            name: '新北環線',
-                            startPoint: '板橋站',
-                            endPoint: '淡水站',
-                            stopCount: 12,
-                            estimatedTime: 180,
-                            status: '啟用'
-                        },
-                        {
-                            id: 'R003',
-                            name: '桃園工業線',
-                            startPoint: '桃園車站',
-                            endPoint: '中壢工業區',
-                            stopCount: 15,
-                            estimatedTime: 240,
-                            status: '啟用'
-                        }
-                    ],
-                    searchRoutes: [
-                        {
-                            id: 'R001',
-                            name: '台北市區線',
-                            startPoint: '台北車站',
-                            endPoint: '信義區',
-                            stopCount: 8,
-                            estimatedTime: 120,
-                            status: '啟用'
-                        }
-                    ],
-                    optimizeRoutes: {
-                        optimizationId: 'OPT' + Date.now(),
-                        beforeDistance: 285.6,
-                        afterDistance: 234.2,
-                        savedDistance: 51.4,
-                        improvementPercent: 18
-                    },
-                    initializeSheets: { message: '工作表初始化完成' },
-                    emergencyDispatch: {
-                        success: true,
-                        emergencyId: 'EMG' + Date.now(),
-                        message: '緊急調派已啟動',
-                        estimatedResponse: '15分鐘內'
-                    }
-                };
-                
-                return mockData[action] || {};
-            }
-
-            // 載入主控台資料
-            async loadDashboard() {
-                this.showLoading();
-                try {
-                    let dashboardData;
-                    
-                    if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                        dashboardData = this.getMockData('getDashboardData');
-                        if (!this.isOnline) {
-                            this.showNotification('目前使用離線模式', 'warning');
-                        }
-                    } else {
-                        dashboardData = await this.apiCall('getDashboardData');
-                    }
-                    
-                    // 更新統計數據
-                    document.getElementById('todayDeliveries').textContent = dashboardData.todayDeliveries || 0;
-                    document.getElementById('vehicleUsage').textContent = `${dashboardData.vehicleUsage || 0}%`;
-                    document.getElementById('onTimeRate').textContent = `${dashboardData.onTimeRate || 0}%`;
-                    document.getElementById('alertCount').textContent = dashboardData.alertCount || 0;
-
-                    // 如果有異常，更新警示樣式
-                    const alertElement = document.getElementById('alertCount');
-                    if (dashboardData.alertCount > 0) {
-                        alertElement.classList.add('alert');
-                    } else {
-                        alertElement.classList.remove('alert');
-                    }
-
-                } catch (error) {
-                    this.showNotification('載入主控台資料失敗，使用離線模式', 'warning');
-                    console.error('載入主控台資料失敗:', error);
-                    
-                    // 載入預設資料
-                    const defaultData = this.getMockData('getDashboardData');
-                    document.getElementById('todayDeliveries').textContent = defaultData.todayDeliveries;
-                    document.getElementById('vehicleUsage').textContent = `${defaultData.vehicleUsage}%`;
-                    document.getElementById('onTimeRate').textContent = `${defaultData.onTimeRate}%`;
-                    document.getElementById('alertCount').textContent = defaultData.alertCount;
-                    
-                } finally {
-                    this.hideLoading();
-                }
-            }
-
-            // 載入路線管理資料
-            async loadRouteManagement() {
-                this.showLoading();
-                try {
-                    let routes;
-                    
-                    if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                        routes = this.getMockData('getRoutes');
-                    } else {
-                        routes = await this.apiCall('getRoutes');
-                    }
-                    
-                    this.renderRouteTable(routes);
-                } catch (error) {
-                    this.showNotification('載入路線資料失敗', 'error');
-                    console.error('載入路線資料失敗:', error);
-                    
-                    // 載入模擬資料
-                    const mockRoutes = this.getMockData('getRoutes');
-                    this.renderRouteTable(mockRoutes);
-                } finally {
-                    this.hideLoading();
-                }
-            }
-
-            // 渲染路線表格
-            renderRouteTable(routes) {
-                const tbody = document.getElementById('routeTableBody');
-                if (!tbody) return;
-
-                tbody.innerHTML = '';
-
-                if (routes.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #64748b;">暫無路線資料</td></tr>';
-                    return;
-                }
-
-                routes.forEach(route => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${route.id}</td>
-                        <td>${route.name}</td>
-                        <td>${route.startPoint}</td>
-                        <td>${route.endPoint}</td>
-                        <td>${route.stopCount}</td>
-                        <td>${route.estimatedTime} 分鐘</td>
-                        <td>
-                            <span class="status-badge ${route.status}">
-                                ${route.status}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-primary" onclick="app.editRoute('${route.id}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="app.deleteRoute('${route.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            }
-
-            // 搜尋路線
-            async searchRoutes() {
-                const searchTerm = document.getElementById('routeSearch').value;
-                const regionFilter = document.getElementById('regionFilter').value;
-
-                this.showLoading();
-                try {
-                    let routes;
-                    
-                    if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                        // 模擬搜尋邏輯
-                        const allRoutes = this.getMockData('getRoutes');
-                        routes = allRoutes.filter(route => {
-                            const matchesSearch = !searchTerm || 
-                                route.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                route.startPoint.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                route.endPoint.toLowerCase().includes(searchTerm.toLowerCase());
-                            
-                            const matchesRegion = !regionFilter || this.checkRegionMatch(route, regionFilter);
-                            
-                            return matchesSearch && matchesRegion;
-                        });
-                    } else {
-                        routes = await this.apiCall('searchRoutes', {
-                            searchTerm,
-                            region: regionFilter
-                        });
-                    }
-                    
-                    this.renderRouteTable(routes);
-                } catch (error) {
-                    this.showNotification('搜尋路線失敗', 'error');
-                    console.error('搜尋路線失敗:', error);
-                } finally {
-                    this.hideLoading();
-                }
-            }
-
-            // 檢查區域匹配
-            checkRegionMatch(route, region) {
-                const regionKeywords = {
-                    'north': ['台北', '新北', '基隆', '桃園', '新竹'],
-                    'central': ['台中', '彰化', '南投', '雲林', '嘉義'],
-                    'south': ['台南', '高雄', '屏東'],
-                    'east': ['宜蘭', '花蓮', '台東']
-                };
-                
-                if (!regionKeywords[region]) return true;
-                
-                const routeText = `${route.startPoint} ${route.endPoint}`.toLowerCase();
-                return regionKeywords[region].some(keyword => 
-                    routeText.includes(keyword)
-                );
-            }
-
-            // 開始路線優化
-            async startRouteOptimization() {
-                const optimizeTarget = document.querySelector('input[name="optimizeTarget"]:checked').value;
-                const vehicleLimit = document.getElementById('vehicleLimit').value;
-                const startTime = document.getElementById('startTime').value;
-                const endTime = document.getElementById('endTime').value;
-
-                // 顯示進度條
-                const progressContainer = document.getElementById('optimizationProgress');
-                const resultsContainer = document.getElementById('optimizationResults');
-                const progressFill = document.getElementById('progressFill');
-                const progressText = document.getElementById('progressText');
-
-                progressContainer.style.display = 'block';
-                resultsContainer.style.display = 'none';
-
-                try {
-                    // 模擬優化進度
-                    let progress = 0;
-                    const progressInterval = setInterval(() => {
-                        progress += Math.random() * 15;
-                        if (progress > 95) progress = 95;
-                        
-                        progressFill.style.width = `${progress}%`;
-                        progressText.textContent = `分析中... ${Math.round(progress)}%`;
-                    }, 500);
-
-                    // 執行優化
-                    let optimizationResult;
-                    
-                    if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                        // 模擬延遲
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-                        optimizationResult = this.getMockData('optimizeRoutes');
-                    } else {
-                        optimizationResult = await this.apiCall('optimizeRoutes', {
-                            target: optimizeTarget,
-                            vehicleLimit: parseInt(vehicleLimit) || null,
-                            timeWindow: { start: startTime, end: endTime }
-                        });
-                    }
-
-                    // 完成進度
-                    clearInterval(progressInterval);
-                    progressFill.style.width = '100%';
-                    progressText.textContent = '分析完成！';
-
-                    setTimeout(() => {
-                        progressContainer.style.display = 'none';
-                        this.showOptimizationResults(optimizationResult);
-                    }, 1000);
-
-                } catch (error) {
-                    progressContainer.style.display = 'none';
-                    this.showNotification('路線優化失敗', 'error');
-                    console.error('路線優化失敗:', error);
-                }
-            }
-
-            // 顯示優化結果
-            showOptimizationResults(result) {
-                document.getElementById('beforeDistance').textContent = `${result.beforeDistance} km`;
-                document.getElementById('afterDistance').textContent = `${result.afterDistance} km`;
-                document.getElementById('savedDistance').textContent = `${result.savedDistance} km (${result.improvementPercent}%)`;
-
-                document.getElementById('optimizationResults').style.display = 'block';
-            }
-
-            // 採用優化結果
-            async applyOptimizationResults() {
-                if (confirm('確定要採用此優化建議嗎？這將會更新現有的路線設定。')) {
-                    try {
-                        this.showLoading();
-                        
-                        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                            // 模擬延遲
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        } else {
-                            await this.apiCall('applyOptimization');
-                        }
-                        
-                        this.showNotification('優化建議已採用', 'success');
-                        this.loadRouteManagement();
-                    } catch (error) {
-                        this.showNotification('採用優化建議失敗', 'error');
-                        console.error('採用優化建議失敗:', error);
-                    } finally {
-                        this.hideLoading();
-                    }
-                }
-            }
-
-            // 匯出優化結果
-            exportOptimizationResults() {
-                const beforeDistance = document.getElementById('beforeDistance').textContent;
-                const afterDistance = document.getElementById('afterDistance').textContent;
-                const savedDistance = document.getElementById('savedDistance').textContent;
-                
-                const reportContent = `
-路線優化報告
-================
-生成時間: ${new Date().toLocaleString()}
-優化前總距離: ${beforeDistance}
-優化後總距離: ${afterDistance}
-節省距離: ${savedDistance}
-執行者: ${currentUser.name} (${currentUser.role})
-================
-                `.trim();
-
-                const blob = new Blob([reportContent], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `路線優化報告_${new Date().toISOString().split('T')[0]}.txt`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                this.showNotification('報告已匯出', 'success');
-            }
-
-            // 緊急調派
-            showEmergencyDispatchModal() {
-                this.showModal('緊急調派', `
-                    <div class="form-group">
-                        <label>緊急事件類型：</label>
-                        <select class="form-select" id="emergencyType">
-                            <option value="accident">交通事故</option>
-                            <option value="breakdown">車輛故障</option>
-                            <option value="urgent">緊急配送</option>
-                            <option value="weather">天氣異常</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>影響區域：</label>
-                        <input type="text" class="form-input" id="affectedArea" placeholder="請輸入影響區域">
-                    </div>
-                    <div class="form-group">
-                        <label>說明：</label>
-                        <textarea class="form-input" id="emergencyDescription" rows="3" placeholder="請詳細說明緊急狀況"></textarea>
-                    </div>
-                `, async () => {
-                    const type = document.getElementById('emergencyType').value;
-                    const area = document.getElementById('affectedArea').value;
-                    const description = document.getElementById('emergencyDescription').value;
-
-                    if (!area.trim()) {
-                        this.showNotification('請輸入影響區域', 'warning');
-                        return false;
-                    }
-
-                    try {
-                        let result;
-                        
-                        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                            result = this.getMockData('emergencyDispatch');
-                        } else {
-                            result = await this.apiCall('emergencyDispatch', {
-                                type, area, description
-                            });
-                        }
-                        
-                        this.showNotification('緊急調派已啟動', 'success');
-                        this.loadDashboard(); // 重新載入主控台
-                        return true;
-                    } catch (error) {
-                        this.showNotification('緊急調派失敗', 'error');
-                        console.error('緊急調派失敗:', error);
-                        return false;
-                    }
-                });
-            }
-
-            // 路線重規劃
-            async rerouteAllVehicles() {
-                if (confirm('確定要重新規劃所有車輛路線嗎？這可能需要幾分鐘時間。')) {
-                    try {
-                        this.showLoading();
-                        
-                        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                            // 模擬延遲
-                            await new Promise(resolve => setTimeout(resolve, 2000));
-                        } else {
-                            await this.apiCall('rerouteAll');
-                        }
-                        
-                        this.showNotification('路線重規劃完成', 'success');
-                        this.loadDashboard();
-                    } catch (error) {
-                        this.showNotification('路線重規劃失敗', 'error');
-                        console.error('路線重規劃失敗:', error);
-                    } finally {
-                        this.hideLoading();
-                    }
-                }
-            }
-
-            // 即時改道
-            showRealTimeRerouteModal() {
-                this.showModal('即時改道', `
-                    <div class="form-group">
-                        <label>車輛編號：</label>
-                        <input type="text" class="form-input" id="vehicleId" placeholder="請輸入車輛編號">
-                    </div>
-                    <div class="form-group">
-                        <label>改道原因：</label>
-                        <select class="form-select" id="rerouteReason">
-                            <option value="traffic">交通壅塞</option>
-                            <option value="road_closure">道路封閉</option>
-                            <option value="emergency">緊急狀況</option>
-                            <option value="customer_request">客戶要求</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>新目的地：</label>
-                        <input type="text" class="form-input" id="newDestination" placeholder="請輸入新目的地地址">
-                    </div>
-                `, async () => {
-                    const vehicleId = document.getElementById('vehicleId').value;
-                    const reason = document.getElementById('rerouteReason').value;
-                    const newDestination = document.getElementById('newDestination').value;
-
-                    if (!vehicleId.trim() || !newDestination.trim()) {
-                        this.showNotification('請填寫必要欄位', 'warning');
-                        return false;
-                    }
-
-                    try {
-                        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                            // 模擬延遲
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        } else {
-                            await this.apiCall('realTimeReroute', {
-                                vehicleId, reason, newDestination
-                            });
-                        }
-                        
-                        this.showNotification('即時改道指令已發送', 'success');
-                        return true;
-                    } catch (error) {
-                        this.showNotification('即時改道失敗', 'error');
-                        console.error('即時改道失敗:', error);
-                        return false;
-                    }
-                });
-            }
-
-            // 顯示新增路線模態視窗
-            showAddRouteModal() {
-                this.showModal('新增路線', `
-                    <div class="form-group">
-                        <label>路線名稱：</label>
-                        <input type="text" class="form-input" id="routeName" placeholder="請輸入路線名稱">
-                    </div>
-                    <div class="form-group">
-                        <label>起點：</label>
-                        <input type="text" class="form-input" id="startPoint" placeholder="請輸入起點地址">
-                    </div>
-                    <div class="form-group">
-                        <label>終點：</label>
-                        <input type="text" class="form-input" id="endPoint" placeholder="請輸入終點地址">
-                    </div>
-                    <div class="form-group">
-                        <label>收送點：</label>
-                        <textarea class="form-input" id="stopPoints" rows="4" placeholder="請輸入收送點地址，每行一個"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>預估時間（分鐘）：</label>
-                        <input type="number" class="form-input" id="estimatedTime" placeholder="預估配送時間">
-                    </div>
-                `, async () => {
-                    const routeName = document.getElementById('routeName').value;
-                    const startPoint = document.getElementById('startPoint').value;
-                    const endPoint = document.getElementById('endPoint').value;
-                    const stopPoints = document.getElementById('stopPoints').value;
-                    const estimatedTime = document.getElementById('estimatedTime').value;
-
-                    if (!routeName.trim() || !startPoint.trim() || !endPoint.trim()) {
-                        this.showNotification('請填寫必要欄位', 'warning');
-                        return false;
-                    }
-
-                    try {
-                        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                            // 模擬新增成功
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        } else {
-                            await this.apiCall('addRoute', {
-                                name: routeName,
-                                startPoint,
-                                endPoint,
-                                stopPoints: stopPoints.split('\n').filter(point => point.trim()),
-                                estimatedTime: parseInt(estimatedTime) || 0
-                            });
-                        }
-                        
-                        this.showNotification('路線新增成功', 'success');
-                        this.loadRouteManagement();
-                        return true;
-                    } catch (error) {
-                        this.showNotification('新增路線失敗', 'error');
-                        console.error('新增路線失敗:', error);
-                        return false;
-                    }
-                });
-            }
-
-            // 顯示匯入路線模態視窗
-            showImportRoutesModal() {
-                this.showModal('批量匯入路線', `
-                    <div class="form-group">
-                        <label>選擇 CSV 檔案：</label>
-                        <input type="file" class="form-input" id="csvFile" accept=".csv">
-                    </div>
-                    <div class="form-group">
-                        <label>CSV 格式說明：</label>
-                        <p style="font-size: 0.875rem; color: #64748b;">
-                            檔案應包含以下欄位：路線名稱, 起點, 終點, 預估時間<br>
-                            範例：台北市區線, 台北車站, 信義區, 120
-                        </p>
-                    </div>
-                `, async () => {
-                    const fileInput = document.getElementById('csvFile');
-                    const file = fileInput.files[0];
-
-                    if (!file) {
-                        this.showNotification('請選擇檔案', 'warning');
-                        return false;
-                    }
-
-                    try {
-                        const csvContent = await this.readFileAsText(file);
-                        const routes = this.parseCsvContent(csvContent);
-                        
-                        if (routes.length === 0) {
-                            this.showNotification('檔案格式錯誤或無有效資料', 'error');
-                            return false;
-                        }
-
-                        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                            // 模擬匯入
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        } else {
-                            await this.apiCall('importRoutes', { routes });
-                        }
-                        
-                        this.showNotification(`成功匯入 ${routes.length} 條路線`, 'success');
-                        this.loadRouteManagement();
-                        return true;
-                    } catch (error) {
-                        this.showNotification('匯入失敗', 'error');
-                        console.error('匯入失敗:', error);
-                        return false;
-                    }
-                });
-            }
-
-            // 讀取檔案內容
-            readFileAsText(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = (e) => reject(e);
-                    reader.readAsText(file, 'UTF-8');
-                });
-            }
-
-            // 解析 CSV 內容
-            parseCsvContent(csvContent) {
-                const lines = csvContent.split('\n').filter(line => line.trim());
-                const routes = [];
-
-                for (let i = 1; i < lines.length; i++) { // 跳過標題行
-                    const columns = lines[i].split(',').map(col => col.trim());
-                    if (columns.length >= 4) {
-                        routes.push({
-                            name: columns[0],
-                            startPoint: columns[1],
-                            endPoint: columns[2],
-                            estimatedTime: parseInt(columns[3]) || 0
-                        });
-                    }
-                }
-
-                return routes;
-            }
-
-            // 編輯路線
-            editRoute(routeId) {
-                this.showModal('編輯路線', `
-                    <p>編輯路線 ID: ${routeId}</p>
-                    <p>此功能正在開發中...</p>
-                `);
-            }
-
-            // 刪除路線
-            async deleteRoute(routeId) {
-                if (confirm('確定要刪除此路線嗎？')) {
-                    try {
-                        this.showLoading();
-                        
-                        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                            // 模擬刪除
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        } else {
-                            await this.apiCall('deleteRoute', { routeId });
-                        }
-                        
-                        this.showNotification('路線刪除成功', 'success');
-                        this.loadRouteManagement();
-                    } catch (error) {
-                        this.showNotification('刪除路線失敗', 'error');
-                        console.error('刪除路線失敗:', error);
-                    } finally {
-                        this.hideLoading();
-                    }
-                }
-            }
-
-            // 初始化工作表
-            async initializeSheets() {
-                try {
-                    if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                        console.log('模擬模式：跳過工作表初始化');
-                        return;
-                    }
-                    
-                    await this.apiCall('initializeSheets');
-                    console.log('工作表初始化完成');
-                } catch (error) {
-                    console.error('工作表初始化失敗:', error);
-                }
-            }
-
-            // 顯示載入中
-            showLoading() {
-                elements.loadingOverlay.classList.add('show');
-            }
-
-            // 隱藏載入中
-            hideLoading() {
-                elements.loadingOverlay.classList.remove('show');
-            }
-
-            // 顯示模態視窗
-            showModal(title, content, onConfirm = null) {
-                elements.modalTitle.textContent = title;
-                elements.modalBody.innerHTML = content;
-                elements.modal.classList.add('show');
-
-                // 設定確認按鈕事件
-                elements.modalConfirm.onclick = async () => {
-                    if (onConfirm) {
-                        const result = await onConfirm();
                     data,
                     timestamp: new Date().getTime(),
                     user: currentUser.username || 'anonymous'
@@ -3266,7 +2510,7 @@
                 elements.modalBody.innerHTML = content;
                 elements.modal.classList.add('show');
 
-                // 設定確認按鈕事件
+                                // 設定確認按鈕事件
                 elements.modalConfirm.onclick = async () => {
                     if (onConfirm) {
                         const result = await onConfirm();
@@ -3470,5 +2714,4 @@
     </script>
 </body>
 </html>
-
 
