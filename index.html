@@ -6,8 +6,7 @@
     <title>昶青物流-派車GAI數據管理系統</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Google Maps API - 載入所有需要的程式庫 -->
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI&libraries=places,geometry,visualization&callback=initMapsSystem"></script>
+   
     
     <style>
         /* ===== 原有 CSS 樣式保持不變 ===== */
@@ -1697,6 +1696,58 @@
     </div>
 
     <script>
+          // ==================== Google Maps API 動態載入 ====================
+    let mapsApiLoaded = false;
+    let mapsApiLoading = false;
+
+    function loadGoogleMapsAPI() {
+        return new Promise((resolve, reject) => {
+            // 檢查是否已載入
+            if (window.google && window.google.maps) {
+                mapsApiLoaded = true;
+                resolve();
+                return;
+            }
+            
+            // 檢查是否正在載入
+            if (mapsApiLoading) {
+                // 等待載入完成
+                const checkLoaded = setInterval(() => {
+                    if (mapsApiLoaded) {
+                        clearInterval(checkLoaded);
+                        resolve();
+                    }
+                }, 100);
+                return;
+            }
+            
+            mapsApiLoading = true;
+            
+            // 創建 script 標籤
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI&libraries=places,geometry&region=TW&language=zh-TW`;
+            script.async = true;
+            script.defer = true;
+            
+            // 設置全局回調函數
+            window.initGoogleMaps = function() {
+                mapsApiLoaded = true;
+                mapsApiLoading = false;
+                console.log('Google Maps API 載入完成');
+                resolve();
+            };
+            
+            script.src += '&callback=initGoogleMaps';
+            
+            script.onerror = function() {
+                mapsApiLoading = false;
+                console.error('Google Maps API 載入失敗');
+                reject(new Error('Google Maps API 載入失敗'));
+            };
+            
+            document.head.appendChild(script);
+        });
+    }
         // ===== JavaScript 代碼 =====
         
         // 全域變數
@@ -1778,6 +1829,7 @@
                     return false;
                 }
 
+                
                 try {
                     const mapContainer = document.getElementById(containerId);
                     if (!mapContainer) {
@@ -4066,20 +4118,71 @@
             }
         }
 
-        // Google Maps 初始化回調函數
-        function initMapsSystem() {
-            console.log('Google Maps API 已載入');
-            // 系統會在需要時初始化地圖
+// Google Maps 初始化回調函數
+async function initMapsSystem() {
+    try {
+        // 確保 Maps API 已載入
+        await loadGoogleMapsAPI();
+        
+        if (!window.google || !window.google.maps) {
+            throw new Error('Google Maps API 載入失敗');
         }
+        
+        console.log('開始初始化地圖系統...');
+        
+        // 初始化地圖
+        if (document.getElementById('googleMap')) {
+            await app.mapsIntegration.initializeMap('googleMap');
+        }
+        
+        if (document.getElementById('routeGoogleMap')) {
+            await app.mapsIntegration.initializeMap('routeGoogleMap');
+        }
+        
+        console.log('地圖系統初始化完成');
+        
+    } catch (error) {
+        console.error('地圖系統初始化失敗:', error);
+        if (app) {
+            app.showNotification('地圖功能暫時無法使用', 'warning');
+        }
+    }
+}
+
 
         // 全域應用程式實例
         let app;
 
-        // 當 DOM 載入完成後初始化應用程式
-        document.addEventListener('DOMContentLoaded', () => {
-            app = new DispatchGAISystem();
-            app.init();
-        });
+// 當 DOM 載入完成後初始化應用程式
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM 載入完成，開始初始化系統...');
+    
+    try {
+        // 1. 初始化基本功能
+        app = new DispatchGAISystem();
+        app.init();
+        
+        // 2. 延遲載入地圖功能 (避免阻塞主要功能)
+        setTimeout(async () => {
+            try {
+                if (typeof initMapsSystem === 'function') {
+                    await initMapsSystem();
+                }
+            } catch (error) {
+                console.warn('地圖功能載入失敗，但不影響其他功能:', error);
+            }
+        }, 2000);
+        
+        console.log('系統初始化完成');
+        
+    } catch (error) {
+        console.error('系統初始化失敗:', error);
+        if (app) {
+            app.showNotification('系統初始化失敗，請重新整理頁面', 'error');
+        }
+    }
+});
+
 
         // 處理頁面卸載
         window.addEventListener('beforeunload', () => {
@@ -4524,9 +4627,6 @@
         console.log('最後更新: 2025-06-27');
     </script>
 
-    <!-- Google Maps API -->
-    <script async defer 
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI&libraries=places,geometry&callback=initMapsSystem&language=zh-TW&region=TW">
-    </script>
+   
 </body>
 </html>
