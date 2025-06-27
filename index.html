@@ -4220,48 +4220,37 @@ async toggleMapView() {
             }
         }
 
-// Google Maps 初始化回調函數（防止重複調用）
-let initMapsSystemCalled = false;
-
-async function initMapsSystem() {
-    // 防止重複調用
-    if (initMapsSystemCalled) {
-        return;
-    }
-    
-    try {
-        console.log('initMapsSystem 開始執行');
-        initMapsSystemCalled = true;
-        
-        // 確保 app 已初始化
-        if (!window.app) {
-            console.warn('App 尚未初始化，重置調用標記');
-            initMapsSystemCalled = false;
-            return;
+        // Google Maps 初始化回調函數
+        async function initMapsSystem() {
+            try {
+                console.log('initMapsSystem 被調用');
+                
+                // 確保 app 已初始化
+                if (!window.app) {
+                    console.warn('App 尚未初始化，延遲執行 initMapsSystem');
+                    setTimeout(initMapsSystem, 1000);
+                    return;
+                }
+                
+                // 確保 Maps API 已載入
+                if (!window.google || !window.google.maps) {
+                    console.warn('Google Maps API 尚未完全載入');
+                    return;
+                }
+                
+                console.log('Google Maps API 已就緒');
+                
+                // 標記地圖系統可用
+                if (app.mapsIntegration) {
+                    app.mapsIntegration.apiReady = true;
+                }
+                
+                console.log('地圖系統初始化完成');
+                
+            } catch (error) {
+                console.error('地圖系統初始化失敗:', error);
+            }
         }
-        
-        // 確保 Maps API 已載入
-        if (!window.google || !window.google.maps) {
-            console.warn('Google Maps API 尚未完全載入');
-            initMapsSystemCalled = false;
-            return;
-        }
-        
-        console.log('Google Maps API 已就緒');
-        
-        // 標記地圖系統可用
-        if (app.mapsIntegration) {
-            app.mapsIntegration.apiReady = true;
-        }
-        
-        console.log('地圖系統初始化完成');
-        
-    } catch (error) {
-        console.error('地圖系統初始化失敗:', error);
-        initMapsSystemCalled = false; // 發生錯誤時重置標記
-    }
-}
-
 
 
 
