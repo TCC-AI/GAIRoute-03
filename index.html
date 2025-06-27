@@ -749,6 +749,40 @@
         }
 
         /* ===== 新增 Google Maps 相關樣式 ===== */
+        /* 地圖載入指示器 */
+.map-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    border-radius: 0.5rem;
+}
+
+.map-loading-spinner {
+    text-align: center;
+}
+
+.map-loading-spinner .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+.map-loading-spinner p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
         .maps-dashboard {
             display: grid;
             grid-template-columns: 1fr 350px;
@@ -1820,72 +1854,109 @@
                 this.markers = [];
                 this.autocompleteService = null;
                 this.isInitialized = false;
+                this.apiReady = false; // 添加這一行
             }
 
-            // 初始化 Google Maps
-            async initializeMap(containerId = 'googleMap') {
-                if (!window.google || !window.google.maps) {
-                    console.error('Google Maps API 尚未載入');
-                    return false;
-                }
+// 初始化 Google Maps
+async initializeMap(containerId = 'googleMap') {
+    // 檢查 Google Maps API
+    if (!window.google || !window.google.maps) {
+        console.error('Google Maps API 尚未載入');
+        return false;
+    }
 
-                
-                try {
-                    const mapContainer = document.getElementById(containerId);
-                    if (!mapContainer) {
-                        console.error(`找不到地圖容器: ${containerId}`);
-                        return false;
+    try {
+        const mapContainer = document.getElementById(containerId);
+        if (!mapContainer) {
+            console.error(`找不到地圖容器: ${containerId}`);
+            return false;
+        }
+
+        // 檢查容器是否可見
+        if (mapContainer.offsetWidth === 0 || mapContainer.offsetHeight === 0) {
+            console.warn('地圖容器尺寸為 0，等待容器可見...');
+            // 等待容器變為可見
+            await new Promise(resolve => {
+                const checkVisible = setInterval(() => {
+                    if (mapContainer.offsetWidth > 0 && mapContainer.offsetHeight > 0) {
+                        clearInterval(checkVisible);
+                        resolve();
                     }
+                }, 100);
+                
+                // 超時保護
+                setTimeout(() => {
+                    clearInterval(checkVisible);
+                    resolve();
+                }, 3000);
+            });
+        }
 
-                    // 初始化地圖 (以台北為中心)
-                    this.map = new google.maps.Map(mapContainer, {
-                        zoom: 12,
-                        center: { lat: 25.0330, lng: 121.5654 }, // 台北市
-                        mapTypeControl: true,
-                        streetViewControl: true,
-                        fullscreenControl: true,
-                        zoomControl: true,
-                        styles: [
-                            {
-                                featureType: 'poi',
-                                elementType: 'labels',
-                                stylers: [{ visibility: 'on' }]
-                            }
-                        ]
-                    });
-
-                    // 初始化服務
-                    this.directionsService = new google.maps.DirectionsService();
-                    this.directionsRenderer = new google.maps.DirectionsRenderer({
-                        draggable: true,
-                        panel: null
-                    });
-                    this.directionsRenderer.setMap(this.map);
-
-                    this.placesService = new google.maps.places.PlacesService(this.map);
-                    this.geocoder = new google.maps.Geocoder();
-                    this.distanceMatrixService = new google.maps.DistanceMatrixService();
-                    this.autocompleteService = new google.maps.places.AutocompleteService();
-
-                    // 初始化圖層
-                    this.trafficLayer = new google.maps.TrafficLayer();
-                    this.transitLayer = new google.maps.TransitLayer();
-                    this.bikeLayer = new google.maps.BicyclingLayer();
-
-                    // 設定路線拖拽事件
-                    this.directionsRenderer.addListener('directions_changed', () => {
-                        this.onRouteChanged();
-                    });
-
-                    this.isInitialized = true;
-                    console.log('Google Maps 初始化完成');
-                    return true;
-
-                } catch (error) {
-                    console.error('Google Maps 初始化失敗:', error);
-                    return false;
+        // 初始化地圖 (以台北為中心)
+        this.map = new google.maps.Map(mapContainer, {
+            zoom: 12,
+            center: { lat: 25.0330, lng: 121.5654 }, // 台北市
+            mapTypeControl: true,
+            streetViewControl: true,
+            fullscreenControl: true,
+            zoomControl: true,
+            gestureHandling: 'cooperative', // 改善觸控體驗
+            styles: [
+                {
+                    featureType: 'poi',
+                    elementType: 'labels',
+                    stylers: [{ visibility: 'on' }]
                 }
-            }
+            ]
+        });
+
+        // 等待地圖完全載入
+        await new Promise(resolve => {
+            const listener = this.map.addListener('idle', () => {
+                google.maps.event.removeListener(listener);
+                resolve();
+            });
+        });
+
+        // 初始化服務
+        this.directionsService = new google.maps.DirectionsService();
+        this.directionsRenderer = new google.maps.DirectionsRenderer({
+            draggable: true,
+            panel: null,
+            suppressMarkers: false
+        });
+        this.directionsRenderer.setMap(this.map);
+
+        this.placesService = new google.maps.places.PlacesService(this.map);
+        this.geocoder = new google.maps.Geocoder();
+        this.distanceMatrixService = new google.maps.DistanceMatrixService();
+        this.autocompleteService = new google.maps.places.AutocompleteService();
+
+        // 初始化圖層
+        this.trafficLayer = new google.maps.TrafficLayer();
+        this.transitLayer = new google.maps.TransitLayer();
+        this.bikeLayer = new google.maps.BicyclingLayer();
+
+        // 設定路線拖拽事件
+        this.directionsRenderer.addListener('directions_changed', () => {
+            this.onRouteChanged();
+        });
+
+        // 添加地圖點擊事件
+        this.map.addListener('click', (event) => {
+            console.log('地圖點擊位置:', event.latLng.toString());
+        });
+
+        this.isInitialized = true;
+        console.log(`Google Maps 初始化完成 - 容器: ${containerId}`);
+        return true;
+
+    } catch (error) {
+        console.error('Google Maps 初始化失敗:', error);
+        return false;
+    }
+}
+
 
             // 切換圖層顯示
             toggleLayer(layerType) {
@@ -2642,39 +2713,70 @@
                 weatherIcon.innerHTML = `<i class="${this.weatherService.getWeatherIcon(weather.icon)}"></i>`;
             }
 
-                        // 切換地圖檢視模式
-            async toggleMapView() {
-                const mapsDashboard = document.getElementById('mapsDashboard');
-                const dashboardStats = document.getElementById('dashboardStats');
-                const toggleBtn = document.getElementById('toggleMapView');
+                       // 切換地圖檢視模式
+async toggleMapView() {
+    const mapsDashboard = document.getElementById('mapsDashboard');
+    const dashboardStats = document.getElementById('dashboardStats');
+    const toggleBtn = document.getElementById('toggleMapView');
 
-                if (!this.isMapViewActive) {
-                    // 切換到地圖模式
-                    mapsDashboard.style.display = 'grid';
-                    dashboardStats.style.display = 'none';
-                    toggleBtn.innerHTML = '<i class="fas fa-chart-bar"></i> 統計模式';
-                    
-                    // 初始化地圖
-                    if (!this.mapsIntegration.isInitialized) {
-                        this.showLoading();
-                        const success = await this.mapsIntegration.initializeMap('googleMap');
-                        this.hideLoading();
-                        
-                        if (!success) {
-                            this.showNotification('地圖初始化失敗', 'error');
-                            return;
-                        }
-                    }
-                    
-                    this.isMapViewActive = true;
-                } else {
-                    // 切換到統計模式
-                    mapsDashboard.style.display = 'none';
-                    dashboardStats.style.display = 'grid';
-                    toggleBtn.innerHTML = '<i class="fas fa-map"></i> 地圖模式';
-                    this.isMapViewActive = false;
+    if (!this.isMapViewActive) {
+        try {
+            // 顯示載入指示器
+            this.showLoading();
+            
+            // 切換到地圖模式
+            mapsDashboard.style.display = 'grid';
+            dashboardStats.style.display = 'none';
+            toggleBtn.innerHTML = '<i class="fas fa-chart-bar"></i> 統計模式';
+            
+            // 等待 DOM 更新
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // 確保 Google Maps API 已載入
+            if (!window.google || !window.google.maps) {
+                await loadGoogleMapsAPI();
+            }
+            
+            // 初始化地圖（如果尚未初始化）
+            if (!this.mapsIntegration.isInitialized) {
+                const success = await this.mapsIntegration.initializeMap('googleMap');
+                if (!success) {
+                    throw new Error('地圖初始化失敗');
                 }
             }
+            
+            // 確保地圖容器可見後重新調整大小
+            setTimeout(() => {
+                if (this.mapsIntegration.map) {
+                    google.maps.event.trigger(this.mapsIntegration.map, 'resize');
+                    this.mapsIntegration.centerMap();
+                }
+            }, 300);
+            
+            this.isMapViewActive = true;
+            this.showNotification('地圖模式已啟用', 'success');
+            
+        } catch (error) {
+            console.error('切換地圖模式失敗:', error);
+            this.showNotification('地圖模式啟用失敗: ' + error.message, 'error');
+            
+            // 回復到統計模式
+            mapsDashboard.style.display = 'none';
+            dashboardStats.style.display = 'grid';
+            toggleBtn.innerHTML = '<i class="fas fa-map"></i> 地圖模式';
+        } finally {
+            this.hideLoading();
+        }
+    } else {
+        // 切換到統計模式
+        mapsDashboard.style.display = 'none';
+        dashboardStats.style.display = 'grid';
+        toggleBtn.innerHTML = '<i class="fas fa-map"></i> 地圖模式';
+        this.isMapViewActive = false;
+        this.showNotification('統計模式已啟用', 'info');
+    }
+}
+
 
             // 切換路線地圖檢視模式
             async toggleRouteMapView() {
@@ -4118,36 +4220,38 @@
             }
         }
 
-// Google Maps 初始化回調函數
-async function initMapsSystem() {
-    try {
-        // 確保 Maps API 已載入
-        await loadGoogleMapsAPI();
-        
-        if (!window.google || !window.google.maps) {
-            throw new Error('Google Maps API 載入失敗');
+        // Google Maps 初始化回調函數
+        async function initMapsSystem() {
+            try {
+                console.log('initMapsSystem 被調用');
+                
+                // 確保 app 已初始化
+                if (!window.app) {
+                    console.warn('App 尚未初始化，延遲執行 initMapsSystem');
+                    setTimeout(initMapsSystem, 1000);
+                    return;
+                }
+                
+                // 確保 Maps API 已載入
+                if (!window.google || !window.google.maps) {
+                    console.warn('Google Maps API 尚未完全載入');
+                    return;
+                }
+                
+                console.log('Google Maps API 已就緒');
+                
+                // 標記地圖系統可用
+                if (app.mapsIntegration) {
+                    app.mapsIntegration.apiReady = true;
+                }
+                
+                console.log('地圖系統初始化完成');
+                
+            } catch (error) {
+                console.error('地圖系統初始化失敗:', error);
+            }
         }
-        
-        console.log('開始初始化地圖系統...');
-        
-        // 初始化地圖
-        if (document.getElementById('googleMap')) {
-            await app.mapsIntegration.initializeMap('googleMap');
-        }
-        
-        if (document.getElementById('routeGoogleMap')) {
-            await app.mapsIntegration.initializeMap('routeGoogleMap');
-        }
-        
-        console.log('地圖系統初始化完成');
-        
-    } catch (error) {
-        console.error('地圖系統初始化失敗:', error);
-        if (app) {
-            app.showNotification('地圖功能暫時無法使用', 'warning');
-        }
-    }
-}
+
 
 
         // 全域應用程式實例
