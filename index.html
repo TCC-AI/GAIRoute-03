@@ -1730,169 +1730,58 @@
     </div>
 
     <script>
-<script>
-    // ==================== Google Maps API 管理 (備用方案) ====================
+          // ==================== Google Maps API 動態載入 ====================
     let mapsApiLoaded = false;
     let mapsApiLoading = false;
-    let mapInitRetries = 0;
-    const MAX_RETRIES = 3;
-
-    // 備用 API 金鑰 (測試用)
-    const BACKUP_API_KEYS = [
-        'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI', // 您的原始金鑰
-        'AIzaSyB6wS266hLIvwFllfyqmnLNuQ53Qm1t9P4', // 備用金鑰 1 (示例)
-        // 可以添加更多備用金鑰
-    ];
-    
-    let currentApiKeyIndex = 0;
 
     function loadGoogleMapsAPI() {
         return new Promise((resolve, reject) => {
             // 檢查是否已載入
             if (window.google && window.google.maps) {
                 mapsApiLoaded = true;
-                console.log('Google Maps API 已存在');
                 resolve();
                 return;
             }
             
             // 檢查是否正在載入
             if (mapsApiLoading) {
-                console.log('Google Maps API 正在載入中...');
+                // 等待載入完成
                 const checkLoaded = setInterval(() => {
-                    if (mapsApiLoaded || (window.google && window.google.maps)) {
+                    if (mapsApiLoaded) {
                         clearInterval(checkLoaded);
-                        mapsApiLoaded = true;
                         resolve();
                     }
-                }, 500);
-                
-                // 超時處理
-                setTimeout(() => {
-                    clearInterval(checkLoaded);
-                    if (!mapsApiLoaded) {
-                        console.error('Google Maps API 載入超時');
-                        reject(new Error('API 載入超時'));
-                    }
-                }, 15000);
+                }, 100);
                 return;
             }
             
             mapsApiLoading = true;
-            loadMapsWithFallback(resolve, reject);
+            
+            // 創建 script 標籤
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI&libraries=places,geometry&region=TW&language=zh-TW`;
+            script.async = true;
+            script.defer = true;
+            
+            // 設置全局回調函數
+            window.initGoogleMaps = function() {
+                mapsApiLoaded = true;
+                mapsApiLoading = false;
+                console.log('Google Maps API 載入完成');
+                resolve();
+            };
+            
+            script.src += '&callback=initGoogleMaps';
+            
+            script.onerror = function() {
+                mapsApiLoading = false;
+                console.error('Google Maps API 載入失敗');
+                reject(new Error('Google Maps API 載入失敗'));
+            };
+            
+            document.head.appendChild(script);
         });
     }
-
-    function loadMapsWithFallback(resolve, reject) {
-        if (currentApiKeyIndex >= BACKUP_API_KEYS.length) {
-            mapsApiLoading = false;
-            reject(new Error('所有 API 金鑰都無法使用'));
-            return;
-        }
-
-        const currentApiKey = BACKUP_API_KEYS[currentApiKeyIndex];
-        console.log(`嘗試載入 Google Maps API (金鑰 ${currentApiKeyIndex + 1}/${BACKUP_API_KEYS.length})`);
-
-        // 移除之前的 script 標籤
-        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-        if (existingScript) {
-            existingScript.remove();
-        }
-
-        // 創建新的 script 標籤
-        const script = document.createElement('script');
-        script.async = true;
-        script.defer = true;
-        
-        // 設置全局回調函數
-        const callbackName = `initGoogleMaps_${Date.now()}`;
-        window[callbackName] = function() {
-            mapsApiLoaded = true;
-            mapsApiLoading = false;
-            console.log('Google Maps API 載入成功');
-            
-            // 清理回調函數
-            delete window[callbackName];
-            resolve();
-        };
-        
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${currentApiKey}&libraries=places,geometry&region=TW&language=zh-TW&callback=${callbackName}`;
-        
-        script.onerror = function() {
-            console.error(`API 金鑰 ${currentApiKeyIndex + 1} 載入失敗`);
-            script.remove();
-            delete window[callbackName];
-            
-            currentApiKeyIndex++;
-            
-            // 嘗試下一個金鑰
-            setTimeout(() => {
-                loadMapsWithFallback(resolve, reject);
-            }, 1000);
-        };
-        
-        // 超時處理
-        setTimeout(() => {
-            if (!mapsApiLoaded) {
-                console.error(`API 金鑰 ${currentApiKeyIndex + 1} 載入超時`);
-                script.remove();
-                delete window[callbackName];
-                
-                currentApiKeyIndex++;
-                loadMapsWithFallback(resolve, reject);
-            }
-        }, 10000);
-        
-        document.head.appendChild(script);
-    }
-
-    // 備用地圖初始化 (使用 OpenStreetMap)
-    function initFallbackMap(containerId) {
-        console.log('初始化備用地圖 (OpenStreetMap)');
-        
-        const mapContainer = document.getElementById(containerId);
-        if (!mapContainer) return false;
-
-        // 創建簡單的地圖替代方案
-        mapContainer.innerHTML = `
-            <div style="
-                width: 100%; 
-                height: 100%; 
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                text-align: center;
-                border-radius: 8px;
-            ">
-                <div>
-                    <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                    <h3>地圖服務暫時無法使用</h3>
-                    <p>正在嘗試連接地圖服務...</p>
-                    <button onclick="retryMapLoad()" class="btn btn-primary" style="margin-top: 1rem;">
-                        <i class="fas fa-redo"></i> 重新載入
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        return true;
-    }
-
-    // 重新載入地圖
-    window.retryMapLoad = function() {
-        currentApiKeyIndex = 0;
-        mapsApiLoaded = false;
-        mapsApiLoading = false;
-        
-        if (window.app && window.app.toggleMapView) {
-            window.app.toggleMapView();
-        }
-    };
-
-  
-
         // ===== JavaScript 代碼 =====
         
         // 全域變數
@@ -1970,28 +1859,17 @@
 
 // 初始化 Google Maps
 async initializeMap(containerId = 'googleMap') {
-    try {
-        // 檢查 Google Maps API
-        if (!window.google || !window.google.maps) {
-            console.error('Google Maps API 尚未載入，嘗試載入...');
-            
-            try {
-                await loadGoogleMapsAPI();
-            } catch (error) {
-                console.error('Google Maps API 載入失敗，使用備用方案');
-                return initFallbackMap(containerId);
-            }
-        }
+    // 檢查 Google Maps API
+    if (!window.google || !window.google.maps) {
+        console.error('Google Maps API 尚未載入');
+        return false;
+    }
 
+    try {
         const mapContainer = document.getElementById(containerId);
         if (!mapContainer) {
             console.error(`找不到地圖容器: ${containerId}`);
             return false;
-        }
-
-        // 檢查 API 配額
-        if (window.google.maps.places && !window.google.maps.places.PlacesService) {
-            console.warn('Places API 可能已達配額限制');
         }
 
         // 檢查容器是否可見
@@ -2835,7 +2713,7 @@ async initializeMap(containerId = 'googleMap') {
                 weatherIcon.innerHTML = `<i class="${this.weatherService.getWeatherIcon(weather.icon)}"></i>`;
             }
 
-// 切換地圖檢視模式
+                       // 切換地圖檢視模式
 async toggleMapView() {
     const mapsDashboard = document.getElementById('mapsDashboard');
     const dashboardStats = document.getElementById('dashboardStats');
@@ -2854,18 +2732,12 @@ async toggleMapView() {
             // 等待 DOM 更新
             await new Promise(resolve => setTimeout(resolve, 100));
             
-            // 嘗試載入 Google Maps API
-            try {
+            // 確保 Google Maps API 已載入
+            if (!window.google || !window.google.maps) {
                 await loadGoogleMapsAPI();
-            } catch (error) {
-                console.warn('Google Maps 不可用，使用備用方案:', error);
-                initFallbackMap('googleMap');
-                this.showNotification('地圖服務暫時無法使用，已啟用備用模式', 'warning');
-                this.isMapViewActive = true;
-                return;
             }
             
-            // 初始化地圖
+            // 初始化地圖（如果尚未初始化）
             if (!this.mapsIntegration.isInitialized) {
                 const success = await this.mapsIntegration.initializeMap('googleMap');
                 if (!success) {
@@ -2886,18 +2758,7 @@ async toggleMapView() {
             
         } catch (error) {
             console.error('切換地圖模式失敗:', error);
-            
-            // 根據錯誤類型顯示不同訊息
-            let errorMessage = '地圖模式啟用失敗';
-            if (error.message.includes('quota')) {
-                errorMessage = '地圖服務配額已用盡，請稍後再試';
-            } else if (error.message.includes('key')) {
-                errorMessage = 'API 金鑰無效，請聯繫系統管理員';
-            } else if (error.message.includes('network')) {
-                errorMessage = '網路連線問題，請檢查網路設定';
-            }
-            
-            this.showNotification(errorMessage, 'error');
+            this.showNotification('地圖模式啟用失敗: ' + error.message, 'error');
             
             // 回復到統計模式
             mapsDashboard.style.display = 'none';
@@ -2907,7 +2768,7 @@ async toggleMapView() {
             this.hideLoading();
         }
     } else {
-        // 切換到統計模式的邏輯保持不變
+        // 切換到統計模式
         mapsDashboard.style.display = 'none';
         dashboardStats.style.display = 'grid';
         toggleBtn.innerHTML = '<i class="fas fa-map"></i> 地圖模式';
@@ -2915,7 +2776,6 @@ async toggleMapView() {
         this.showNotification('統計模式已啟用', 'info');
     }
 }
-
 
 
             // 切換路線地圖檢視模式
@@ -4360,37 +4220,48 @@ async toggleMapView() {
             }
         }
 
-        // Google Maps 初始化回調函數
-        async function initMapsSystem() {
-            try {
-                console.log('initMapsSystem 被調用');
-                
-                // 確保 app 已初始化
-                if (!window.app) {
-                    console.warn('App 尚未初始化，延遲執行 initMapsSystem');
-                    setTimeout(initMapsSystem, 1000);
-                    return;
-                }
-                
-                // 確保 Maps API 已載入
-                if (!window.google || !window.google.maps) {
-                    console.warn('Google Maps API 尚未完全載入');
-                    return;
-                }
-                
-                console.log('Google Maps API 已就緒');
-                
-                // 標記地圖系統可用
-                if (app.mapsIntegration) {
-                    app.mapsIntegration.apiReady = true;
-                }
-                
-                console.log('地圖系統初始化完成');
-                
-            } catch (error) {
-                console.error('地圖系統初始化失敗:', error);
-            }
+// Google Maps 初始化回調函數（防止重複調用）
+let initMapsSystemCalled = false;
+
+async function initMapsSystem() {
+    // 防止重複調用
+    if (initMapsSystemCalled) {
+        return;
+    }
+    
+    try {
+        console.log('initMapsSystem 開始執行');
+        initMapsSystemCalled = true;
+        
+        // 確保 app 已初始化
+        if (!window.app) {
+            console.warn('App 尚未初始化，重置調用標記');
+            initMapsSystemCalled = false;
+            return;
         }
+        
+        // 確保 Maps API 已載入
+        if (!window.google || !window.google.maps) {
+            console.warn('Google Maps API 尚未完全載入');
+            initMapsSystemCalled = false;
+            return;
+        }
+        
+        console.log('Google Maps API 已就緒');
+        
+        // 標記地圖系統可用
+        if (app.mapsIntegration) {
+            app.mapsIntegration.apiReady = true;
+        }
+        
+        console.log('地圖系統初始化完成');
+        
+    } catch (error) {
+        console.error('地圖系統初始化失敗:', error);
+        initMapsSystemCalled = false; // 發生錯誤時重置標記
+    }
+}
+
 
 
 
