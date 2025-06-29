@@ -1093,6 +1093,108 @@
                 max-height: 400px;
             }
         }
+        /* 派車收送點清單樣式 */
+.delivery-points-section {
+    margin-bottom: 2rem;
+}
+
+.date-picker {
+    width: 150px;
+    margin-right: 0.5rem;
+}
+
+.data-summary {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.summary-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.summary-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 2rem;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.no-data-message i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #ddd;
+}
+
+.data-table {
+    font-size: 0.85rem;
+}
+
+.data-table th {
+    white-space: nowrap;
+    background: #34495e;
+    color: white;
+    padding: 0.75rem 0.5rem;
+}
+
+.data-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.data-table tr:hover {
+    background: #f8f9fa;
+}
+
+/* 狀態指示器 */
+.status-indicator {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status-completed { background: #d4edda; color: #155724; }
+.status-pending { background: #fff3cd; color: #856404; }
+.status-processing { background: #cce7ff; color: #004085; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+
     </style>
 </head>
 <body>
@@ -1492,6 +1594,82 @@
                 <div class="page-header">
                     <h2><i class="fas fa-brain"></i> AI路線優化</h2>
                 </div>
+                    <!-- 新增：派車收送點清單區域 -->
+    <div class="delivery-points-section">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-list-alt"></i> 派車收送點清單</h3>
+                <div class="header-actions">
+                    <input type="date" id="deliveryDatePicker" class="form-input date-picker">
+                    <button class="btn btn-primary" id="loadDeliveryPoints">
+                        <i class="fas fa-search"></i> 查詢資料
+                    </button>
+                    <button class="btn btn-secondary" id="exportDeliveryPoints" style="display: none;">
+                        <i class="fas fa-download"></i> 匯出
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="deliveryPointsLoading" class="loading-container" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>載入派車收送點資料中...</p>
+                </div>
+                
+                <div id="deliveryPointsContainer" style="display: none;">
+                    <div class="data-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">總筆數：</span>
+                            <span class="summary-value" id="totalDeliveryPoints">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">配送車輛：</span>
+                            <span class="summary-value" id="uniqueVehicles">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">配送狀態：</span>
+                            <span class="summary-value" id="deliveryStatus">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table" id="deliveryPointsTable">
+                            <thead>
+                                <tr>
+                                    <th>配送單號</th>
+                                    <th>下單日期</th>
+                                    <th>配送車輛</th>
+                                    <th>配送狀態</th>
+                                    <th>客戶簡稱</th>
+                                    <th>取貨日期</th>
+                                    <th>起點/迄點</th>
+                                    <th>配送點簡稱</th>
+                                    <th>商品簡稱</th>
+                                    <th>商品棧板</th>
+                                    <th>載具類型</th>
+                                    <th>載具/棧板名稱</th>
+                                    <th>入數</th>
+                                    <th>件數</th>
+                                    <th>單板件數</th>
+                                    <th>板位</th>
+                                    <th>變更數值原因</th>
+                                    <th>備註</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deliveryPointsTableBody">
+                                <!-- 動態載入資料 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="noDeliveryPointsData" class="no-data-message" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <h4>查無資料</h4>
+                    <p>所選日期沒有派車收送點資料</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
                 <div class="optimization-container">
                     <!-- 優化參數設定 -->
@@ -1753,7 +1931,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbxQKaFm06vFYKG6Q1OjXizx9Z_FtrcaXu27-HW70TokSP0MaKRbpFCbo-e-nFdYe1ij/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwVZIUz3S5Ol_4GhqHfGpLL-sxEVOa2yT8trPgx5C6a-LzyjaKiXk4iRHqPz864Avua/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3246,6 +3424,273 @@
                     CONFIG.USE_MOCK_DATA = true;
                 }
             }
+
+            // 在 DispatchGAISystem 類別中新增以下方法
+
+/**
+ * 載入派車收送點資料
+ */
+async loadDeliveryPointsByDate(selectedDate) {
+    const loadingElement = document.getElementById('deliveryPointsLoading');
+    const containerElement = document.getElementById('deliveryPointsContainer');
+    const noDataElement = document.getElementById('noDeliveryPointsData');
+    const exportBtn = document.getElementById('exportDeliveryPoints');
+
+    // 顯示載入狀態
+    loadingElement.style.display = 'block';
+    containerElement.style.display = 'none';
+    noDataElement.style.display = 'none';
+    exportBtn.style.display = 'none';
+
+    try {
+        let deliveryPoints;
+        
+        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
+            // 使用模擬資料
+            deliveryPoints = this.getMockDeliveryPoints(selectedDate);
+        } else {
+            // 從後端 API 獲取資料
+            const response = await this.apiCall('getDeliveryPointsByDate', {
+                date: selectedDate
+            });
+            deliveryPoints = response.data || [];
+        }
+
+        loadingElement.style.display = 'none';
+
+        if (deliveryPoints.length === 0) {
+            noDataElement.style.display = 'block';
+            return;
+        }
+
+        // 顯示資料
+        this.displayDeliveryPoints(deliveryPoints);
+        containerElement.style.display = 'block';
+        exportBtn.style.display = 'inline-block';
+
+        // 儲存資料供匯出使用
+        this.currentDeliveryPoints = deliveryPoints;
+        this.currentDeliveryDate = selectedDate;
+
+    } catch (error) {
+        loadingElement.style.display = 'none';
+        console.error('載入派車收送點資料失敗:', error);
+        this.showNotification('載入資料失敗，請稍後再試', 'error');
+    }
+}
+
+/**
+ * 顯示派車收送點資料
+ */
+displayDeliveryPoints(deliveryPoints) {
+    const tableBody = document.getElementById('deliveryPointsTableBody');
+    const totalElement = document.getElementById('totalDeliveryPoints');
+    const vehiclesElement = document.getElementById('uniqueVehicles');
+    const statusElement = document.getElementById('deliveryStatus');
+
+    // 清空表格
+    tableBody.innerHTML = '';
+
+    // 計算統計資料
+    const uniqueVehicles = [...new Set(deliveryPoints.map(point => point.vehicle))].length;
+    const statusCounts = deliveryPoints.reduce((acc, point) => {
+        acc[point.status] = (acc[point.status] || 0) + 1;
+        return acc;
+    }, {});
+
+    // 更新統計資料
+    totalElement.textContent = deliveryPoints.length;
+    vehiclesElement.textContent = uniqueVehicles;
+    statusElement.textContent = Object.keys(statusCounts).map(status => 
+        `${status}(${statusCounts[status]})`
+    ).join(', ');
+
+    // 填入表格資料
+    deliveryPoints.forEach(point => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${point.orderNumber || '-'}</td>
+            <td>${this.formatDate(point.orderDate) || '-'}</td>
+            <td>${point.vehicle || '-'}</td>
+            <td><span class="status-indicator status-${this.getStatusClass(point.status)}">${point.status || '-'}</span></td>
+            <td>${point.customerName || '-'}</td>
+            <td>${this.formatDate(point.pickupDate) || '-'}</td>
+            <td>${point.routePoints || '-'}</td>
+            <td>${point.deliveryPoint || '-'}</td>
+            <td>${point.productName || '-'}</td>
+            <td>${point.productPallet || '-'}</td>
+            <td>${point.carrierType || '-'}</td>
+            <td>${point.carrierName || '-'}</td>
+            <td>${point.quantity || '-'}</td>
+            <td>${point.pieces || '-'}</td>
+            <td>${point.piecesPerPallet || '-'}</td>
+            <td>${point.position || '-'}</td>
+            <td>${point.changeReason || '-'}</td>
+            <td>${point.remarks || '-'}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+/**
+ * 獲取狀態樣式類別
+ */
+getStatusClass(status) {
+    const statusMap = {
+        '已完成': 'completed',
+        '配送中': 'processing',
+        '待配送': 'pending',
+        '已取消': 'cancelled'
+    };
+    return statusMap[status] || 'pending';
+}
+
+/**
+ * 匯出派車收送點資料
+ */
+exportDeliveryPoints() {
+    if (!this.currentDeliveryPoints || this.currentDeliveryPoints.length === 0) {
+        this.showNotification('沒有資料可匯出', 'warning');
+        return;
+    }
+
+    try {
+        const headers = [
+            '配送單號', '下單日期', '配送車輛', '配送狀態', '客戶簡稱', '取貨日期',
+            '起點/迄點', '配送點簡稱', '商品簡稱', '商品棧板', '載具類型', '載具/棧板名稱',
+            '入數', '件數', '單板件數', '板位', '變更數值原因', '備註'
+        ];
+
+        const csvData = [headers];
+        
+        this.currentDeliveryPoints.forEach(point => {
+            csvData.push([
+                point.orderNumber || '',
+                this.formatDate(point.orderDate) || '',
+                point.vehicle || '',
+                point.status || '',
+                point.customerName || '',
+                this.formatDate(point.pickupDate) || '',
+                point.routePoints || '',
+                point.deliveryPoint || '',
+                point.productName || '',
+                point.productPallet || '',
+                point.carrierType || '',
+                point.carrierName || '',
+                point.quantity || '',
+                point.pieces || '',
+                point.piecesPerPallet || '',
+                point.position || '',
+                point.changeReason || '',
+                point.remarks || ''
+            ]);
+        });
+
+        const csvContent = csvData.map(row => 
+            row.map(cell => `"${cell}"`).join(',')
+        ).join('\n');
+
+        const blob = new Blob(['\uFEFF' + csvContent], { 
+            type: 'text/csv;charset=utf-8;' 
+        });
+        
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `派車收送點清單_${this.currentDeliveryDate}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        this.showNotification('資料匯出成功', 'success');
+    } catch (error) {
+        console.error('匯出失敗:', error);
+        this.showNotification('匯出失敗', 'error');
+    }
+}
+
+/**
+ * 獲取模擬派車收送點資料
+ */
+getMockDeliveryPoints(selectedDate) {
+    const mockData = [
+        {
+            orderNumber: 'ORD001',
+            orderDate: selectedDate,
+            vehicle: 'V001',
+            status: '已完成',
+            customerName: '台北商行',
+            pickupDate: selectedDate,
+            routePoints: '台北車站→信義區',
+            deliveryPoint: '信義威秀',
+            productName: '電子產品',
+            productPallet: 'P001',
+            carrierType: '棧板',
+            carrierName: '標準棧板',
+            quantity: '100',
+            pieces: '5',
+            piecesPerPallet: '20',
+            position: 'A1',
+            changeReason: '',
+            remarks: '準時送達'
+        },
+        {
+            orderNumber: 'ORD002',
+            orderDate: selectedDate,
+            vehicle: 'V002',
+            status: '配送中',
+            customerName: '新北物流',
+            pickupDate: selectedDate,
+            routePoints: '板橋→淡水',
+            deliveryPoint: '淡水漁人碼頭',
+            productName: '生鮮食品',
+            productPallet: 'P002',
+            carrierType: '冷藏箱',
+            carrierName: '保溫箱',
+            quantity: '50',
+            pieces: '3',
+            piecesPerPallet: '17',
+            position: 'B2',
+            changeReason: '',
+            remarks: '需冷藏運送'
+        }
+    ];
+
+    return mockData;
+}
+
+/**
+ * 初始化派車收送點功能
+ */
+initializeDeliveryPointsFeature() {
+    // 設定今天為預設日期
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('deliveryDatePicker').value = today;
+
+    // 綁定事件監聽器
+    document.getElementById('loadDeliveryPoints').addEventListener('click', () => {
+        const selectedDate = document.getElementById('deliveryDatePicker').value;
+        if (!selectedDate) {
+            this.showNotification('請選擇日期', 'warning');
+            return;
+        }
+        this.loadDeliveryPointsByDate(selectedDate);
+    });
+
+    document.getElementById('exportDeliveryPoints').addEventListener('click', () => {
+        this.exportDeliveryPoints();
+    });
+
+    // 日期變更時自動查詢
+    document.getElementById('deliveryDatePicker').addEventListener('change', () => {
+        const selectedDate = document.getElementById('deliveryDatePicker').value;
+        if (selectedDate) {
+            this.loadDeliveryPointsByDate(selectedDate);
+        }
+    });
+}
+
 
             // 更新連線狀態指示器
             updateConnectionStatus(status, text) {
