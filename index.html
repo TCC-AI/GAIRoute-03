@@ -1145,6 +1145,36 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+.table-container {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #f5f5f5;
+  cursor: pointer;
+}
+
+#table-content {
+  max-height: 500px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+}
+
+#table-content.collapsed {
+  max-height: 0;
+  overflow: hidden;
+}
+
+#delivery-points-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
     </style>
 </head>
@@ -1546,16 +1576,19 @@
                     <h2><i class="fas fa-brain"></i> AI路線優化</h2>
                 </div>
                    <!-- 新增：派車收送點清單區塊 -->
-    <div class="delivery-points-container card">
-        <div class="card-header">
-            <h3>派車收送點清單</h3>
-            <div class="date-selector">
-                <input type="date" id="deliveryPointsDate" class="form-input">
-                <button class="btn btn-primary" id="loadDeliveryPoints">
-                    <i class="fas fa-search"></i> 查詢
-                </button>
-            </div>
-        </div>
+   <div class="table-container">
+  <div class="table-header" onclick="toggleTable()">
+    <h3>派車收送點清單 <span id="record-count">(0筆)</span></h3>
+    <button id="toggle-btn">展開 ▼</button>
+  </div>
+  
+  <div id="table-content" class="collapsed">
+    <table id="delivery-points-table">
+      <!-- 表格內容 -->
+    </table>
+  </div>
+</div>
+
         <div class="card-body">
             <div id="deliveryPointsLoading" class="loading-indicator" style="display: none;">
                 <div class="spinner"></div>
@@ -4824,6 +4857,25 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             }
         };
+
+        function toggleTable() {
+  const content = document.getElementById('table-content');
+  const btn = document.getElementById('toggle-btn');
+  
+  if (content.classList.contains('collapsed')) {
+    content.classList.remove('collapsed');
+    btn.textContent = '收折 ▲';
+  } else {
+    content.classList.add('collapsed');
+    btn.textContent = '展開 ▼';
+  }
+}
+
+// 在資料載入後更新記錄數量
+function updateRecordCount(count) {
+  document.getElementById('record-count').textContent = `(${count}筆)`;
+}
+
 
         // 定期監控記憶體使用
         setInterval(() => {
