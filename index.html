@@ -1145,6 +1145,51 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+/* 添加到您現有的CSS中 */
+.delivery-points-container {
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+#deliveryPointsTableContainer {
+    overflow-x: auto;
+    max-height: none; /* 移除固定高度限制 */
+}
+
+.expandable-table-container {
+    position: relative;
+}
+
+.table-expander {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    background-color: #f5f5f5;
+    cursor: pointer;
+    border-top: 1px solid #e0e0e0;
+    font-weight: 500;
+}
+
+.table-expander:hover {
+    background-color: #e0e0e0;
+}
+
+.hidden-rows {
+    display: none;
+}
+
+.hidden-rows.expanded {
+    display: table-row-group;
+}
+
+/* 確保每行高度足夠顯示內容 */
+#deliveryPointsTable td {
+    padding: 10px 12px;
+    height: auto;
+    white-space: normal;
+    vertical-align: middle;
+}
 
     </style>
 </head>
@@ -1856,7 +1901,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbxufZCqAgjqelysnjw6J_rB9HxLA037wZ751fX0YsXIh_zwOFHrF4ogI4JxisgeRSdx/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwjyg-s29TKdWQ03l2BilVWNKyRgqwnD5wsuPqMj6wVhdNrAf5RXvlFGPsRSVcvRW4B/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -2564,7 +2609,7 @@
                     }
                 });
             }
-            // 初始化派車收送點清單
+// 初始化派車收送點清單
 initDeliveryPointsList() {
     // 設定今天日期為預設值
     const today = new Date();
@@ -2576,9 +2621,13 @@ initDeliveryPointsList() {
         this.loadDeliveryPointsByDate();
     });
     
+    // 綁定表格行切換函數到類實例
+    this.toggleTableRows = this.toggleTableRows.bind(this);
+    
     // 頁面載入時自動查詢當天資料
     this.loadDeliveryPointsByDate();
 }
+
 
 // 根據日期載入派車收送點清單
 async loadDeliveryPointsByDate() {
@@ -2618,7 +2667,7 @@ async loadDeliveryPointsByDate() {
     }
 }
 
-// 渲染派車收送點清單表格
+// 修改渲染派車收送點清單表格的函數
 renderDeliveryPointsTable(data) {
     const tableBody = document.getElementById('deliveryPointsTableBody');
     const tableContainer = document.getElementById('deliveryPointsTableContainer');
@@ -2632,28 +2681,83 @@ renderDeliveryPointsTable(data) {
         return;
     }
     
-    data.forEach(item => {
-        const row = document.createElement('tr');
-        
-        // 按照工作表的欄位順序建立表格單元格
-        [
-            'orderNumber', 'orderDate', 'vehicle', 'status', 'customerName', 
-            'pickupDate', 'route', 'deliveryPointName', 'productName', 
-            'productPallet', 'containerType', 'containerName', 'quantity', 
-            'packageCount', 'singlePalletCount', 'palletPosition', 
-            'changeReason', 'remarks'
-        ].forEach(field => {
-            const cell = document.createElement('td');
-            cell.textContent = item[field] || '';
-            row.appendChild(cell);
-        });
-        
+    // 顯示前3筆資料
+    const visibleData = data.slice(0, 3);
+    const hiddenData = data.slice(3);
+    
+    // 創建可見資料行
+    visibleData.forEach(item => {
+        const row = this.createTableRow(item);
         tableBody.appendChild(row);
     });
+    
+    // 處理剩餘資料
+    if (hiddenData.length > 0) {
+        // 創建隱藏資料的容器
+        const hiddenRows = document.createElement('tbody');
+        hiddenRows.id = 'hiddenDeliveryRows';
+        hiddenRows.className = 'hidden-rows';
+        
+        hiddenData.forEach(item => {
+            const row = this.createTableRow(item);
+            hiddenRows.appendChild(row);
+        });
+        
+        // 添加隱藏資料到表格
+        tableBody.parentNode.appendChild(hiddenRows);
+        
+        // 添加展開/收摺按鈕
+        const expanderRow = document.createElement('tr');
+        expanderRow.innerHTML = `<td colspan="18" class="table-expander" id="tableExpander">
+            顯示剩餘 ${hiddenData.length} 筆資料 <i class="fas fa-chevron-down"></i>
+        </td>`;
+        tableBody.appendChild(expanderRow);
+        
+        // 綁定展開/收摺事件
+        setTimeout(() => {
+            document.getElementById('tableExpander').addEventListener('click', this.toggleTableRows);
+        }, 0);
+    }
     
     tableContainer.style.display = 'block';
     emptyMessage.style.display = 'none';
 }
+
+// 創建表格行的輔助函數
+createTableRow(item) {
+    const row = document.createElement('tr');
+    
+    // 按照工作表的欄位順序建立表格單元格
+    [
+        'orderNumber', 'orderDate', 'vehicle', 'status', 'customerName', 
+        'pickupDate', 'route', 'deliveryPointName', 'productName', 
+        'productPallet', 'containerType', 'containerName', 'quantity', 
+        'packageCount', 'singlePalletCount', 'palletPosition', 
+        'changeReason', 'remarks'
+    ].forEach(field => {
+        const cell = document.createElement('td');
+        cell.textContent = item[field] || '';
+        row.appendChild(cell);
+    });
+    
+    return row;
+}
+
+
+// 切換表格行顯示/隱藏
+toggleTableRows() {
+    const hiddenRows = document.getElementById('hiddenDeliveryRows');
+    const expander = document.getElementById('tableExpander');
+    
+    if (hiddenRows.classList.contains('expanded')) {
+        hiddenRows.classList.remove('expanded');
+        expander.innerHTML = `顯示剩餘 ${hiddenRows.childElementCount} 筆資料 <i class="fas fa-chevron-down"></i>`;
+    } else {
+        hiddenRows.classList.add('expanded');
+        expander.innerHTML = `收起資料 <i class="fas fa-chevron-up"></i>`;
+    }
+}
+
 
 // 獲取模擬派車收送點清單資料
 getMockDeliveryPoints(date) {
