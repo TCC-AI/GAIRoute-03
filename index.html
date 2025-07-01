@@ -4681,7 +4681,30 @@ async function fetchDeliveryPoints() {
     app.hideLoading();
   }
 }
+// 新增一個去前導零的工具
+function removeLeadingZero(dateStr) {
+  return dateStr.replace(/\/0(\d)/g, '/$1');
+}
 
+// 篩選符合日期的資料列（比較下單日期）
+const filteredData = allData.slice(1).filter(row => {
+    const rowDate = row[orderDateColumnIndex];
+    let formattedRowDate = '';
+    if (rowDate instanceof Date) {
+        formattedRowDate = Utilities.formatDate(rowDate, 'GMT+8', 'yyyy/M/d');
+    } else if (typeof rowDate === 'string') {
+        try {
+            const parsedDate = new Date(rowDate);
+            formattedRowDate = Utilities.formatDate(parsedDate, 'GMT+8', 'yyyy/M/d');
+        } catch (e) {
+            formattedRowDate = rowDate.split(' ')[0];
+        }
+    }
+    // 這裡兩邊都去前導零
+    const isMatch = removeLeadingZero(formattedRowDate) === removeLeadingZero(date);
+    return isMatch;
+});
+        
 function renderDeliveryPointsTable(data) {
   const container = document.getElementById('deliveryPointsTableContainer');
   container.innerHTML = '';
