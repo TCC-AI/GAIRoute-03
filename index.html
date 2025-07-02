@@ -1731,41 +1731,58 @@
     </div>
 
     <script>
-function loadGoogleMapsAPI() {
-    return new Promise((resolve, reject) => {
-        if (window.google && window.google.maps) {
-            resolve();
-            return;
-        }
-        
-        if (mapsApiLoading) {
-            const checkLoaded = setInterval(() => {
-                if (window.google && window.google.maps) {
-                    clearInterval(checkLoaded);
-                    resolve();
-                }
-            }, 100);
-            return;
-        }
-        
-        mapsApiLoading = true;
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.MAPS_API_KEY}&libraries=places,geometry&region=TW&language=zh-TW&callback=initGoogleMaps`;
-        
-        window.initGoogleMaps = function() {
-            mapsApiLoaded = true;
-            mapsApiLoading = false;
-            resolve();
-        };
-        
-        script.onerror = () => {
-            mapsApiLoading = false;
-            reject(new Error('Google Maps API 載入失敗'));
-        };
-        
-        document.head.appendChild(script);
-    });
-}
+          // ==================== Google Maps API 動態載入 ====================
+    let mapsApiLoaded = false;
+    let mapsApiLoading = false;
+
+    function loadGoogleMapsAPI() {
+        return new Promise((resolve, reject) => {
+            // 檢查是否已載入
+            if (window.google && window.google.maps) {
+                mapsApiLoaded = true;
+                resolve();
+                return;
+            }
+            
+            // 檢查是否正在載入
+            if (mapsApiLoading) {
+                // 等待載入完成
+                const checkLoaded = setInterval(() => {
+                    if (mapsApiLoaded) {
+                        clearInterval(checkLoaded);
+                        resolve();
+                    }
+                }, 100);
+                return;
+            }
+            
+            mapsApiLoading = true;
+            
+            // 創建 script 標籤
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI&libraries=places,geometry&region=TW&language=zh-TW`;
+            script.async = true;
+            script.defer = true;
+            
+            // 設置全局回調函數
+            window.initGoogleMaps = function() {
+                mapsApiLoaded = true;
+                mapsApiLoading = false;
+                console.log('Google Maps API 載入完成');
+                resolve();
+            };
+            
+            script.src += '&callback=initGoogleMaps';
+            
+            script.onerror = function() {
+                mapsApiLoading = false;
+                console.error('Google Maps API 載入失敗');
+                reject(new Error('Google Maps API 載入失敗'));
+            };
+            
+            document.head.appendChild(script);
+        });
+    }
         // ===== JavaScript 代碼 =====
         
         // 全域變數
@@ -4171,30 +4188,21 @@ async function initMapsSystem() {
         // 全域應用程式實例
         let app;
 
+// 當 DOM 載入完成後初始化應用程式
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM 載入完成，開始初始化系統...');
     
     try {
-        // 初始化基本功能
+        // 1. 初始化基本功能
         app = new DispatchGAISystem();
         app.init();
         
-        // 綁定派車收送點相關事件
-        const fetchBtn = document.getElementById('fetchDeliveryPointsBtn');
-        if (fetchBtn) {
-            fetchBtn.addEventListener('click', fetchDeliveryPoints);
-        }
-        
-        const aiBtn = document.getElementById('ai-preplan-btn');
-        if (aiBtn) {
-            aiBtn.addEventListener('click', handleAIPreplan);
-        }
-        
-        // 延遲載入地圖功能
+        // 2. 延遲載入地圖功能 (避免阻塞主要功能)
         setTimeout(async () => {
             try {
-                await loadGoogleMapsAPI();
-                console.log('Google Maps API 載入完成');
+                if (typeof initMapsSystem === 'function') {
+                    await initMapsSystem();
+                }
             } catch (error) {
                 console.warn('地圖功能載入失敗，但不影響其他功能:', error);
             }
@@ -4209,7 +4217,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 });
-
 
 
         // 處理頁面卸載
@@ -4796,7 +4803,39 @@ function markdownToHtml(md) {
 }
 
 
+// 4. 綁定 AI預排按鈕
+document.getElementById('ai-preplan-btn').addEventListener('click', async function() {
+  const deliveryList = getDeliveryListFromTable();
+  if (!deliveryList.length) {
+    if (window.app && app.showNotification) app.showNotification('請先查詢並顯示收送點清單', 'warning');
+    else alert('請先查詢並顯示收送點清單');
+    return;
+  }
 
+  // 不再需要 prompt 輸入 API Key
+  const promptText = buildGAIPrompt(deliveryList);
+
+  // 顯示 loading
+  const resultDiv = document.getElementById('gai-route-result');
+  resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI 預排中...';
+
+  try {
+    // 呼叫你自己的 GAS API
+    const response = await fetch('https://script.google.com/macros/s/AKfycbzxzjHfQFBq09sXslGp8LWlbqOZcN2YrD5sN-KCdAEMVqKEia__qh6n7ddf1tPDbEJ8/exec', {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        action: "callOpenAI",
+        data: { prompt: promptText }
+      })
+    });
+    const data = await response.json();
+    const markdown = data.data?.markdown || "無法取得回應";
+    resultDiv.innerHTML = markdownToHtml(markdown);
+  } catch (e) {
+    resultDiv.innerHTML = '<span style="color:red;">AI 預排失敗，請檢查後端服務</span>';
+  }
+});
     </script>
 
    
