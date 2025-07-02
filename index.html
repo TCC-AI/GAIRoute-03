@@ -4677,6 +4677,13 @@ async function fetchDeliveryPoints() {
     return;
   }
   const date = formatDateForSheet(dateInput);
+// 1. 寫入指定日期
+  try {
+    await app.apiCall('setSpecifiedDate', { date });
+  } catch (e) {
+    app.showNotification('寫入指定日期失敗', 'error');
+    // return; // 若要強制中斷查詢可加這行
+  }
 
   // 呼叫 GAS API
   app.showLoading();
