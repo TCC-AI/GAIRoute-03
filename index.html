@@ -4847,44 +4847,7 @@ function markdownToHtml(md) {
   return md;
 }
 
-// 4. 綁定 AI預排按鈕
-document.getElementById('ai-preplan-btn').addEventListener('click', async function() {
-  const deliveryList = getDeliveryListFromTable();
-  if (!deliveryList.length) {
-    if (window.app && app.showNotification) app.showNotification('請先查詢並顯示收送點清單', 'warning');
-    else alert('請先查詢並顯示收送點清單');
-    return;
-  }
-  const apiKey = prompt('請輸入你的 OpenAI API Key');
-  if (!apiKey) return;
 
-  const promptText = buildGAIPrompt(deliveryList);
-
-  // 顯示 loading
-  const resultDiv = document.getElementById('gai-route-result');
-  resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI 預排中...';
-
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{role: "user", content: promptText}],
-        temperature: 0.7
-      })
-    });
-    const data = await response.json();
-    const markdown = data.choices?.[0]?.message?.content || "無法取得回應";
-    // 轉換 markdown 為 HTML
-    resultDiv.innerHTML = markdownToHtml(markdown);
-  } catch (e) {
-    resultDiv.innerHTML = '<span style="color:red;">AI 預排失敗，請檢查 API Key 或網路連線</span>';
-  }
-});
 // 4. 綁定 AI預排按鈕
 document.getElementById('ai-preplan-btn').addEventListener('click', async function() {
   const deliveryList = getDeliveryListFromTable();
