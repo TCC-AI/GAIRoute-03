@@ -4754,52 +4754,7 @@ function renderDeliveryPointsTable(data) {
     toggleBtn.style.display = 'none';
   }
 }
-        // ===== GAI預排路線功能區塊 =====
 
-// 1. 取得收送點清單資料（從表格抓取）
-function getDeliveryListFromTable() {
-  const table = document.querySelector('#deliveryPointsTableContainer table');
-  if (!table) return [];
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-  const rows = Array.from(table.querySelectorAll('tbody tr'));
-  return rows.map(tr => {
-    const cells = Array.from(tr.querySelectorAll('td'));
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = cells[i]?.textContent.trim() || '');
-    return obj;
-  });
-}
-
-// 2. 組合 prompt
-function buildGAIPrompt(deliveryList) {
-  let prompt = `請依據以下收送點清單，依照「北、中、南、東」分區，並依據每個地點的板數，規劃明天的派車路線（每條路線請標示路線名稱、起點、各收送點及板數，格式如下）：
-路線名稱 起點 第一收送點(板數) 第二收送點(板數) ...
-收送點清單：\n`;
-  deliveryList.forEach(item => {
-    // 根據你的表格欄位名稱調整
-    const name = item['收送點'] || item['地址'] || item['地點'] || item['名稱'] || '';
-    const area = item['區域'] || item['分區'] || '';
-    const pallet = item['板數'] || item['板數量'] || item['板'] || '';
-    if (name) prompt += `${name}（${area}區，${pallet}板）\n`;
-  });
-  prompt += "\n請用 markdown 格式回覆，並分區顯示，每區多條路線，路線可用 <details> 收折。";
-  return prompt;
-}
-
-// 3. 簡易 markdown 轉 HTML（支援 <details>）
-function markdownToHtml(md) {
-  // 支援 <details> 標籤
-  md = md.replace(/<details>/g, '<details style="margin-bottom:1em;">');
-  // 粗體
-  md = md.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-  // 標題
-  md = md.replace(/^### (.*)$/gm, '<h3>$1</h3>');
-  md = md.replace(/^## (.*)$/gm, '<h2>$1</h2>');
-  md = md.replace(/^# (.*)$/gm, '<h1>$1</h1>');
-  // 換行
-  md = md.replace(/\n/g, '<br>');
-  return md;
-}
 // ===== GAI預排路線功能區塊 =====
 
 // 1. 取得收送點清單資料（從表格抓取）
