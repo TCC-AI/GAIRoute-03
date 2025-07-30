@@ -5680,10 +5680,120 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('最後更新: 2025-06-27');
 
         // 工具：將 yyyy-mm-dd 轉 yyyy/MM/dd
+// ===== 工具函數 =====
 function formatDateForSheet(dateStr) {
   if (!dateStr) return '';
   return dateStr.replace(/-/g, '/');
 }
+
+function removeLeadingZero(dateStr) {
+  return dateStr.replace(/\/0(\d)/g, '/$1');
+}
+
+function getDeliveryListFromTable() {
+  const table = document.querySelector('#deliveryPointsTableContainer table');
+  if (!table) return [];
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  return rows.map(tr => {
+    const cells = Array.from(tr.querySelectorAll('td'));
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = cells[i]?.textContent.trim() || '');
+    return obj;
+  });
+}
+
+function renderDeliveryPointsTable(data) {
+  const container = document.getElementById('deliveryPointsTableContainer');
+  container.innerHTML = '';
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div style="color: #888;">查無資料</div>';
+    document.getElementById('toggleDeliveryPoints').style.display = 'none';
+    return;
+  }
+
+  const headers = Object.keys(data[0]);
+  let table = '<table class="data-table"><thead><tr>';
+  headers.forEach(h => table += `<th>${h}</th>`);
+  table += '</tr></thead><tbody>';
+
+  data.forEach((row, idx) => {
+    table += `<tr class="delivery-row${idx > 2 ? ' collapsed' : ''}">`;
+    headers.forEach(h => table += `<td>${row[h] || ''}</td>`);
+    table += '</tr>';
+  });
+  table += '</tbody></table>';
+  container.innerHTML = table;
+
+  const toggleBtn = document.getElementById('toggleDeliveryPoints');
+  if (data.length > 3) {
+    toggleBtn.style.display = 'inline-block';
+    toggleBtn.textContent = '展開更多';
+    toggleBtn.onclick = function() {
+      const collapsedRows = container.querySelectorAll('.collapsed');
+      const isCollapsed = collapsedRows[0] && collapsedRows[0].style.display !== '';
+      collapsedRows.forEach(row => row.style.display = isCollapsed ? '' : 'none');
+      toggleBtn.textContent = isCollapsed ? '收摺' : '展開更多';
+    };
+    container.querySelectorAll('.collapsed').forEach(row => row.style.display = 'none');
+  } else {
+    toggleBtn.style.display = 'none';
+  }
+}
+
+function convertToMarkdownTable(data) {
+  if (!data || data.length === 0) {
+    return '<p style="color: #64748b; text-align: center; padding: 2rem;">暫無派車資料</p>';
+  }
+
+  const headers = Object.keys(data[0]);
+  let html = '<table class="data-table" style="width: 100%; border-collapse: collapse;">';
+  
+  html += '<thead><tr>';
+  headers.forEach(header => {
+    html += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc; font-weight: 600;">${header}</th>`;
+  });
+  html += '</tr></thead>';
+  
+  html += '<tbody>';
+  data.forEach((row, index) => {
+    html += `<tr style="${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
+    headers.forEach(header => {
+      let value = row[header] || '';
+      if (header === '優先級') {
+        const colorClass = value === '高' ? 'color: #dc2626; font-weight: 600;' : 
+                         value === '中' ? 'color: #d97706; font-weight: 600;' : 
+                         'color: #059669; font-weight: 600;';
+        html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; ${colorClass}">${value}</td>`;
+      } else {
+        html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0;">${value}</td>`;
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+
+  return html;
+}
+
+function exportDispatchTable() {
+  if (window.app && app.showNotification) {
+    app.showNotification('匯出功能開發中...', 'info');
+  } else {
+    alert('匯出功能開發中...');
+  }
+}
+
+function refreshDispatchTable() {
+  if (window.app && app.handleAIPreplan) {
+    app.handleAIPreplan();
+  }
+}
+
+// 確保全域函數可用
+window.exportDispatchTable = exportDispatchTable;
+window.refreshDispatchTable = refreshDispatchTable;
+
 
 // 綁定事件
 document.getElementById('fetchDeliveryPointsBtn').addEventListener('click', fetchDeliveryPoints);
