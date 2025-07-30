@@ -2888,9 +2888,11 @@ document.getElementById('ai-preplan-btn')?.addEventListener('click', async () =>
 });
 
 // 派車收送點查詢按鈕
+// 派車收送點查詢按鈕
 document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', async () => {
-    await this.fetchDeliveryPoints();
+    await this.fetchAndProcessDeliveryPoints();
 });
+
 
 
                 document.getElementById('startOptimization')?.addEventListener('click', () => {
@@ -3082,6 +3084,7 @@ async fetchDeliveryPoints() {
     }
 }
 // 新增：獲取並處理派車收送點
+// 新增：獲取並處理派車收送點
 async fetchAndProcessDeliveryPoints() {
     const dateInput = document.getElementById('deliveryDatePicker').value;
     if (!dateInput) {
@@ -3094,12 +3097,15 @@ async fetchAndProcessDeliveryPoints() {
     this.showLoading();
     try {
         // 步驟1: 寫入指定日期到外部Google Sheet
+        console.log('步驟1: 寫入指定日期到外部Sheet');
         await this.writeToExternalSheet(date);
         
         // 步驟2: 啟動外部Apps Script的autoCompleteProcess函數
+        console.log('步驟2: 啟動autoCompleteProcess函數');
         await this.triggerAutoCompleteProcess();
         
         // 步驟3: 獲取託收託運回報_篩選工作表資料
+        console.log('步驟3: 獲取篩選資料');
         const data = await this.getFilteredDeliveryData();
         
         // 顯示資料
@@ -3114,9 +3120,11 @@ async fetchAndProcessDeliveryPoints() {
     }
 }
 
+
 // 新增：寫入日期到外部Google Sheet
 async writeToExternalSheet(date) {
     try {
+        console.log('呼叫外部API寫入日期:', date);
         const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
             method: 'POST',
             headers: {
@@ -3129,11 +3137,12 @@ async writeToExternalSheet(date) {
         });
 
         const result = await response.json();
+        console.log('外部API回應:', result);
+        
         if (!result.success) {
             throw new Error(result.error || '寫入指定日期失敗');
         }
         
-        console.log('指定日期寫入成功:', result);
         return result;
         
     } catch (error) {
@@ -3145,6 +3154,7 @@ async writeToExternalSheet(date) {
 // 新增：觸發外部Apps Script的autoCompleteProcess函數
 async triggerAutoCompleteProcess() {
     try {
+        console.log('呼叫外部API觸發autoCompleteProcess');
         const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
             method: 'POST',
             headers: {
@@ -3157,11 +3167,12 @@ async triggerAutoCompleteProcess() {
         });
 
         const result = await response.json();
+        console.log('autoCompleteProcess回應:', result);
+        
         if (!result.success) {
             throw new Error(result.error || 'autoCompleteProcess執行失敗');
         }
         
-        console.log('autoCompleteProcess執行成功:', result);
         return result;
         
     } catch (error) {
@@ -3173,6 +3184,7 @@ async triggerAutoCompleteProcess() {
 // 新增：獲取託收託運回報_篩選工作表資料
 async getFilteredDeliveryData() {
     try {
+        console.log('呼叫外部API獲取篩選資料');
         const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
             method: 'POST',
             headers: {
@@ -3185,11 +3197,12 @@ async getFilteredDeliveryData() {
         });
 
         const result = await response.json();
+        console.log('獲取篩選資料回應:', result);
+        
         if (!result.success) {
             throw new Error(result.error || '獲取篩選資料失敗');
         }
         
-        console.log('獲取篩選資料成功:', result.data);
         return result.data || [];
         
     } catch (error) {
@@ -3197,6 +3210,7 @@ async getFilteredDeliveryData() {
         throw new Error(`獲取篩選資料失敗: ${error.message}`);
     }
 }
+
 
 // 處理AI預排
 async handleAIPreplan() {
