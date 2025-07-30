@@ -5688,6 +5688,7 @@ function formatDateForSheet(dateStr) {
 // 綁定事件
 document.getElementById('fetchDeliveryPointsBtn').addEventListener('click', fetchDeliveryPoints);
 
+// 修正 fetchDeliveryPoints 函數
 async function fetchDeliveryPoints() {
   const dateInput = document.getElementById('deliveryDatePicker').value;
   if (!dateInput) {
@@ -5695,25 +5696,21 @@ async function fetchDeliveryPoints() {
     return;
   }
   const date = formatDateForSheet(dateInput);
-// 1. 寫入指定日期
-  try {
-    await app.apiCall('setSpecifiedDate', { date });
-  } catch (e) {
-    app.showNotification('寫入指定日期失敗', 'error');
-    // return; // 若要強制中斷查詢可加這行
-  }
 
-  // 呼叫 GAS API
+  // 使用統一的 API 調用方式
   app.showLoading();
   try {
     const data = await app.apiCall('getDeliveryPoints', { date });
     renderDeliveryPointsTable(data);
+    app.showNotification(`載入 ${data.length} 筆收送點資料`, 'success');
   } catch (e) {
+    console.error('資料載入失敗:', e);
     app.showNotification('資料載入失敗', 'error');
   } finally {
     app.hideLoading();
   }
 }
+
 // 新增一個去前導零的工具
 function removeLeadingZero(dateStr) {
   return dateStr.replace(/\/0(\d)/g, '/$1');
@@ -5829,6 +5826,7 @@ function markdownToHtml(md) {
 
 
 // 4. 綁定 AI預排按鈕 - 修改後的版本
+// 修正後的事件監聽器
 document.getElementById('ai-preplan-btn').addEventListener('click', async function() {
   const deliveryList = getDeliveryListFromTable();
   if (!deliveryList.length) {
@@ -5837,13 +5835,12 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
     return;
   }
 
-  // 顯示 loading
   const resultDiv = document.getElementById('gai-route-result');
   resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入明日建議派車表...';
 
   try {
-    // 呼叫後端API獲取明日建議派車表
-    const response = await fetch('https://script.google.com/macros/s/AKfycbxH0p4bVcrm89-uXGQVYTNcOznt3xpnicDovrCwbOi89pZan54iCqUPU064iJIEee0Q/exec', {
+    // 使用 CONFIG 中定義的 URL
+    const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({
@@ -5855,7 +5852,6 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
     const result = await response.json();
     
     if (result.success && result.data) {
-      // 將資料轉換為Markdown表格格式並顯示
       const markdownTable = convertToMarkdownTable(result.data);
       resultDiv.innerHTML = `
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #f8f9fa; margin-top: 1rem;">
@@ -5895,6 +5891,7 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
     `;
   }
 });
+
 
 // 轉換資料為Markdown表格格式
 function convertToMarkdownTable(data) {
