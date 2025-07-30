@@ -2209,13 +2209,10 @@
     }
         // ===== JavaScript 代碼 =====
         
- // ==================== 全域變數 ====================
+        // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbzxP9FO0e4eVRP9WhxQ4vWRB9TsGb-De6iom9_B3j_GX9OHgY1QVMVYxBVpmdHfgC1t/exec',
-            // 新增外部APPS SCRIPT配置
-            EXTERNAL_SHEET_ID: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE',
-            EXTERNAL_GAS_URL: 'https://script.google.com/macros/s/AKfycbyLMLKqaGsMoDg1RyBFujjS7vS00BAY0H71QzW753RJDxg4bW7PMhEW7jeOqEU11V6hng/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbxH0p4bVcrm89-uXGQVYTNcOznt3xpnicDovrCwbOi89pZan54iCqUPU064iJIEee0Q/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -2993,386 +2990,6 @@ document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', asy
                     elements.loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登入';
                 }
             }
-            // 修改獲取派車收送點清單方法
-            async fetchDeliveryPoints() {
-                const dateInput = document.getElementById('deliveryDatePicker').value;
-                if (!dateInput) {
-                    this.showNotification('請選擇日期', 'warning');
-                    return;
-                }
-                
-                const date = this.formatDateForSheet(dateInput);
-                
-                this.showLoading();
-                try {
-                    // 步驟1: 寫入指定日期到外部Google Sheet
-                    await this.writeSpecifiedDateToExternalSheet(date);
-                    
-                    // 步驟2: 啟動外部APPS SCRIPT的autoCompleteProcess函數
-                    await this.triggerAutoCompleteProcess();
-                    
-                    // 步驟3: 獲取託收託運回報_篩選工作表的資料
-                    const data = await this.getFilteredDeliveryData();
-                    
-                    // 步驟4: 顯示資料
-                    this.renderDeliveryPointsTable(data);
-                    this.showNotification(`載入 ${data.length} 筆收送點資料`, 'success');
-                    
-                } catch (e) {
-                    console.error('資料載入失敗:', e);
-                    this.showNotification(`資料載入失敗: ${e.message}`, 'error');
-                } finally {
-                    this.hideLoading();
-                }
-            }
-
-            // 新增: 寫入指定日期到外部Google Sheet
-            async writeSpecifiedDateToExternalSheet(date) {
-                try {
-                    const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain',
-                        },
-                        body: JSON.stringify({
-                            action: 'writeSpecifiedDate',
-                            data: { date: date }
-                        }),
-                        mode: 'cors',
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    
-                    if (!result.success) {
-                        throw new Error(result.error || '寫入指定日期失敗');
-                    }
-
-                    console.log('指定日期寫入成功:', result);
-                    return result.data;
-                    
-                } catch (error) {
-                    console.error('寫入指定日期失敗:', error);
-                    throw new Error(`寫入指定日期失敗: ${error.message}`);
-                }
-            }
-
-            // 新增: 啟動外部APPS SCRIPT的autoCompleteProcess函數
-            async triggerAutoCompleteProcess() {
-                try {
-                    const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain',
-                        },
-                        body: JSON.stringify({
-                            action: 'autoCompleteProcess',
-                            data: {}
-                        }),
-                        mode: 'cors',
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    
-                    if (!result.success) {
-                        throw new Error(result.error || '啟動自動完成處理失敗');
-                    }
-
-                    console.log('自動完成處理啟動成功:', result);
-                    return result.data;
-                    
-                } catch (error) {
-                    console.error('啟動自動完成處理失敗:', error);
-                    throw new Error(`啟動自動完成處理失敗: ${error.message}`);
-                }
-            }
-
-            // 新增: 獲取託收託運回報_篩選工作表的資料
-            async getFilteredDeliveryData() {
-                try {
-                    const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain',
-                        },
-                        body: JSON.stringify({
-                            action: 'getFilteredDeliveryData',
-                            data: {}
-                        }),
-                        mode: 'cors',
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    
-                    if (!result.success) {
-                        throw new Error(result.error || '獲取篩選資料失敗');
-                    }
-
-                    console.log('篩選資料獲取成功:', result);
-                    return result.data || [];
-                    
-                } catch (error) {
-                    console.error('獲取篩選資料失敗:', error);
-                    throw new Error(`獲取篩選資料失敗: ${error.message}`);
-                }
-            }
-
-            // 修改AI預排處理方法
-            async handleAIPreplan() {
-                const deliveryList = this.getDeliveryListFromTable();
-                if (!deliveryList.length) {
-                    this.showNotification('請先查詢並顯示收送點清單', 'warning');
-                    return;
-                }
-
-                // 顯示 loading
-                const resultDiv = document.getElementById('gai-route-result');
-                resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入明日建議派車表...';
-
-                try {
-                    // 呼叫外部APPS SCRIPT獲取明日建議派車表
-                    const result = await this.getTomorrowDispatchTableFromExternal();
-                    
-                    if (result && result.length > 0) {
-                        // 將資料轉換為表格格式並顯示
-                        const tableHtml = this.convertToDispatchTable(result);
-                        resultDiv.innerHTML = `
-                            <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #f8f9fa; margin-top: 1rem;">
-                                <h4 style="margin-bottom: 1rem; color: #2563eb;">
-                                    <i class="fas fa-calendar-day"></i> 明日建議派車表
-                                </h4>
-                                <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">
-                                    資料更新時間: ${new Date().toLocaleString('zh-TW')}
-                                </div>
-                                <div class="markdown-content" style="overflow-x: auto;">
-                                    ${tableHtml}
-                                </div>
-                                <div style="margin-top: 1rem; text-align: right;">
-                                    <button class="btn btn-primary btn-sm" onclick="app.exportDispatchTable()">
-                                        <i class="fas fa-download"></i> 匯出表格
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="app.refreshDispatchTable()" style="margin-left: 0.5rem;">
-                                        <i class="fas fa-sync-alt"></i> 重新整理
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        
-                        this.showNotification('明日建議派車表載入完成', 'success');
-                    } else {
-                        throw new Error('無法取得派車表資料');
-                    }
-                } catch (e) {
-                    console.error('載入派車表失敗:', e);
-                    resultDiv.innerHTML = `
-                        <div style="color: #dc2626; padding: 1rem; border: 1px solid #fecaca; border-radius: 4px; background: #fef2f2;">
-                            <i class="fas fa-exclamation-triangle"></i> 載入失敗: ${e.message}
-                            <br><small>請檢查網路連線或聯絡系統管理員</small>
-                        </div>
-                    `;
-                }
-            }
-
-            // 新增: 從外部APPS SCRIPT獲取明日建議派車表
-            async getTomorrowDispatchTableFromExternal() {
-                try {
-                    const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain',
-                        },
-                        body: JSON.stringify({
-                            action: 'getTomorrowDispatchTable',
-                            data: {}
-                        }),
-                        mode: 'cors',
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    
-                    if (!result.success) {
-                        throw new Error(result.error || '獲取派車表失敗');
-                    }
-
-                    return result.data || [];
-                    
-                } catch (error) {
-                    console.error('獲取派車表失敗:', error);
-                    throw new Error(`獲取派車表失敗: ${error.message}`);
-                }
-            }
-
-            // 工具方法保持不變
-            formatDateForSheet(dateStr) {
-                if (!dateStr) return '';
-                return dateStr.replace(/-/g, '/');
-            }
-
-            getDeliveryListFromTable() {
-                const table = document.querySelector('#deliveryPointsTableContainer table');
-                if (!table) return [];
-                
-                const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-                const rows = Array.from(table.querySelectorAll('tbody tr'));
-                
-                return rows.map(tr => {
-                    const cells = Array.from(tr.querySelectorAll('td'));
-                    const obj = {};
-                    headers.forEach((h, i) => obj[h] = cells[i]?.textContent.trim() || '');
-                    return obj;
-                });
-            }
-
-            renderDeliveryPointsTable(data) {
-                const container = document.getElementById('deliveryPointsTableContainer');
-                container.innerHTML = '';
-                
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<div style="color: #888;">查無資料</div>';
-                    document.getElementById('toggleDeliveryPoints').style.display = 'none';
-                    return;
-                }
-
-                // 產生表頭
-                const headers = Object.keys(data[0]);
-                let table = '<table class="data-table"><thead><tr>';
-                headers.forEach(h => table += `<th>${h}</th>`);
-                table += '</tr></thead><tbody>';
-
-                // 產生資料列
-                data.forEach((row, idx) => {
-                    table += `<tr class="delivery-row${idx > 2 ? ' collapsed' : ''}">`;
-                    headers.forEach(h => table += `<td>${row[h] || ''}</td>`);
-                    table += '</tr>';
-                });
-                table += '</tbody></table>';
-                container.innerHTML = table;
-
-                // 控制展開/收摺
-                const toggleBtn = document.getElementById('toggleDeliveryPoints');
-                if (data.length > 3) {
-                    toggleBtn.style.display = 'inline-block';
-                    toggleBtn.textContent = '展開更多';
-                    toggleBtn.onclick = function() {
-                        const collapsedRows = container.querySelectorAll('.collapsed');
-                        const isCollapsed = collapsedRows[0] && collapsedRows[0].style.display !== '';
-                        collapsedRows.forEach(row => row.style.display = isCollapsed ? '' : 'none');
-                        toggleBtn.textContent = isCollapsed ? '收摺' : '展開更多';
-                    };
-                    // 預設收摺
-                    container.querySelectorAll('.collapsed').forEach(row => row.style.display = 'none');
-                } else {
-                    toggleBtn.style.display = 'none';
-                }
-            }
-
-            convertToDispatchTable(data) {
-                if (!data || data.length === 0) {
-                    return '<p style="color: #64748b; text-align: center; padding: 2rem;">暫無派車資料</p>';
-                }
-
-                const headers = Object.keys(data[0]);
-                
-                let html = '<table class="data-table" style="width: 100%; border-collapse: collapse;">';
-                
-                // 表頭
-                html += '<thead><tr>';
-                headers.forEach(header => {
-                    html += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc; font-weight: 600;">${header}</th>`;
-                });
-                html += '</tr></thead>';
-                
-                // 表格內容
-                html += '<tbody>';
-                data.forEach((row, index) => {
-                    html += `<tr style="${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
-                    headers.forEach(header => {
-                        let value = row[header] || '';
-                        // 處理優先級顏色
-                        if (header === '優先級') {
-                            const colorClass = value === '高' ? 'color: #dc2626; font-weight: 600;' : 
-                                             value === '中' ? 'color: #d97706; font-weight: 600;' : 
-                                             'color: #059669; font-weight: 600;';
-                            html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; ${colorClass}">${value}</td>`;
-                        } else {
-                            html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0;">${value}</td>`;
-                        }
-                    });
-                    html += '</tr>';
-                });
-                html += '</tbody></table>';
-
-                return html;
-            }
-
-            // 匯出派車表功能
-            exportDispatchTable() {
-                this.showNotification('匯出功能開發中...', 'info');
-            }
-
-            // 重新整理派車表
-            refreshDispatchTable() {
-                this.handleAIPreplan();
-            }
-
-            // ... 保持其他所有原有方法不變 ...
-        }
-
-        // ==================== 事件綁定 ====================
-        // 保持原有的所有事件綁定代碼，但修改派車收送點查詢按鈕事件
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOM 載入完成，開始初始化系統...');
-            
-            try {
-                // 1. 初始化基本功能
-                app = new DispatchGAISystem();
-                app.init();
-                
-                // 2. 綁定派車收送點查詢按鈕事件
-                document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', async () => {
-                    await app.fetchDeliveryPoints();
-                });
-
-                // 3. 綁定AI預排按鈕事件
-                document.getElementById('ai-preplan-btn')?.addEventListener('click', async () => {
-                    await app.handleAIPreplan();
-                });
-                
-                // 4. 延遲載入地圖功能 (避免阻塞主要功能)
-                setTimeout(async () => {
-                    try {
-                        if (typeof initMapsSystem === 'function') {
-                            await initMapsSystem();
-                        }
-                    } catch (error) {
-                        console.warn('地圖功能載入失敗，但不影響其他功能:', error);
-                    }
-                }, 2000);
-                
-                console.log('系統初始化完成');
-                
-            } catch (error) {
-                console.error('系統初始化失敗:', error);
-                if (app) {
-                    app.showNotification('系統初始化失敗，請重新整理頁面', 'error');
-                }
-            }
-        });
 
             // 驗證使用者
             async authenticateUser(username, password) {
@@ -5680,125 +5297,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('最後更新: 2025-06-27');
 
         // 工具：將 yyyy-mm-dd 轉 yyyy/MM/dd
-// ===== 工具函數 =====
 function formatDateForSheet(dateStr) {
   if (!dateStr) return '';
   return dateStr.replace(/-/g, '/');
 }
 
-function removeLeadingZero(dateStr) {
-  return dateStr.replace(/\/0(\d)/g, '/$1');
-}
-
-function getDeliveryListFromTable() {
-  const table = document.querySelector('#deliveryPointsTableContainer table');
-  if (!table) return [];
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-  const rows = Array.from(table.querySelectorAll('tbody tr'));
-  return rows.map(tr => {
-    const cells = Array.from(tr.querySelectorAll('td'));
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = cells[i]?.textContent.trim() || '');
-    return obj;
-  });
-}
-
-function renderDeliveryPointsTable(data) {
-  const container = document.getElementById('deliveryPointsTableContainer');
-  container.innerHTML = '';
-  if (!data || data.length === 0) {
-    container.innerHTML = '<div style="color: #888;">查無資料</div>';
-    document.getElementById('toggleDeliveryPoints').style.display = 'none';
-    return;
-  }
-
-  const headers = Object.keys(data[0]);
-  let table = '<table class="data-table"><thead><tr>';
-  headers.forEach(h => table += `<th>${h}</th>`);
-  table += '</tr></thead><tbody>';
-
-  data.forEach((row, idx) => {
-    table += `<tr class="delivery-row${idx > 2 ? ' collapsed' : ''}">`;
-    headers.forEach(h => table += `<td>${row[h] || ''}</td>`);
-    table += '</tr>';
-  });
-  table += '</tbody></table>';
-  container.innerHTML = table;
-
-  const toggleBtn = document.getElementById('toggleDeliveryPoints');
-  if (data.length > 3) {
-    toggleBtn.style.display = 'inline-block';
-    toggleBtn.textContent = '展開更多';
-    toggleBtn.onclick = function() {
-      const collapsedRows = container.querySelectorAll('.collapsed');
-      const isCollapsed = collapsedRows[0] && collapsedRows[0].style.display !== '';
-      collapsedRows.forEach(row => row.style.display = isCollapsed ? '' : 'none');
-      toggleBtn.textContent = isCollapsed ? '收摺' : '展開更多';
-    };
-    container.querySelectorAll('.collapsed').forEach(row => row.style.display = 'none');
-  } else {
-    toggleBtn.style.display = 'none';
-  }
-}
-
-function convertToMarkdownTable(data) {
-  if (!data || data.length === 0) {
-    return '<p style="color: #64748b; text-align: center; padding: 2rem;">暫無派車資料</p>';
-  }
-
-  const headers = Object.keys(data[0]);
-  let html = '<table class="data-table" style="width: 100%; border-collapse: collapse;">';
-  
-  html += '<thead><tr>';
-  headers.forEach(header => {
-    html += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc; font-weight: 600;">${header}</th>`;
-  });
-  html += '</tr></thead>';
-  
-  html += '<tbody>';
-  data.forEach((row, index) => {
-    html += `<tr style="${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
-    headers.forEach(header => {
-      let value = row[header] || '';
-      if (header === '優先級') {
-        const colorClass = value === '高' ? 'color: #dc2626; font-weight: 600;' : 
-                         value === '中' ? 'color: #d97706; font-weight: 600;' : 
-                         'color: #059669; font-weight: 600;';
-        html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; ${colorClass}">${value}</td>`;
-      } else {
-        html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0;">${value}</td>`;
-      }
-    });
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-
-  return html;
-}
-
-function exportDispatchTable() {
-  if (window.app && app.showNotification) {
-    app.showNotification('匯出功能開發中...', 'info');
-  } else {
-    alert('匯出功能開發中...');
-  }
-}
-
-function refreshDispatchTable() {
-  if (window.app && app.handleAIPreplan) {
-    app.handleAIPreplan();
-  }
-}
-
-// 確保全域函數可用
-window.exportDispatchTable = exportDispatchTable;
-window.refreshDispatchTable = refreshDispatchTable;
-
-
 // 綁定事件
 document.getElementById('fetchDeliveryPointsBtn').addEventListener('click', fetchDeliveryPoints);
 
-// 修正 fetchDeliveryPoints 函數
 async function fetchDeliveryPoints() {
   const dateInput = document.getElementById('deliveryDatePicker').value;
   if (!dateInput) {
@@ -5806,21 +5312,25 @@ async function fetchDeliveryPoints() {
     return;
   }
   const date = formatDateForSheet(dateInput);
+// 1. 寫入指定日期
+  try {
+    await app.apiCall('setSpecifiedDate', { date });
+  } catch (e) {
+    app.showNotification('寫入指定日期失敗', 'error');
+    // return; // 若要強制中斷查詢可加這行
+  }
 
-  // 使用統一的 API 調用方式
+  // 呼叫 GAS API
   app.showLoading();
   try {
     const data = await app.apiCall('getDeliveryPoints', { date });
     renderDeliveryPointsTable(data);
-    app.showNotification(`載入 ${data.length} 筆收送點資料`, 'success');
   } catch (e) {
-    console.error('資料載入失敗:', e);
     app.showNotification('資料載入失敗', 'error');
   } finally {
     app.hideLoading();
   }
 }
-
 // 新增一個去前導零的工具
 function removeLeadingZero(dateStr) {
   return dateStr.replace(/\/0(\d)/g, '/$1');
@@ -5936,7 +5446,6 @@ function markdownToHtml(md) {
 
 
 // 4. 綁定 AI預排按鈕 - 修改後的版本
-// 修正後的事件監聽器
 document.getElementById('ai-preplan-btn').addEventListener('click', async function() {
   const deliveryList = getDeliveryListFromTable();
   if (!deliveryList.length) {
@@ -5945,12 +5454,13 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
     return;
   }
 
+  // 顯示 loading
   const resultDiv = document.getElementById('gai-route-result');
   resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入明日建議派車表...';
 
   try {
-    // 使用 CONFIG 中定義的 URL
-    const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
+    // 呼叫後端API獲取明日建議派車表
+    const response = await fetch('hhttps://script.google.com/macros/s/AKfycbxH0p4bVcrm89-uXGQVYTNcOznt3xpnicDovrCwbOi89pZan54iCqUPU064iJIEee0Q/exec', {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({
@@ -5962,6 +5472,7 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
     const result = await response.json();
     
     if (result.success && result.data) {
+      // 將資料轉換為Markdown表格格式並顯示
       const markdownTable = convertToMarkdownTable(result.data);
       resultDiv.innerHTML = `
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #f8f9fa; margin-top: 1rem;">
@@ -6001,7 +5512,6 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
     `;
   }
 });
-
 
 // 轉換資料為Markdown表格格式
 function convertToMarkdownTable(data) {
