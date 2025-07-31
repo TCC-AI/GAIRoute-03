@@ -2215,7 +2215,7 @@
             GAS_URL: 'https://script.google.com/macros/s/AKfycbwReRx-urAEeNA2yvB5v8Zek8dRDHe5GH21AF_QeXoDEsJqYZVduAhK49zmN_qwCoLd/exec',
                     // 新增這兩行
             EXTERNAL_SPREADSHEET_ID: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE',
-            EXTERNAL_GAS_URL: 'https://script.google.com/macros/s/AKfycbxpxAhf_PmhAXmt59EDAdeo0zwiWePBmLa4BkBXAoZ_g6I_FBzEkqu4UzNcOZ17sH-iZw/exec',
+            EXTERNAL_GAS_URL: 'https://script.google.com/macros/s/AKfycbzkcggAdHK3QTBWgfzRSsuI72EuWq6JiJ8_mNkZ_cwYf7CnvV1_Rrkr7gsBd6FBC4kX/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3121,10 +3121,11 @@ async fetchAndProcessDeliveryPoints() {
 }
 
 
-// 新增：寫入日期到外部Google Sheet
+// 修改 writeToExternalSheet 函數
 async writeToExternalSheet(date) {
     try {
         console.log('呼叫外部API寫入日期:', date);
+        
         const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
             method: 'POST',
             headers: {
@@ -3133,8 +3134,14 @@ async writeToExternalSheet(date) {
             body: JSON.stringify({
                 action: 'writeSpecifiedDate',
                 data: { date: date }
-            })
+            }),
+            mode: 'cors', // 明確指定CORS模式
+            credentials: 'omit' // 不發送認證信息
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
         const result = await response.json();
         console.log('外部API回應:', result);
@@ -3150,6 +3157,7 @@ async writeToExternalSheet(date) {
         throw new Error(`寫入指定日期失敗: ${error.message}`);
     }
 }
+
 
 // 新增：觸發外部Apps Script的autoCompleteProcess函數
 async triggerAutoCompleteProcess() {
