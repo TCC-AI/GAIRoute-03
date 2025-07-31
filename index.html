@@ -2212,10 +2212,10 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwReRx-urAEeNA2yvB5v8Zek8dRDHe5GH21AF_QeXoDEsJqYZVduAhK49zmN_qwCoLd/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbxpciLMDuGKrijMGP6ClbMhUPMOLX-y2WVW0_C5I0Ri_8ssR-mZhu9kMx8MUOrcGS0A/exec',
                     // 新增這兩行
             EXTERNAL_SPREADSHEET_ID: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE',
-            EXTERNAL_GAS_URL: 'https://script.google.com/macros/s/AKfycbzkcggAdHK3QTBWgfzRSsuI72EuWq6JiJ8_mNkZ_cwYf7CnvV1_Rrkr7gsBd6FBC4kX/exec',
+            EXTERNAL_GAS_URL: 'https://script.google.com/macros/s/AKfycbxF5Cjda-lJ4_hEtmZsCDXhzHKs93C5ZCidqHE2HDh2-uEiGHL3XitoPJ6ZBCX7Nfftnw/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3121,7 +3121,6 @@ async fetchAndProcessDeliveryPoints() {
 }
 
 
-// 修改 writeToExternalSheet 函數
 async writeToExternalSheet(date) {
     try {
         console.log('呼叫外部API寫入日期:', date);
@@ -3129,16 +3128,15 @@ async writeToExternalSheet(date) {
         const response = await fetch(CONFIG.EXTERNAL_GAS_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'text/plain',
+                'Content-Type': 'text/plain', // 保持這個格式
             },
             body: JSON.stringify({
                 action: 'writeSpecifiedDate',
                 data: { date: date }
-            }),
-            mode: 'cors', // 明確指定CORS模式
-            credentials: 'omit' // 不發送認證信息
+            })
         });
 
+        // 檢查HTTP狀態
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
@@ -3157,6 +3155,7 @@ async writeToExternalSheet(date) {
         throw new Error(`寫入指定日期失敗: ${error.message}`);
     }
 }
+
 
 
 // 新增：觸發外部Apps Script的autoCompleteProcess函數
