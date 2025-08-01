@@ -3657,15 +3657,7 @@ convertToRouteCards(data) {
             cardClass += colorIndex === 0 ? ' morning' : colorIndex === 1 ? ' afternoon' : ' evening';
         }
         
-        // 計算基本資訊
-const totalPallets = routeData.reduce((sum, item) => {
-    // 從板位欄位（R欄位）提取數字並累加
-    const palletPosition = item['板位'] || '';
-    const numbers = palletPosition.toString().match(/\d+/g); // 提取所有數字
-    const palletSum = numbers ? numbers.reduce((acc, num) => acc + parseInt(num), 0) : 0;
-    return sum + palletSum;
-}, 0);
-
+       // 計算基本資訊
 const pickupCount = routeData.reduce((sum, item) => {
     // 檢查起點/迄點欄位（G欄位）是否包含『取貨』
     const routeInfo = item['起點/迄點'] || '';
@@ -3691,6 +3683,9 @@ const deliveryCount = routeData.reduce((sum, item) => {
     }
     return sum;
 }, 0);
+
+// 板數量 = 取貨數量 + 配送數量
+const totalPallets = pickupCount + deliveryCount;
 
 // 起點和迄點
 const startPoint = routeData[0]?.['起點/迄點']?.split('→')[0]?.trim() || '待確認';
