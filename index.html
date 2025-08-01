@@ -1788,7 +1788,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwbCIXdUkJlk2PLvTzPIxGevtMr-WvhKlj70Zeoet7tdsgVpo2ECxHdlSjEDP-gjNgf/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzxzjHfQFBq09sXslGp8LWlbqOZcN2YrD5sN-KCdAEMVqKEia__qh6n7ddf1tPDbEJ8/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -2454,17 +2454,6 @@
                 });
 
                 // AI優化事件
-                // 在 bindEvents() 方法中添加以下代碼
-// AI預排按鈕事件
-document.getElementById('ai-preplan-btn')?.addEventListener('click', async () => {
-    await this.handleAIPreplan();
-});
-
-// 派車收送點查詢按鈕
-document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', async () => {
-    await this.fetchDeliveryPoints();
-});
-
                 document.getElementById('startOptimization')?.addEventListener('click', () => {
                     this.startRouteOptimization();
                 });
@@ -2623,206 +2612,6 @@ document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', asy
                     return { success: false, message: '驗證失敗' };
                 }
             }
-            // 獲取派車收送點清單
-async fetchDeliveryPoints() {
-    const dateInput = document.getElementById('deliveryDatePicker').value;
-    if (!dateInput) {
-        this.showNotification('請選擇日期', 'warning');
-        return;
-    }
-    
-    const date = this.formatDateForSheet(dateInput);
-    
-    // 寫入指定日期
-    try {
-        await this.apiCall('setSpecifiedDate', { date });
-    } catch (e) {
-        this.showNotification('寫入指定日期失敗', 'error');
-    }
-
-    // 呼叫 GAS API
-    this.showLoading();
-    try {
-        const data = await this.apiCall('getDeliveryPoints', { date });
-        this.renderDeliveryPointsTable(data);
-        this.showNotification(`載入 ${data.length} 筆收送點資料`, 'success');
-    } catch (e) {
-        console.error('資料載入失敗:', e);
-        this.showNotification('資料載入失敗', 'error');
-    } finally {
-        this.hideLoading();
-    }
-}
-
-// 處理AI預排
-async handleAIPreplan() {
-    const deliveryList = this.getDeliveryListFromTable();
-    if (!deliveryList.length) {
-        this.showNotification('請先查詢並顯示收送點清單', 'warning');
-        return;
-    }
-
-    // 顯示 loading
-    const resultDiv = document.getElementById('gai-route-result');
-    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入明日建議派車表...';
-
-    try {
-        // 呼叫後端API獲取明日建議派車表
-        const result = await this.apiCall('getTomorrowDispatchTable', {});
-        
-        if (result && result.length > 0) {
-            // 將資料轉換為表格格式並顯示
-            const tableHtml = this.convertToDispatchTable(result);
-            resultDiv.innerHTML = `
-                <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #f8f9fa; margin-top: 1rem;">
-                    <h4 style="margin-bottom: 1rem; color: #2563eb;">
-                        <i class="fas fa-calendar-day"></i> 明日建議派車表
-                    </h4>
-                    <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">
-                        資料更新時間: ${new Date().toLocaleString('zh-TW')}
-                    </div>
-                    <div class="markdown-content" style="overflow-x: auto;">
-                        ${tableHtml}
-                    </div>
-                    <div style="margin-top: 1rem; text-align: right;">
-                        <button class="btn btn-primary btn-sm" onclick="app.exportDispatchTable()">
-                            <i class="fas fa-download"></i> 匯出表格
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="app.refreshDispatchTable()" style="margin-left: 0.5rem;">
-                            <i class="fas fa-sync-alt"></i> 重新整理
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            this.showNotification('明日建議派車表載入完成', 'success');
-        } else {
-            throw new Error('無法取得派車表資料');
-        }
-    } catch (e) {
-        console.error('載入派車表失敗:', e);
-        resultDiv.innerHTML = `
-            <div style="color: #dc2626; padding: 1rem; border: 1px solid #fecaca; border-radius: 4px; background: #fef2f2;">
-                <i class="fas fa-exclamation-triangle"></i> 載入失敗: ${e.message}
-                <br><small>請檢查網路連線或聯絡系統管理員</small>
-            </div>
-        `;
-    }
-}
-
-// 工具方法
-formatDateForSheet(dateStr) {
-    if (!dateStr) return '';
-    return dateStr.replace(/-/g, '/');
-}
-
-getDeliveryListFromTable() {
-    const table = document.querySelector('#deliveryPointsTableContainer table');
-    if (!table) return [];
-    
-    const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-    const rows = Array.from(table.querySelectorAll('tbody tr'));
-    
-    return rows.map(tr => {
-        const cells = Array.from(tr.querySelectorAll('td'));
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = cells[i]?.textContent.trim() || '');
-        return obj;
-    });
-}
-
-renderDeliveryPointsTable(data) {
-    const container = document.getElementById('deliveryPointsTableContainer');
-    container.innerHTML = '';
-    
-    if (!data || data.length === 0) {
-        container.innerHTML = '<div style="color: #888;">查無資料</div>';
-        document.getElementById('toggleDeliveryPoints').style.display = 'none';
-        return;
-    }
-
-    // 產生表頭
-    const headers = Object.keys(data[0]);
-    let table = '<table class="data-table"><thead><tr>';
-    headers.forEach(h => table += `<th>${h}</th>`);
-    table += '</tr></thead><tbody>';
-
-    // 產生資料列
-    data.forEach((row, idx) => {
-        table += `<tr class="delivery-row${idx > 2 ? ' collapsed' : ''}">`;
-        headers.forEach(h => table += `<td>${row[h] || ''}</td>`);
-        table += '</tr>';
-    });
-    table += '</tbody></table>';
-    container.innerHTML = table;
-
-    // 控制展開/收摺
-    const toggleBtn = document.getElementById('toggleDeliveryPoints');
-    if (data.length > 3) {
-        toggleBtn.style.display = 'inline-block';
-        toggleBtn.textContent = '展開更多';
-        toggleBtn.onclick = function() {
-            const collapsedRows = container.querySelectorAll('.collapsed');
-            const isCollapsed = collapsedRows[0] && collapsedRows[0].style.display !== '';
-            collapsedRows.forEach(row => row.style.display = isCollapsed ? '' : 'none');
-            toggleBtn.textContent = isCollapsed ? '收摺' : '展開更多';
-        };
-        // 預設收摺
-        container.querySelectorAll('.collapsed').forEach(row => row.style.display = 'none');
-    } else {
-        toggleBtn.style.display = 'none';
-    }
-}
-
-convertToDispatchTable(data) {
-    if (!data || data.length === 0) {
-        return '<p style="color: #64748b; text-align: center; padding: 2rem;">暫無派車資料</p>';
-    }
-
-    const headers = Object.keys(data[0]);
-    
-    let html = '<table class="data-table" style="width: 100%; border-collapse: collapse;">';
-    
-    // 表頭
-    html += '<thead><tr>';
-    headers.forEach(header => {
-        html += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc; font-weight: 600;">${header}</th>`;
-    });
-    html += '</tr></thead>';
-    
-    // 表格內容
-    html += '<tbody>';
-    data.forEach((row, index) => {
-        html += `<tr style="${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
-        headers.forEach(header => {
-            let value = row[header] || '';
-            // 處理優先級顏色
-            if (header === '優先級') {
-                const colorClass = value === '高' ? 'color: #dc2626; font-weight: 600;' : 
-                                 value === '中' ? 'color: #d97706; font-weight: 600;' : 
-                                 'color: #059669; font-weight: 600;';
-                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; ${colorClass}">${value}</td>`;
-            } else {
-                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0;">${value}</td>`;
-            }
-        });
-        html += '</tr>';
-    });
-    html += '</tbody></table>';
-
-    return html;
-}
-
-// 匯出派車表功能
-exportDispatchTable() {
-    this.showNotification('匯出功能開發中...', 'info');
-}
-
-// 重新整理派車表
-refreshDispatchTable() {
-    this.handleAIPreplan();
-}
-
 
             // 更新最後登入時間
             async updateLastLoginTime(username) {
@@ -4888,13 +4677,6 @@ async function fetchDeliveryPoints() {
     return;
   }
   const date = formatDateForSheet(dateInput);
-// 1. 寫入指定日期
-  try {
-    await app.apiCall('setSpecifiedDate', { date });
-  } catch (e) {
-    app.showNotification('寫入指定日期失敗', 'error');
-    // return; // 若要強制中斷查詢可加這行
-  }
 
   // 呼叫 GAS API
   app.showLoading();
@@ -5021,7 +4803,7 @@ function markdownToHtml(md) {
 }
 
 
-// 4. 綁定 AI預排按鈕 - 修改後的版本
+// 4. 綁定 AI預排按鈕
 document.getElementById('ai-preplan-btn').addEventListener('click', async function() {
   const deliveryList = getDeliveryListFromTable();
   if (!deliveryList.length) {
@@ -5030,147 +4812,30 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
     return;
   }
 
+  // 不再需要 prompt 輸入 API Key
+  const promptText = buildGAIPrompt(deliveryList);
+
   // 顯示 loading
   const resultDiv = document.getElementById('gai-route-result');
-  resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入明日建議派車表...';
+  resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI 預排中...';
 
   try {
-    // 呼叫後端API獲取明日建議派車表
-    const response = await fetch('https://script.google.com/macros/s/AKfycbwbCIXdUkJlk2PLvTzPIxGevtMr-WvhKlj70Zeoet7tdsgVpo2ECxHdlSjEDP-gjNgf/exec', {
+    // 呼叫你自己的 GAS API
+    const response = await fetch('https://script.google.com/macros/s/AKfycbzxzjHfQFBq09sXslGp8LWlbqOZcN2YrD5sN-KCdAEMVqKEia__qh6n7ddf1tPDbEJ8/exec', {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({
-        action: "getTomorrowDispatchTable",
-        data: {}
+        action: "callOpenAI",
+        data: { prompt: promptText }
       })
     });
-    
-    const result = await response.json();
-    
-    if (result.success && result.data) {
-      // 將資料轉換為Markdown表格格式並顯示
-      const markdownTable = convertToMarkdownTable(result.data);
-      resultDiv.innerHTML = `
-        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #f8f9fa; margin-top: 1rem;">
-          <h4 style="margin-bottom: 1rem; color: #2563eb;">
-            <i class="fas fa-calendar-day"></i> 明日建議派車表
-          </h4>
-          <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">
-            資料更新時間: ${new Date().toLocaleString('zh-TW')}
-          </div>
-          <div class="markdown-content" style="overflow-x: auto;">
-            ${markdownTable}
-          </div>
-          <div style="margin-top: 1rem; text-align: right;">
-            <button class="btn btn-primary btn-sm" onclick="exportDispatchTable()">
-              <i class="fas fa-download"></i> 匯出表格
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="refreshDispatchTable()" style="margin-left: 0.5rem;">
-              <i class="fas fa-sync-alt"></i> 重新整理
-            </button>
-          </div>
-        </div>
-      `;
-      
-      if (window.app && app.showNotification) {
-        app.showNotification('明日建議派車表載入完成', 'success');
-      }
-    } else {
-      throw new Error(result.error || '無法取得派車表資料');
-    }
+    const data = await response.json();
+    const markdown = data.data?.markdown || "無法取得回應";
+    resultDiv.innerHTML = markdownToHtml(markdown);
   } catch (e) {
-    console.error('載入派車表失敗:', e);
-    resultDiv.innerHTML = `
-      <div style="color: #dc2626; padding: 1rem; border: 1px solid #fecaca; border-radius: 4px; background: #fef2f2;">
-        <i class="fas fa-exclamation-triangle"></i> 載入失敗: ${e.message}
-        <br><small>請檢查網路連線或聯絡系統管理員</small>
-      </div>
-    `;
+    resultDiv.innerHTML = '<span style="color:red;">AI 預排失敗，請檢查後端服務</span>';
   }
 });
-
-// 轉換資料為Markdown表格格式
-function convertToMarkdownTable(data) {
-  if (!data || data.length === 0) {
-    return '<p style="color: #64748b; text-align: center; padding: 2rem;">暫無派車資料</p>';
-  }
-
-  // 取得表頭
-  const headers = Object.keys(data[0]);
-  
-  // 建立Markdown表格
-  let markdown = '| ' + headers.join(' | ') + ' |\n';
-  markdown += '|' + headers.map(() => ' --- ').join('|') + '|\n';
-  
-  // 添加資料列
-  data.forEach(row => {
-    const values = headers.map(header => {
-      let value = row[header] || '';
-      // 處理特殊字元，避免破壞表格格式
-      if (typeof value === 'string') {
-        value = value.replace(/\|/g, '\\|').replace(/\n/g, '<br>');
-      }
-      return value;
-    });
-    markdown += '| ' + values.join(' | ') + ' |\n';
-  });
-
-  // 轉換Markdown為HTML
-  return markdownTableToHtml(markdown);
-}
-
-// 將Markdown表格轉換為HTML
-function markdownTableToHtml(markdown) {
-  const lines = markdown.trim().split('\n');
-  if (lines.length < 3) return '<p>表格格式錯誤</p>';
-
-  const headerLine = lines[0];
-  const separatorLine = lines[1];
-  const dataLines = lines.slice(2);
-
-  // 解析表頭
-  const headers = headerLine.split('|').map(h => h.trim()).filter(h => h);
-  
-  // 建立HTML表格
-  let html = '<table class="data-table" style="width: 100%; border-collapse: collapse;">';
-  
-  // 表頭
-  html += '<thead><tr>';
-  headers.forEach(header => {
-    html += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc; font-weight: 600;">${header}</th>`;
-  });
-  html += '</tr></thead>';
-  
-  // 表格內容
-  html += '<tbody>';
-  dataLines.forEach((line, index) => {
-    const cells = line.split('|').map(c => c.trim()).filter(c => c);
-    if (cells.length > 0) {
-      html += `<tr style="${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
-      cells.forEach(cell => {
-        html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0;">${cell}</td>`;
-      });
-      html += '</tr>';
-    }
-  });
-  html += '</tbody></table>';
-
-  return html;
-}
-
-// 匯出派車表功能
-function exportDispatchTable() {
-  // 這裡可以實作匯出功能
-  if (window.app && app.showNotification) {
-    app.showNotification('匯出功能開發中...', 'info');
-  }
-}
-
-// 重新整理派車表
-function refreshDispatchTable() {
-  document.getElementById('ai-preplan-btn').click();
-}
-
     </script>
 
    
