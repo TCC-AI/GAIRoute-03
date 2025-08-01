@@ -3658,20 +3658,30 @@ convertToRouteCards(data) {
         }
         
         // 計算基本資訊
-        const totalPallets = routeData.reduce((sum, item) => {
-            const pallets = parseInt(item['商品棧板']) || 0;
-            return sum + pallets;
-        }, 0);
-        
-        const pickupCount = routeData.filter(item => 
-            item['配送狀態'] && item['配送狀態'].includes('取貨')
-        ).length;
-        
-        const deliveryCount = routeData.length - pickupCount;
-        
-        // 起點和迄點
-        const startPoint = routeData[0]?.['起點迄點']?.split('→')[0]?.trim() || '待確認';
-        const endPoint = routeData[routeData.length - 1]?.['起點迄點']?.split('→')[1]?.trim() || '待確認';
+const totalPallets = routeData.reduce((sum, item) => {
+    // 從板位欄位（R欄位）提取數字並累加
+    const palletPosition = item['板位'] || '';
+    const numbers = palletPosition.toString().match(/\d+/g); // 提取所有數字
+    const palletSum = numbers ? numbers.reduce((acc, num) => acc + parseInt(num), 0) : 0;
+    return sum + palletSum;
+}, 0);
+
+const pickupCount = routeData.filter(item => {
+    // 檢查起點/迄點欄位（G欄位）是否包含『取貨』
+    const routeInfo = item['起點/迄點'] || '';
+    return routeInfo.includes('取貨');
+}).length;
+
+const deliveryCount = routeData.filter(item => {
+    // 檢查起點/迄點欄位（G欄位）是否包含『配送』
+    const routeInfo = item['起點/迄點'] || '';
+    return routeInfo.includes('配送');
+}).length;
+
+// 起點和迄點
+const startPoint = routeData[0]?.['起點/迄點']?.split('→')[0]?.trim() || '待確認';
+const endPoint = routeData[routeData.length - 1]?.['起點/迄點']?.split('→')[1]?.trim() || '待確認';
+
         
         cardsHtml += `
             <div class="${cardClass}" style="animation-delay: ${index * 0.1}s">
