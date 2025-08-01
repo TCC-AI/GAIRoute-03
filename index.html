@@ -1523,227 +1523,6 @@
                 border: 1px solid var(--gray-300);
             }
         }
-        /* 路線卡片容器 */
-.route-cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-  padding: 1rem;
-}
-
-/* 路線卡片基本樣式 */
-.route-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: 2px solid transparent;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.route-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
-}
-
-/* 路線卡片顏色主題 */
-.route-card.morning {
-  border-image: linear-gradient(135deg, #fbbf24, #f59e0b) 1;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(245, 158, 11, 0.02));
-}
-
-.route-card.afternoon {
-  border-image: linear-gradient(135deg, #10b981, #059669) 1;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.02));
-}
-
-.route-card.evening {
-  border-image: linear-gradient(135deg, #3b82f6, #1d4ed8) 1;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(29, 78, 216, 0.02));
-}
-
-/* 卡片標頭 */
-.route-card-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
-}
-
-.route-card-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.route-card-subtitle {
-  font-size: 0.875rem;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* 路線資訊標籤 */
-.route-info-tags {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-}
-
-.route-tag {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.route-tag.pickup {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.route-tag.delivery {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1d4ed8;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.route-tag.pallets {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-/* 展開/收折按鈕 */
-.route-toggle-btn {
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  font-size: 1.25rem;
-  transition: all 0.3s ease;
-  padding: 0.5rem;
-  border-radius: 50%;
-}
-
-.route-toggle-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #374151;
-}
-
-.route-toggle-btn.expanded {
-  transform: rotate(180deg);
-}
-
-/* 卡片內容 */
-.route-card-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.route-card-content.expanded {
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.route-details {
-  padding: 1.5rem;
-}
-
-.route-detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.route-detail-item:last-child {
-  border-bottom: none;
-}
-
-.route-detail-label {
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.875rem;
-}
-
-.route-detail-value {
-  color: #64748b;
-  font-size: 0.875rem;
-  text-align: right;
-  max-width: 60%;
-  word-break: break-word;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .route-cards-container {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 0.5rem;
-  }
-  
-  .route-card-header {
-    padding: 1rem;
-  }
-  
-  .route-details {
-    padding: 1rem;
-  }
-  
-  .route-detail-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-  
-  .route-detail-value {
-    max-width: 100%;
-    text-align: left;
-  }
-}
-
-/* 載入動畫 */
-.route-card {
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 空狀態樣式 */
-.route-empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #64748b;
-}
-
-.route-empty-state i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
     </style>
 <body>
     <!-- 登入頁面 -->
@@ -2433,7 +2212,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwa5LbOCGTAgvBWrDiP31Crj-Gfu_16jEeEDLMNhl_mcDiQ9FIDtbHlce0W8nbWaVkJ/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycby8FIz3RGW0dk19lkeVfYhyRhU3882qZ4wRIpzJM9W1iIw33y0CCImDlx-PYkXiiHPl/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3535,14 +3314,16 @@ async executeExternalAutoCompleteProcess() {
 
 
 
-// 處理AI預排
+// 處理AI預排 - 修正版本
 async handleAIPreplan() {
+    // 顯示 loading
     const resultDiv = document.getElementById('gai-route-result');
     resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入當日各路線表...';
 
     try {
         console.log('開始獲取當日各路線表...');
         
+        // 呼叫後端API獲取當日各路線表
         const result = await this.apiCall('getCurrentDayRouteTable', {
             targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
         });
@@ -3550,35 +3331,24 @@ async handleAIPreplan() {
         console.log('API 返回結果:', result);
         
         if (result && result.length > 0) {
-            // 使用新的卡片格式顯示 - 注意這裡改為 convertToRouteCards
-            const cardsHtml = this.convertToRouteCards(result);
+            // 將資料轉換為表格格式並顯示
+            const tableHtml = this.convertToRouteTable(result);
             resultDiv.innerHTML = `
-                <div style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); margin-top: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <div>
-                            <h4 style="margin: 0; color: #1e293b; font-size: 1.5rem; font-weight: 700;">
-                                <i class="fas fa-route" style="margin-right: 0.5rem; color: #0ea5e9;"></i>
-                                當日各路線表
-                            </h4>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">
-                                資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${getUniqueRouteCount(result)} 條路線
-                            </p>
-                        </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-secondary btn-sm" onclick="expandAllRoutes()" title="展開所有路線">
-                                <i class="fas fa-expand-alt"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="collapseAllRoutes()" title="收折所有路線">
-                                <i class="fas fa-compress-alt"></i>
-                            </button>
-                        </div>
+                <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #f8f9fa; margin-top: 1rem;">
+                    <h4 style="margin-bottom: 1rem; color: #2563eb;">
+                        <i class="fas fa-route"></i> 當日各路線表
+                    </h4>
+                    <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">
+                        資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${result.length} 條路線
                     </div>
-                    ${cardsHtml}
-                    <div style="margin-top: 2rem; text-align: center; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
-                        <button class="btn btn-primary btn-sm" onclick="app.exportRouteTable()" style="margin-right: 0.5rem;">
+                    <div class="route-table-content" style="overflow-x: auto;">
+                        ${tableHtml}
+                    </div>
+                    <div style="margin-top: 1rem; text-align: right;">
+                        <button class="btn btn-primary btn-sm" onclick="app.exportRouteTable()">
                             <i class="fas fa-download"></i> 匯出路線表
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="app.refreshRouteTable()">
+                        <button class="btn btn-secondary btn-sm" onclick="app.refreshRouteTable()" style="margin-left: 0.5rem;">
                             <i class="fas fa-sync-alt"></i> 重新整理
                         </button>
                     </div>
@@ -3592,213 +3362,59 @@ async handleAIPreplan() {
     } catch (e) {
         console.error('載入路線表失敗:', e);
         resultDiv.innerHTML = `
-            <div style="color: #dc2626; padding: 2rem; border: 2px dashed #fecaca; border-radius: 12px; background: #fef2f2; text-align: center;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                <h4 style="margin-bottom: 0.5rem;">載入失敗</h4>
-                <p style="margin-bottom: 1rem;">${e.message}</p>
-                <small style="color: #991b1b;">請檢查網路連線或聯絡系統管理員</small>
+            <div style="color: #dc2626; padding: 1rem; border: 1px solid #fecaca; border-radius: 4px; background: #fef2f2;">
+                <i class="fas fa-exclamation-triangle"></i> 載入失敗: ${e.message}
+                <br><small>請檢查網路連線或聯絡系統管理員</small>
+                <br><small>錯誤詳情: ${e.stack || '無詳細資訊'}</small>
             </div>
         `;
     }
 }
 
 
-// 輔助函數：獲取唯一路線數量
-function getUniqueRouteCount(data) {
-    const uniqueRoutes = new Set();
-    data.forEach(item => {
-        const routeName = item['路線名稱'];
-        if (routeName && !routeName.includes('結束')) {
-            uniqueRoutes.add(routeName);
-        }
-    });
-    return uniqueRoutes.size;
-}
-
-// 展開所有路線
-function expandAllRoutes() {
-    document.querySelectorAll('.route-card-content').forEach(content => {
-        content.classList.add('expanded');
-    });
-    document.querySelectorAll('.route-toggle-btn').forEach(btn => {
-        btn.classList.add('expanded');
-        btn.querySelector('i').className = 'fas fa-chevron-up';
-    });
-}
-
-// 收折所有路線
-function collapseAllRoutes() {
-    document.querySelectorAll('.route-card-content').forEach(content => {
-        content.classList.remove('expanded');
-    });
-    document.querySelectorAll('.route-toggle-btn').forEach(btn => {
-        btn.classList.remove('expanded');
-        btn.querySelector('i').className = 'fas fa-chevron-down';
-    });
-}
-
-
-
-// 轉換資料為路線卡片格式
-convertToRouteCards(data) {
+// 轉換資料為路線表格式
+convertToRouteTable(data) {
     if (!data || data.length === 0) {
-        return `
-            <div class="route-empty-state">
-                <i class="fas fa-route"></i>
-                <h3>暫無路線資料</h3>
-                <p>請稍後重新查詢或聯絡系統管理員</p>
-            </div>
-        `;
+        return '<p style="color: #64748b; text-align: center; padding: 2rem;">暫無路線資料</p>';
     }
 
-    // 按路線名稱分組資料
-    const routeGroups = {};
+    const headers = Object.keys(data[0]);
     
-    data.forEach(item => {
-        const routeName = item['路線名稱'] || '未知路線';
-        
-        // 跳過分隔符
-        if (routeName.includes('結束')) {
-            return;
-        }
-        
-        if (!routeGroups[routeName]) {
-            routeGroups[routeName] = [];
-        }
-        
-        routeGroups[routeName].push(item);
+    let html = '<table class="data-table" style="width: 100%; border-collapse: collapse;">';
+    
+    // 表頭
+    html += '<thead><tr>';
+    headers.forEach(header => {
+        html += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc; font-weight: 600;">${header}</th>`;
     });
+    html += '</tr></thead>';
+    
+    // 表格內容
+    html += '<tbody>';
+    data.forEach((row, index) => {
+        html += `<tr style="${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
+        headers.forEach(header => {
+            let value = row[header] || '';
+            // 處理特殊欄位的顯示格式
+            if (header.includes('時間')) {
+                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; font-family: monospace;">${value}</td>`;
+            } else if (header.includes('距離') || header.includes('公里')) {
+                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: right;">${value}</td>`;
+            } else if (header.includes('狀態')) {
+                const statusColor = value === '進行中' ? 'color: #059669; font-weight: 600;' : 
+                                   value === '已完成' ? 'color: #0ea5e9; font-weight: 600;' : 
+                                   value === '延遲' ? 'color: #dc2626; font-weight: 600;' : '';
+                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; ${statusColor}">${value}</td>`;
+            } else {
+                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0;">${value}</td>`;
+            }
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
 
-    // 生成卡片HTML
-    let cardsHtml = '<div class="route-cards-container">';
-    
-    Object.keys(routeGroups).forEach((routeName, index) => {
-        const routeData = routeGroups[routeName];
-        
-        // 確定卡片顏色主題
-        let cardClass = 'route-card';
-        if (routeName.includes('早-') || routeName.includes('早')) {
-            cardClass += ' morning';
-        } else if (routeName.includes('中-') || routeName.includes('午')) {
-            cardClass += ' afternoon';
-        } else if (routeName.includes('晚-') || routeName.includes('夜')) {
-            cardClass += ' evening';
-        } else {
-            // 根據索引循環分配顏色
-            const colorIndex = index % 3;
-            cardClass += colorIndex === 0 ? ' morning' : colorIndex === 1 ? ' afternoon' : ' evening';
-        }
-        
-        // 計算基本資訊
-        const totalPallets = routeData.reduce((sum, item) => {
-            const pallets = parseInt(item['商品棧板']) || 0;
-            return sum + pallets;
-        }, 0);
-        
-        const pickupCount = routeData.filter(item => 
-            item['配送狀態'] && item['配送狀態'].includes('取貨')
-        ).length;
-        
-        const deliveryCount = routeData.length - pickupCount;
-        
-        // 起點和迄點
-        const startPoint = routeData[0]?.['起點迄點']?.split('→')[0]?.trim() || '待確認';
-        const endPoint = routeData[routeData.length - 1]?.['起點迄點']?.split('→')[1]?.trim() || '待確認';
-        
-        cardsHtml += `
-            <div class="${cardClass}" style="animation-delay: ${index * 0.1}s">
-                <div class="route-card-header">
-                    <div class="route-card-title">
-                        <span>${routeName}</span>
-                        <button class="route-toggle-btn" onclick="toggleRouteCard(this)">
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                    </div>
-                    <div class="route-card-subtitle">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>${startPoint} → ${endPoint}</span>
-                    </div>
-                    <div class="route-info-tags">
-                        <div class="route-tag pickup">
-                            <i class="fas fa-arrow-up"></i> 取貨 ${pickupCount}
-                        </div>
-                        <div class="route-tag delivery">
-                            <i class="fas fa-arrow-down"></i> 配送 ${deliveryCount}
-                        </div>
-                        <div class="route-tag pallets">
-                            <i class="fas fa-boxes"></i> ${totalPallets} 板
-                        </div>
-                    </div>
-                </div>
-                <div class="route-card-content">
-                    <div class="route-details">
-                        ${this.generateRouteDetails(routeData)}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    cardsHtml += '</div>';
-    
-    return cardsHtml;
+    return html;
 }
-// 生成路線詳細資訊
-generateRouteDetails(routeData) {
-    let detailsHtml = '';
-    
-    routeData.forEach((item, index) => {
-        const pallets = item['商品棧板'] || '0';
-        const status = item['配送狀態'] || '待確認';
-        const customer = item['客戶簡稱'] || '未知客戶';
-        const address = item['地址'] || '地址待確認';
-        const product = item['商品簡稱'] || '商品資訊待確認';
-        const notes = item['配送備註'] || '';
-        
-        // 狀態顏色
-        let statusColor = '#64748b';
-        if (status.includes('取貨')) {
-            statusColor = '#059669';
-        } else if (status.includes('配送')) {
-            statusColor = '#1d4ed8';
-        } else if (status.includes('完成')) {
-            statusColor = '#10b981';
-        }
-        
-        detailsHtml += `
-            <div class="route-detail-item">
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span class="route-detail-label">${index + 1}. ${customer}</span>
-                        <span style="color: ${statusColor}; font-size: 0.75rem; font-weight: 600;">
-                            ${status}
-                        </span>
-                    </div>
-                    <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem;">
-                        <i class="fas fa-map-marker-alt" style="width: 12px;"></i> ${address}
-                    </div>
-                    <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem;">
-                        <i class="fas fa-box" style="width: 12px;"></i> ${product}
-                    </div>
-                    ${notes ? `<div style="font-size: 0.75rem; color: #f59e0b;">
-                        <i class="fas fa-sticky-note" style="width: 12px;"></i> ${notes}
-                    </div>` : ''}
-                </div>
-                <div style="text-align: right; margin-left: 1rem;">
-                    <div style="font-size: 1.25rem; font-weight: 700; color: #374151;">
-                        ${pallets}
-                    </div>
-                    <div style="font-size: 0.75rem; color: #64748b;">
-                        板數
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    return detailsHtml;
-}
-
 
 // 匯出路線表功能
 exportRouteTable() {
@@ -6137,7 +5753,7 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
 
   try {
     // 呼叫後端API獲取明日建議派車表
-    const response = await fetch('https://script.google.com/macros/s/AKfycbxH0p4bVcrm89-uXGQVYTNcOznt3xpnicDovrCwbOi89pZan54iCqUPU064iJIEee0Q/exec', {
+    const response = await fetch('hhttps://script.google.com/macros/s/AKfycbxH0p4bVcrm89-uXGQVYTNcOznt3xpnicDovrCwbOi89pZan54iCqUPU064iJIEee0Q/exec', {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({
@@ -6267,58 +5883,9 @@ function exportDispatchTable() {
   }
 }
 
-
-// 切換路線卡片展開/收折
-function toggleRouteCard(button) {
-    const card = button.closest('.route-card');
-    const content = card.querySelector('.route-card-content');
-    const icon = button.querySelector('i');
-    
-    if (content.classList.contains('expanded')) {
-        // 收折
-        content.classList.remove('expanded');
-        button.classList.remove('expanded');
-        icon.className = 'fas fa-chevron-down';
-    } else {
-        // 展開
-        content.classList.add('expanded');
-        button.classList.add('expanded');
-        icon.className = 'fas fa-chevron-up';
-    }
-}
-
-// 獲取唯一路線數量
-function getUniqueRouteCount(data) {
-    const uniqueRoutes = new Set();
-    data.forEach(item => {
-        const routeName = item['路線名稱'];
-        if (routeName && !routeName.includes('結束')) {
-            uniqueRoutes.add(routeName);
-        }
-    });
-    return uniqueRoutes.size;
-}
-
-// 展開所有路線
-function expandAllRoutes() {
-    document.querySelectorAll('.route-card-content').forEach(content => {
-        content.classList.add('expanded');
-    });
-    document.querySelectorAll('.route-toggle-btn').forEach(btn => {
-        btn.classList.add('expanded');
-        btn.querySelector('i').className = 'fas fa-chevron-up';
-    });
-}
-
-// 收折所有路線
-function collapseAllRoutes() {
-    document.querySelectorAll('.route-card-content').forEach(content => {
-        content.classList.remove('expanded');
-    });
-    document.querySelectorAll('.route-toggle-btn').forEach(btn => {
-        btn.classList.remove('expanded');
-        btn.querySelector('i').className = 'fas fa-chevron-down';
-    });
+// 重新整理派車表
+function refreshDispatchTable() {
+  document.getElementById('ai-preplan-btn').click();
 }
 
     </script>
@@ -6326,3 +5893,4 @@ function collapseAllRoutes() {
    
 </body>
 </html>
+
