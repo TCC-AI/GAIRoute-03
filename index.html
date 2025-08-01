@@ -3742,6 +3742,9 @@ generateRouteDetails(routeData) {
         const address = item['地址'] || '地址待確認';
         const product = item['商品簡稱'] || '商品資訊待確認';
         const notes = item['配送備註'] || '';
+        const vehicle = item['配送車輛'] || '車輛待確認';  // 新增配送車輛資訊
+
+
         
         // 狀態顏色
         let statusColor = '#64748b';
