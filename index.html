@@ -3538,7 +3538,7 @@ async executeExternalAutoCompleteProcess() {
 
 
 
-// 處理AI預排 - 修改為卡片顯示
+// 處理AI預排
 async handleAIPreplan() {
     const resultDiv = document.getElementById('gai-route-result');
     resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入當日各路線表...';
@@ -3553,8 +3553,8 @@ async handleAIPreplan() {
         console.log('API 返回結果:', result);
         
         if (result && result.length > 0) {
-            // 使用新的卡片格式顯示
-            const cardsHtml = convertToRouteCards(result);
+            // 使用新的卡片格式顯示 - 注意這裡改為 convertToRouteCards
+            const cardsHtml = this.convertToRouteCards(result);
             resultDiv.innerHTML = `
                 <div style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); margin-top: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
