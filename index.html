@@ -1523,6 +1523,7 @@
                 border: 1px solid var(--gray-300);
             }
         }
+
         /* 路線卡片容器 */
 .route-cards-container {
   display: grid;
@@ -2170,8 +2171,10 @@
                   <button id="ai-preplan-btn" style="background:#2563eb; color:#fff; border:none; padding:0.5em 1.5em; border-radius:4px; cursor:pointer;">
                     <i class="fa-solid fa-robot"></i> AI預排
                   </button>
-                  <div id="gai-route-result" style="margin-top:1.5em;"></div>
-                </div>
+                             <!-- 路線卡片容器 -->
+              <div id="gai-route-result" style="margin-top:1.5em;">
+                <!-- 卡片將在這裡動態生成 -->
+              </div>
 
                 <div class="optimization-container">
                     <!-- 優化參數設定 -->
@@ -2433,7 +2436,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwwcJR_GWDzu2ZbFttA5igKIIQtlPlkr8hZY9Uw09P5cy67h2T4wcCq09DPrmV8_ptn/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbxc4JESKlkCuRPC9QsViN6D4b9Vql1AFq8TGmzw-CuREmUV3X3GHBBAPNKTBvOVe2ZZ/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3600,41 +3603,6 @@ async handleAIPreplan() {
             </div>
         `;
     }
-}
-
-
-// 輔助函數：獲取唯一路線數量
-function getUniqueRouteCount(data) {
-    const uniqueRoutes = new Set();
-    data.forEach(item => {
-        const routeName = item['路線名稱'];
-        if (routeName && !routeName.includes('結束')) {
-            uniqueRoutes.add(routeName);
-        }
-    });
-    return uniqueRoutes.size;
-}
-
-// 展開所有路線
-function expandAllRoutes() {
-    document.querySelectorAll('.route-card-content').forEach(content => {
-        content.classList.add('expanded');
-    });
-    document.querySelectorAll('.route-toggle-btn').forEach(btn => {
-        btn.classList.add('expanded');
-        btn.querySelector('i').className = 'fas fa-chevron-up';
-    });
-}
-
-// 收折所有路線
-function collapseAllRoutes() {
-    document.querySelectorAll('.route-card-content').forEach(content => {
-        content.classList.remove('expanded');
-    });
-    document.querySelectorAll('.route-toggle-btn').forEach(btn => {
-        btn.classList.remove('expanded');
-        btn.querySelector('i').className = 'fas fa-chevron-down';
-    });
 }
 
 
