@@ -3065,24 +3065,88 @@ async fetchDeliveryPoints() {
             loadingSpinner.textContent = '正在同步日期到外部工作表...';
         }
         
-        // 寫入指定日期到外部 Google Sheet
+        // 1. 寫入指定日期到外部 Google Sheet
         await this.apiCall('setSpecifiedDateToExternalSheet', { 
             date: date,
             targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
         });
         
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在執行自動完成程序...';
+        }
+        
+        // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
+        await this.executeExternalAutoCompleteProcess();
+        
         this.showNotification(
-            `✅ 日期同步成功！\n📅 已將 ${date} 寫入外部工作表`, 
+            `✅ 操作完成！\n📅 日期已同步至外部工作表\n🔄 自動完成程序已執行`, 
             'success'
         );
         
     } catch (e) {
-        console.error('日期同步失敗:', e);
-        this.showNotification(`❌ 日期同步失敗: ${e.message}`, 'error');
+        console.error('操作失敗:', e);
+        this.showNotification(`❌ 操作失敗: ${e.message}`, 'error');
     } finally {
         this.hideLoading();
     }
 }
+
+// 執行外部 GAS 的 autoCompleteProcess 程序
+async executeExternalAutoCompleteProcess() {
+    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbwgiWLhVbE4K3wfnUU8K_CnCucdYpAhrfUAYkFsJE2tgV6YDRPF8UC-3TgweyDwXdkNXw/exec';
+    
+    try {
+        const response = await fetch(externalGasUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'autoCompleteProcess',
+                data: {
+                    timestamp: new Date().toISOString(),
+                    source: '昶青物流派車系統'
+                }
+            }),
+            mode: 'cors',
+        });
+        
+        if (!response.ok) {
+            throw new Error(`外部 GAS 回應錯誤: ${response.status}`);
+        }
+        
+        const result = await response.text();
+        let parsedResult;
+        
+        try {
+            parsedResult = JSON.parse(result);
+        } catch (parseError) {
+            // 如果不是 JSON 格式，直接使用文字結果
+            parsedResult = { success: true, message: result };
+        }
+        
+        console.log('外部 autoCompleteProcess 執行結果:', parsedResult);
+        
+        if (parsedResult.success === false) {
+            throw new Error(parsedResult.error || '外部程序執行失敗');
+        }
+        
+        return parsedResult;
+        
+    } catch (error) {
+        console.error('執行外部 autoCompleteProcess 失敗:', error);
+        
+        // 根據錯誤類型提供更詳細的錯誤訊息
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('無法連接到外部系統，請檢查網路連線');
+        } else if (error.message.includes('CORS')) {
+            throw new Error('跨域請求被阻擋，請檢查外部 GAS 設定');
+        } else {
+            throw new Error(`外部程序執行失敗: ${error.message}`);
+        }
+    }
+}
+
 
 
 
