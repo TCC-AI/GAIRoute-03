@@ -3756,7 +3756,7 @@ generateRouteDetails(routeData) {
             statusColor = '#10b981';
         }
         
-        detailsHtml += `
+       detailsHtml += `
             <div class="route-detail-item">
                 <div style="flex: 1;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
@@ -3771,9 +3771,12 @@ generateRouteDetails(routeData) {
                     <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem;">
                         <i class="fas fa-box" style="width: 12px;"></i> ${product}
                     </div>
-                    ${notes ? `<div style="font-size: 0.75rem; color: #f59e0b;">
+                    ${notes ? `<div style="font-size: 0.75rem; color: #f59e0b; margin-bottom: 0.25rem;">
                         <i class="fas fa-sticky-note" style="width: 12px;"></i> ${notes}
                     </div>` : ''}
+                    <div style="font-size: 0.75rem; color: #64748b;">
+                        <i class="fas fa-truck" style="width: 12px;"></i> ${vehicle}
+                    </div>
                 </div>
                 <div style="text-align: right; margin-left: 1rem;">
                     <div style="font-size: 1.25rem; font-weight: 700; color: #374151;">
@@ -3786,6 +3789,7 @@ generateRouteDetails(routeData) {
             </div>
         `;
     });
+
     
     return detailsHtml;
 }
