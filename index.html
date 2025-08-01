@@ -3059,27 +3059,31 @@ async fetchDeliveryPoints() {
     
     this.showLoading();
     try {
-        // 1. 先寫入指定日期到另一個 Google Sheet
+        // 顯示進度訊息
+        const loadingSpinner = document.querySelector('.loading-spinner p');
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在同步日期到外部工作表...';
+        }
+        
+        // 寫入指定日期到外部 Google Sheet
         await this.apiCall('setSpecifiedDateToExternalSheet', { 
             date: date,
             targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
         });
         
-        // 2. 寫入指定日期到當前工作表（保持原有功能）
-        await this.apiCall('setSpecifiedDate', { date });
-        
-        // 3. 獲取收送點資料
-        const data = await this.apiCall('getDeliveryPoints', { date });
-        this.renderDeliveryPointsTable(data);
-        this.showNotification(`載入 ${data.length} 筆收送點資料，日期已同步至外部工作表`, 'success');
+        this.showNotification(
+            `✅ 日期同步成功！\n📅 已將 ${date} 寫入外部工作表`, 
+            'success'
+        );
         
     } catch (e) {
-        console.error('資料載入失敗:', e);
-        this.showNotification(`資料載入失敗: ${e.message}`, 'error');
+        console.error('日期同步失敗:', e);
+        this.showNotification(`❌ 日期同步失敗: ${e.message}`, 'error');
     } finally {
         this.hideLoading();
     }
 }
+
 
 
 // 處理AI預排
