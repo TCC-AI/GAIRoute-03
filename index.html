@@ -3666,21 +3666,36 @@ const totalPallets = routeData.reduce((sum, item) => {
     return sum + palletSum;
 }, 0);
 
-const pickupCount = routeData.filter(item => {
+const pickupCount = routeData.reduce((sum, item) => {
     // 檢查起點/迄點欄位（G欄位）是否包含『取貨』
     const routeInfo = item['起點/迄點'] || '';
-    return routeInfo.includes('取貨');
-}).length;
+    if (routeInfo.includes('取貨')) {
+        // 如果包含『取貨』，則累加該筆資料的板位欄位數字
+        const palletPosition = item['板位'] || '';
+        const numbers = palletPosition.toString().match(/\d+/g);
+        const palletSum = numbers ? numbers.reduce((acc, num) => acc + parseInt(num), 0) : 0;
+        return sum + palletSum;
+    }
+    return sum;
+}, 0);
 
-const deliveryCount = routeData.filter(item => {
+const deliveryCount = routeData.reduce((sum, item) => {
     // 檢查起點/迄點欄位（G欄位）是否包含『配送』
     const routeInfo = item['起點/迄點'] || '';
-    return routeInfo.includes('配送');
-}).length;
+    if (routeInfo.includes('配送')) {
+        // 如果包含『配送』，則累加該筆資料的板位欄位數字
+        const palletPosition = item['板位'] || '';
+        const numbers = palletPosition.toString().match(/\d+/g);
+        const palletSum = numbers ? numbers.reduce((acc, num) => acc + parseInt(num), 0) : 0;
+        return sum + palletSum;
+    }
+    return sum;
+}, 0);
 
 // 起點和迄點
 const startPoint = routeData[0]?.['起點/迄點']?.split('→')[0]?.trim() || '待確認';
 const endPoint = routeData[routeData.length - 1]?.['起點/迄點']?.split('→')[1]?.trim() || '待確認';
+
 
         
         cardsHtml += `
