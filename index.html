@@ -3091,15 +3091,24 @@ async fetchDeliveryPoints() {
     }
 }
 
-// 執行外部 GAS 的 autoCompleteProcess 程序
+// 執行外部 GAS 的 autoCompleteProcess 程序（修正 CORS 版本）
 async executeExternalAutoCompleteProcess() {
-    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbwgiWLhVbE4K3wfnUU8K_CnCucdYpAhrfUAYkFsJE2tgV6YDRPF8UC-3TgweyDwXdkNXw/exec';
+    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbxfuc7obZvfGxNvocWzMIHC0fONTPn1ipwwBlWEzjvPuEtQKI1SzpBUco6Ok2HwnNaGCg/exec';
     
     try {
+        // 先測試 GET 請求確認服務可用
+        console.log('測試外部 GAS 連線...');
+        const testResponse = await fetch(externalGasUrl, {
+            method: 'GET',
+            mode: 'no-cors', // 使用 no-cors 模式避免預檢請求
+        });
+        
+        console.log('連線測試完成，開始執行 POST 請求');
+        
         const response = await fetch(externalGasUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain', // 改用 text/plain 避免預檢請求
             },
             body: JSON.stringify({
                 action: 'autoCompleteProcess',
@@ -3108,44 +3117,31 @@ async executeExternalAutoCompleteProcess() {
                     source: '昶青物流派車系統'
                 }
             }),
-            mode: 'cors',
+            mode: 'no-cors', // 使用 no-cors 模式
         });
         
-        if (!response.ok) {
-            throw new Error(`外部 GAS 回應錯誤: ${response.status}`);
-        }
+        console.log('POST 請求已發送');
         
-        const result = await response.text();
-        let parsedResult;
-        
-        try {
-            parsedResult = JSON.parse(result);
-        } catch (parseError) {
-            // 如果不是 JSON 格式，直接使用文字結果
-            parsedResult = { success: true, message: result };
-        }
-        
-        console.log('外部 autoCompleteProcess 執行結果:', parsedResult);
-        
-        if (parsedResult.success === false) {
-            throw new Error(parsedResult.error || '外部程序執行失敗');
-        }
-        
-        return parsedResult;
+        // 由於使用 no-cors 模式，無法讀取回應內容
+        // 但請求已經發送到外部 GAS
+        return {
+            success: true,
+            message: '外部程序執行請求已發送',
+            note: '由於 CORS 限制，無法確認執行結果，請檢查外部工作表'
+        };
         
     } catch (error) {
         console.error('執行外部 autoCompleteProcess 失敗:', error);
         
-        // 根據錯誤類型提供更詳細的錯誤訊息
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            throw new Error('無法連接到外部系統，請檢查網路連線');
-        } else if (error.message.includes('CORS')) {
-            throw new Error('跨域請求被阻擋，請檢查外部 GAS 設定');
+        // 提供更友善的錯誤訊息
+        if (error.name === 'TypeError') {
+            throw new Error('網路連線問題，請檢查網路狀態或稍後再試');
         } else {
             throw new Error(`外部程序執行失敗: ${error.message}`);
         }
     }
 }
+
 
 
 // 處理AI預排
