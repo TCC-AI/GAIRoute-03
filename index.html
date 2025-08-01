@@ -2212,7 +2212,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbxH0p4bVcrm89-uXGQVYTNcOznt3xpnicDovrCwbOi89pZan54iCqUPU064iJIEee0Q/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbxfR3Eswa_pg4XX2KsJzW638vmfvh8B245pbxMEY9oHDPUQddANitciZ6SvpxASFcCG/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3047,7 +3047,7 @@ document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', asy
                     return { success: false, message: '驗證失敗' };
                 }
             }
-            // 獲取派車收送點清單
+// 獲取派車收送點清單
 async fetchDeliveryPoints() {
     const dateInput = document.getElementById('deliveryDatePicker').value;
     if (!dateInput) {
@@ -3057,26 +3057,30 @@ async fetchDeliveryPoints() {
     
     const date = this.formatDateForSheet(dateInput);
     
-    // 寫入指定日期
-    try {
-        await this.apiCall('setSpecifiedDate', { date });
-    } catch (e) {
-        this.showNotification('寫入指定日期失敗', 'error');
-    }
-
-    // 呼叫 GAS API
     this.showLoading();
     try {
+        // 1. 先寫入指定日期到另一個 Google Sheet
+        await this.apiCall('setSpecifiedDateToExternalSheet', { 
+            date: date,
+            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+        });
+        
+        // 2. 寫入指定日期到當前工作表（保持原有功能）
+        await this.apiCall('setSpecifiedDate', { date });
+        
+        // 3. 獲取收送點資料
         const data = await this.apiCall('getDeliveryPoints', { date });
         this.renderDeliveryPointsTable(data);
-        this.showNotification(`載入 ${data.length} 筆收送點資料`, 'success');
+        this.showNotification(`載入 ${data.length} 筆收送點資料，日期已同步至外部工作表`, 'success');
+        
     } catch (e) {
         console.error('資料載入失敗:', e);
-        this.showNotification('資料載入失敗', 'error');
+        this.showNotification(`資料載入失敗: ${e.message}`, 'error');
     } finally {
         this.hideLoading();
     }
 }
+
 
 // 處理AI預排
 async handleAIPreplan() {
