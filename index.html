@@ -3088,7 +3088,7 @@ async fetchDeliveryPoints() {
             loadingSpinner.textContent = '正在載入託收託運回報資料...';
         }
         
-        // 4. 使用重試機制獲取託收託運回報_篩選工作表資料
+        // 4. 使用重試機制獲取託收託運回報工作表資料
         const reportData = await this.getFilteredDeliveryReportWithRetry();
         
         // 5. 顯示資料
@@ -3151,7 +3151,7 @@ delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// 獲取託收託運回報_篩選工作表資料
+// 獲取託收託運回報工作表資料
 async getFilteredDeliveryReport() {
     try {
         const result = await this.apiCall('getFilteredDeliveryReport', {
@@ -3185,7 +3185,7 @@ displayDeliveryReport(data) {
     let tableHtml = `
         <div style="margin-bottom: 1rem; padding: 1rem; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
             <h4 style="margin: 0 0 0.5rem 0; color: #0ea5e9;">
-                <i class="fas fa-file-alt"></i> 託收託運回報_篩選
+                <i class="fas fa-file-alt"></i> 託收託運回報
             </h4>
             <p style="margin: 0; color: #64748b; font-size: 0.875rem;">
                 資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${data.length} 筆資料
