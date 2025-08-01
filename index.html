@@ -2212,7 +2212,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbyU-UZR3EXq9t92xGnsNr5smxRhJqVOlQb-tsB19blP-dnKfWfrPBzZNT5kJiKq16z6/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwd2tnoCoyee349p3iHkcnzpUn7Mzit0IQxQTtjK1UE5KDAzz8kYe_33Uy2rwOok9g/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3314,7 +3314,7 @@ async executeExternalAutoCompleteProcess() {
 
 
 
-// 處理AI預排
+// 處理AI預排 - 修改版本
 async handleAIPreplan() {
     const deliveryList = this.getDeliveryListFromTable();
     if (!deliveryList.length) {
@@ -3324,43 +3324,45 @@ async handleAIPreplan() {
 
     // 顯示 loading
     const resultDiv = document.getElementById('gai-route-result');
-    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入明日建議派車表...';
+    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入當日各路線表...';
 
     try {
-        // 呼叫後端API獲取明日建議派車表
-        const result = await this.apiCall('getTomorrowDispatchTable', {});
+        // 呼叫後端API獲取當日各路線表
+        const result = await this.apiCall('getCurrentDayRouteTable', {
+            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+        });
         
         if (result && result.length > 0) {
             // 將資料轉換為表格格式並顯示
-            const tableHtml = this.convertToDispatchTable(result);
+            const tableHtml = this.convertToRouteTable(result);
             resultDiv.innerHTML = `
                 <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #f8f9fa; margin-top: 1rem;">
                     <h4 style="margin-bottom: 1rem; color: #2563eb;">
-                        <i class="fas fa-calendar-day"></i> 明日建議派車表
+                        <i class="fas fa-route"></i> 當日各路線表
                     </h4>
                     <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">
-                        資料更新時間: ${new Date().toLocaleString('zh-TW')}
+                        資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${result.length} 條路線
                     </div>
-                    <div class="markdown-content" style="overflow-x: auto;">
+                    <div class="route-table-content" style="overflow-x: auto;">
                         ${tableHtml}
                     </div>
                     <div style="margin-top: 1rem; text-align: right;">
-                        <button class="btn btn-primary btn-sm" onclick="app.exportDispatchTable()">
-                            <i class="fas fa-download"></i> 匯出表格
+                        <button class="btn btn-primary btn-sm" onclick="app.exportRouteTable()">
+                            <i class="fas fa-download"></i> 匯出路線表
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="app.refreshDispatchTable()" style="margin-left: 0.5rem;">
+                        <button class="btn btn-secondary btn-sm" onclick="app.refreshRouteTable()" style="margin-left: 0.5rem;">
                             <i class="fas fa-sync-alt"></i> 重新整理
                         </button>
                     </div>
                 </div>
             `;
             
-            this.showNotification('明日建議派車表載入完成', 'success');
+            this.showNotification('當日各路線表載入完成', 'success');
         } else {
-            throw new Error('無法取得派車表資料');
+            throw new Error('無法取得路線表資料');
         }
     } catch (e) {
-        console.error('載入派車表失敗:', e);
+        console.error('載入路線表失敗:', e);
         resultDiv.innerHTML = `
             <div style="color: #dc2626; padding: 1rem; border: 1px solid #fecaca; border-radius: 4px; background: #fef2f2;">
                 <i class="fas fa-exclamation-triangle"></i> 載入失敗: ${e.message}
@@ -3369,6 +3371,61 @@ async handleAIPreplan() {
         `;
     }
 }
+
+// 轉換資料為路線表格式
+convertToRouteTable(data) {
+    if (!data || data.length === 0) {
+        return '<p style="color: #64748b; text-align: center; padding: 2rem;">暫無路線資料</p>';
+    }
+
+    const headers = Object.keys(data[0]);
+    
+    let html = '<table class="data-table" style="width: 100%; border-collapse: collapse;">';
+    
+    // 表頭
+    html += '<thead><tr>';
+    headers.forEach(header => {
+        html += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc; font-weight: 600;">${header}</th>`;
+    });
+    html += '</tr></thead>';
+    
+    // 表格內容
+    html += '<tbody>';
+    data.forEach((row, index) => {
+        html += `<tr style="${index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
+        headers.forEach(header => {
+            let value = row[header] || '';
+            // 處理特殊欄位的顯示格式
+            if (header.includes('時間')) {
+                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; font-family: monospace;">${value}</td>`;
+            } else if (header.includes('距離') || header.includes('公里')) {
+                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: right;">${value}</td>`;
+            } else if (header.includes('狀態')) {
+                const statusColor = value === '進行中' ? 'color: #059669; font-weight: 600;' : 
+                                   value === '已完成' ? 'color: #0ea5e9; font-weight: 600;' : 
+                                   value === '延遲' ? 'color: #dc2626; font-weight: 600;' : '';
+                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; ${statusColor}">${value}</td>`;
+            } else {
+                html += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0;">${value}</td>`;
+            }
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+
+    return html;
+}
+
+// 匯出路線表功能
+exportRouteTable() {
+    this.showNotification('匯出功能開發中...', 'info');
+}
+
+// 重新整理路線表
+refreshRouteTable() {
+    this.handleAIPreplan();
+}
+
 
 // 工具方法
 formatDateForSheet(dateStr) {
