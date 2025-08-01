@@ -3078,8 +3078,25 @@ async fetchDeliveryPoints() {
         // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
         await this.executeExternalAutoCompleteProcess();
         
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在等待工作表生成...';
+        }
+        
+        // 3. 等待一段時間讓外部工作表生成
+        await this.delay(8000); // 等待8秒
+        
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在載入託收託運回報資料...';
+        }
+        
+        // 4. 獲取託收託運回報_篩選工作表資料
+        const reportData = await this.getFilteredDeliveryReport();
+        
+        // 5. 顯示資料
+        this.displayDeliveryReport(reportData);
+        
         this.showNotification(
-            `✅ 操作完成！\n📅 日期已同步至外部工作表\n🔄 自動完成程序已執行`, 
+            `✅ 操作完成！\n📅 日期已同步至外部工作表\n🔄 自動完成程序已執行\n📊 託收託運回報已載入`, 
             'success'
         );
         
@@ -3091,9 +3108,124 @@ async fetchDeliveryPoints() {
     }
 }
 
+// 延遲函數
+delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 獲取託收託運回報_篩選工作表資料
+async getFilteredDeliveryReport() {
+    try {
+        const result = await this.apiCall('getFilteredDeliveryReport', {
+            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+        });
+        return result;
+    } catch (error) {
+        console.error('獲取託收託運回報失敗:', error);
+        throw new Error(`獲取託收託運回報失敗: ${error.message}`);
+    }
+}
+
+// 顯示託收託運回報資料
+displayDeliveryReport(data) {
+    // 找到紅色箭頭處的資料框架容器
+    const container = document.getElementById('deliveryPointsTableContainer');
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: #64748b;">
+                <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <p>託收託運回報工作表尚未生成或無資料</p>
+                <p><small>請稍後重新查詢</small></p>
+            </div>
+        `;
+        return;
+    }
+
+    // 生成表格
+    const headers = Object.keys(data[0]);
+    let tableHtml = `
+        <div style="margin-bottom: 1rem; padding: 1rem; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #0ea5e9;">
+                <i class="fas fa-file-alt"></i> 託收託運回報_篩選
+            </h4>
+            <p style="margin: 0; color: #64748b; font-size: 0.875rem;">
+                資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${data.length} 筆資料
+            </p>
+        </div>
+        <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc;">
+    `;
+    
+    headers.forEach(header => {
+        tableHtml += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #374151;">${header}</th>`;
+    });
+    
+    tableHtml += `
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    data.forEach((row, index) => {
+        const bgColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+        tableHtml += `<tr style="background-color: ${bgColor};">`;
+        headers.forEach(header => {
+            let cellValue = row[header] || '';
+            // 如果是數字，右對齊
+            const isNumber = !isNaN(cellValue) && cellValue !== '';
+            const textAlign = isNumber ? 'right' : 'left';
+            tableHtml += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: ${textAlign};">${cellValue}</td>`;
+        });
+        tableHtml += '</tr>';
+    });
+    
+    tableHtml += `
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 1rem; text-align: right;">
+            <button class="btn btn-primary btn-sm" onclick="app.exportDeliveryReport()">
+                <i class="fas fa-download"></i> 匯出報告
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="app.refreshDeliveryReport()" style="margin-left: 0.5rem;">
+                <i class="fas fa-sync-alt"></i> 重新整理
+            </button>
+        </div>
+    `;
+    
+    container.innerHTML = tableHtml;
+    
+    // 隱藏展開按鈕（因為現在顯示的是不同的資料）
+    const toggleBtn = document.getElementById('toggleDeliveryPoints');
+    if (toggleBtn) {
+        toggleBtn.style.display = 'none';
+    }
+}
+
+// 匯出託收託運報告
+exportDeliveryReport() {
+    this.showNotification('匯出功能開發中...', 'info');
+}
+
+// 重新整理託收託運報告
+refreshDeliveryReport() {
+    const dateInput = document.getElementById('deliveryDatePicker').value;
+    if (dateInput) {
+        this.getFilteredDeliveryReport()
+            .then(data => this.displayDeliveryReport(data))
+            .catch(error => {
+                console.error('重新整理失敗:', error);
+                this.showNotification('重新整理失敗', 'error');
+            });
+    }
+}
+
 // 執行外部 GAS 的 autoCompleteProcess 程序（修正 CORS 版本）
 async executeExternalAutoCompleteProcess() {
-    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbxfuc7obZvfGxNvocWzMIHC0fONTPn1ipwwBlWEzjvPuEtQKI1SzpBUco6Ok2HwnNaGCg/exec';
+    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbw9Ftr0AZiIMAXy8Gln-cJ9AJYhAWASjWTUzbmoPJdfZC1iMwA1Ex1WoO0lhaYRHmec/exec';
     
     try {
         // 先測試 GET 請求確認服務可用
