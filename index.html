@@ -3314,23 +3314,21 @@ async executeExternalAutoCompleteProcess() {
 
 
 
-// 處理AI預排 - 修改版本
+// 處理AI預排 - 修正版本
 async handleAIPreplan() {
-    const deliveryList = this.getDeliveryListFromTable();
-    if (!deliveryList.length) {
-        this.showNotification('請先查詢並顯示收送點清單', 'warning');
-        return;
-    }
-
     // 顯示 loading
     const resultDiv = document.getElementById('gai-route-result');
     resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入當日各路線表...';
 
     try {
+        console.log('開始獲取當日各路線表...');
+        
         // 呼叫後端API獲取當日各路線表
         const result = await this.apiCall('getCurrentDayRouteTable', {
             targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
         });
+        
+        console.log('API 返回結果:', result);
         
         if (result && result.length > 0) {
             // 將資料轉換為表格格式並顯示
@@ -3359,7 +3357,7 @@ async handleAIPreplan() {
             
             this.showNotification('當日各路線表載入完成', 'success');
         } else {
-            throw new Error('無法取得路線表資料');
+            throw new Error('無法取得路線表資料或資料為空');
         }
     } catch (e) {
         console.error('載入路線表失敗:', e);
@@ -3367,10 +3365,12 @@ async handleAIPreplan() {
             <div style="color: #dc2626; padding: 1rem; border: 1px solid #fecaca; border-radius: 4px; background: #fef2f2;">
                 <i class="fas fa-exclamation-triangle"></i> 載入失敗: ${e.message}
                 <br><small>請檢查網路連線或聯絡系統管理員</small>
+                <br><small>錯誤詳情: ${e.stack || '無詳細資訊'}</small>
             </div>
         `;
     }
 }
+
 
 // 轉換資料為路線表格式
 convertToRouteTable(data) {
