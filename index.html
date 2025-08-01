@@ -3372,12 +3372,118 @@ async handleAIPreplan() {
 }
 
 
-// 轉換資料為路線表格式
+// 轉換資料為路線表格式 - 修正版本
 convertToRouteTable(data) {
     if (!data || data.length === 0) {
         return '<p style="color: #64748b; text-align: center; padding: 2rem;">暫無路線資料</p>';
     }
 
+    // 檢查是否有路線名稱欄位，如果有就按路線分組顯示
+    const hasRouteNameField = data.length > 0 && data[0].hasOwnProperty('路線名稱');
+    
+    if (!hasRouteNameField) {
+        // 如果沒有路線名稱欄位，使用原來的表格顯示方式
+        return this.convertToSimpleTable(data);
+    }
+
+    // 按路線分組顯示
+    let html = '<div class="route-groups">';
+    
+    let currentRoute = '';
+    let routeDetailsHtml = '';
+    let routeCount = 0;
+    let headers = [];
+    
+    data.forEach((row, index) => {
+        const routeName = row['路線名稱'] || '';
+        
+        // 檢查是否為分隔符
+        if (routeName.includes('結束')) {
+            if (routeDetailsHtml && currentRoute) {
+                routeDetailsHtml += '</tbody>';
+                html += this.buildRouteGroup(currentRoute, routeDetailsHtml, routeCount);
+                routeDetailsHtml = '';
+                routeCount = 0;
+            }
+            return;
+        }
+        
+        // 檢查是否為新路線
+        if (routeName && routeName !== currentRoute && !routeName.includes('結束')) {
+            // 如果有之前的路線資料，先輸出
+            if (routeDetailsHtml && currentRoute) {
+                routeDetailsHtml += '</tbody>';
+                html += this.buildRouteGroup(currentRoute, routeDetailsHtml, routeCount);
+            }
+            
+            // 開始新路線
+            currentRoute = routeName;
+            routeCount = 0;
+            
+            // 創建表頭（排除路線名稱欄位）
+            headers = Object.keys(row).filter(key => key !== '路線名稱');
+            routeDetailsHtml = '<thead><tr>';
+            headers.forEach(header => {
+                routeDetailsHtml += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc; font-weight: 600;">${header}</th>`;
+            });
+            routeDetailsHtml += '</tr></thead><tbody>';
+        }
+        
+        // 添加資料行（排除路線名稱欄位）
+        if (routeName && !routeName.includes('結束')) {
+            routeDetailsHtml += `<tr style="${routeCount % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;'}">`;
+            
+            headers.forEach(header => {
+                let value = row[header] || '';
+                // 處理特殊欄位的顯示格式
+                if (header.includes('時間') || header.includes('日期')) {
+                    routeDetailsHtml += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; font-family: monospace;">${value}</td>`;
+                } else if (header.includes('距離') || header.includes('公里')) {
+                    routeDetailsHtml += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: right;">${value}</td>`;
+                } else if (header.includes('狀態')) {
+                    const statusColor = value === '進行中' ? 'color: #059669; font-weight: 600;' : 
+                                       value === '已完成' ? 'color: #0ea5e9; font-weight: 600;' : 
+                                       value === '延遲' ? 'color: #dc2626; font-weight: 600;' : 
+                                       value === '配送中' ? 'color: #0ea5e9; font-weight: 600;' : '';
+                    routeDetailsHtml += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; ${statusColor}">${value}</td>`;
+                } else {
+                    routeDetailsHtml += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0;">${value}</td>`;
+                }
+            });
+            
+            routeDetailsHtml += '</tr>';
+            routeCount++;
+        }
+    });
+    
+    // 處理最後一個路線
+    if (routeDetailsHtml && currentRoute) {
+        routeDetailsHtml += '</tbody>';
+        html += this.buildRouteGroup(currentRoute, routeDetailsHtml, routeCount);
+    }
+    
+    html += '</div>';
+    return html;
+},
+
+// 輔助函數：建立路線群組HTML
+buildRouteGroup(routeName, routeDetailsHtml, routeCount) {
+    return `
+        <div class="route-group" style="margin-bottom: 2rem; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+            <div class="route-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%); color: white; padding: 1rem; font-weight: 600;">
+                <i class="fas fa-route"></i> ${routeName} (${routeCount} 筆配送)
+            </div>
+            <div class="route-details" style="overflow-x: auto;">
+                <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                    ${routeDetailsHtml}
+                </table>
+            </div>
+        </div>
+    `;
+},
+
+// 輔助函數：簡單表格顯示（保持原有邏輯）
+convertToSimpleTable(data) {
     const headers = Object.keys(data[0]);
     
     let html = '<table class="data-table" style="width: 100%; border-collapse: collapse;">';
@@ -3415,6 +3521,7 @@ convertToRouteTable(data) {
 
     return html;
 }
+
 
 // 匯出路線表功能
 exportRouteTable() {
