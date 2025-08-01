@@ -2170,10 +2170,7 @@
                   <button id="ai-preplan-btn" style="background:#2563eb; color:#fff; border:none; padding:0.5em 1.5em; border-radius:4px; cursor:pointer;">
                     <i class="fa-solid fa-robot"></i> AI預排
                   </button>
-                  <!-- 路線卡片容器 -->
-  <div id="gai-route-result" style="margin-top:1.5em;">
-    <!-- 卡片將在這裡動態生成 -->
-  </div>
+                  <div id="gai-route-result" style="margin-top:1.5em;"></div>
                 </div>
 
                 <div class="optimization-container">
@@ -2436,7 +2433,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycby8FIz3RGW0dk19lkeVfYhyRhU3882qZ4wRIpzJM9W1iIw33y0CCImDlx-PYkXiiHPl/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwwcJR_GWDzu2ZbFttA5igKIIQtlPlkr8hZY9Uw09P5cy67h2T4wcCq09DPrmV8_ptn/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3538,7 +3535,7 @@ async executeExternalAutoCompleteProcess() {
 
 
 
-// 處理AI預排 - 修改為卡片顯示
+// 處理AI預排
 async handleAIPreplan() {
     const resultDiv = document.getElementById('gai-route-result');
     resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在載入當日各路線表...';
@@ -3553,8 +3550,8 @@ async handleAIPreplan() {
         console.log('API 返回結果:', result);
         
         if (result && result.length > 0) {
-            // 使用新的卡片格式顯示
-            const cardsHtml = convertToRouteCards(result);
+            // 使用新的卡片格式顯示 - 注意這裡改為 convertToRouteCards
+            const cardsHtml = this.convertToRouteCards(result);
             resultDiv.innerHTML = `
                 <div style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); margin-top: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -3604,6 +3601,7 @@ async handleAIPreplan() {
         `;
     }
 }
+
 
 // 輔助函數：獲取唯一路線數量
 function getUniqueRouteCount(data) {
