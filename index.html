@@ -2212,7 +2212,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbw9Ftr0AZiIMAXy8Gln-cJ9AJYhAWASjWTUzbmoPJdfZC1iMwA1Ex1WoO0lhaYRHmec/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzG803l9WugmgA6rHmLlFwrAI_7bqmE0bq3UUzd0R47rO92JQnlZnuSD0mIDhpxWVTu/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3047,16 +3047,15 @@ document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', asy
                     return { success: false, message: '驗證失敗' };
                 }
             }
-// 獲取派車收送點清單
+// 修改 fetchDeliveryPoints 函數
 async fetchDeliveryPoints() {
     const dateInput = document.getElementById('deliveryDatePicker').value;
     if (!dateInput) {
         this.showNotification('請選擇日期', 'warning');
         return;
     }
-    
     const date = this.formatDateForSheet(dateInput);
-    
+
     this.showLoading();
     try {
         // 顯示進度訊息
@@ -3082,15 +3081,15 @@ async fetchDeliveryPoints() {
             loadingSpinner.textContent = '正在等待工作表生成...';
         }
         
-        // 3. 等待一段時間讓外部工作表生成
-        await this.delay(15000); // 等待8秒
+        // 3. 增加等待時間並加入重試機制
+        await this.waitForSheetGeneration(20000); // 等待20秒
         
         if (loadingSpinner) {
             loadingSpinner.textContent = '正在載入託收託運回報資料...';
         }
         
-        // 4. 獲取託收託運回報_篩選工作表資料
-        const reportData = await this.getFilteredDeliveryReport();
+        // 4. 使用重試機制獲取託收託運回報_篩選工作表資料
+        const reportData = await this.getFilteredDeliveryReportWithRetry();
         
         // 5. 顯示資料
         this.displayDeliveryReport(reportData);
@@ -3108,6 +3107,45 @@ async fetchDeliveryPoints() {
     }
 }
 
+// 新增等待函數
+async waitForSheetGeneration(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 新增重試機制的獲取函數
+async getFilteredDeliveryReportWithRetry(maxRetries = 3, retryDelay = 5000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`嘗試獲取託收託運回報資料 (第 ${attempt} 次)`);
+            
+            const result = await this.apiCall('getFilteredDeliveryReport', {
+                targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+            });
+            
+            if (result && result.length > 0) {
+                console.log(`成功獲取資料，共 ${result.length} 筆`);
+                return result;
+            } else if (attempt < maxRetries) {
+                console.log(`第 ${attempt} 次嘗試無資料，等待 ${retryDelay/1000} 秒後重試...`);
+                await this.waitForSheetGeneration(retryDelay);
+            }
+            
+        } catch (error) {
+            console.error(`第 ${attempt} 次嘗試失敗:`, error);
+            
+            if (attempt < maxRetries) {
+                console.log(`等待 ${retryDelay/1000} 秒後重試...`);
+                await this.waitForSheetGeneration(retryDelay);
+            } else {
+                throw new Error(`經過 ${maxRetries} 次嘗試後仍無法獲取資料: ${error.message}`);
+            }
+        }
+    }
+    
+    // 如果所有重試都沒有資料，返回空陣列
+    console.log('所有重試完成，但未獲取到資料');
+    return [];
+}
 // 延遲函數
 delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
