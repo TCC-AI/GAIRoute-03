@@ -3112,6 +3112,41 @@ document.getElementById('ai-preplan-btn')?.addEventListener('click', async () =>
 document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', async () => {
     await this.fetchDeliveryPoints();
 });
+                // ⭐ 在這裡添加調試功能 ⭐
+document.getElementById('debugRouteData')?.addEventListener('click', async () => {
+    try {
+        console.log('=== 開始調試路線資料 ===');
+        
+        // 第一步：測試獲取原始資料
+        const rawData = await this.apiCall('getRouteTableFromExternalSheet', {
+            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+        });
+        
+        console.log('原始資料:', rawData);
+        console.log('原始資料類型:', typeof rawData);
+        console.log('是否為陣列:', Array.isArray(rawData));
+        
+        if (Array.isArray(rawData) && rawData.length > 0) {
+            console.log('第一筆資料:', rawData[0]);
+            console.log('第一筆資料的鍵:', Object.keys(rawData[0]));
+            
+            // 第二步：測試處理地址資料
+            const processedData = await this.apiCall('processRouteAddresses', {
+                routeData: rawData
+            });
+            
+            console.log('處理後資料:', processedData);
+            console.log('處理後資料類型:', typeof processedData);
+            console.log('處理後是否為陣列:', Array.isArray(processedData));
+        }
+        
+        this.showNotification('調試資訊已輸出到控制台', 'info');
+        
+    } catch (error) {
+        console.error('調試失敗:', error);
+        this.showNotification(`調試失敗: ${error.message}`, 'error');
+    }
+});
 
                 document.getElementById('startOptimization')?.addEventListener('click', () => {
                     this.startRouteOptimization();
@@ -4052,43 +4087,93 @@ refreshDispatchTable() {
                 }
             }
 
-// 修改地圖載入路線功能
+// 修正地圖載入路線功能
 async loadRoutesOnMap() {
     try {
-        const externalData = await this.getExternalRouteData();
+        console.log('開始載入路線到地圖...');
+        
         const routeMapList = document.getElementById('routeMapList');
-        routeMapList.innerHTML = '';
-
+        routeMapList.innerHTML = '<div style="padding: 1rem; text-align: center;">載入中...</div>';
+        
         this.mapsIntegration.clearMarkers();
-
-        // 處理外部路線資料
+        
+        // 獲取外部路線資料
+        const externalData = await this.getExternalRouteData();
+        
+        console.log('獲取到的外部資料:', externalData);
+        
+        if (!externalData.processedRoutes || externalData.processedRoutes.length === 0) {
+            routeMapList.innerHTML = `
+                <div style="padding: 2rem; text-align: center; color: #64748b;">
+                    <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>暫無路線資料</p>
+                    <p><small>請檢查外部工作表是否有資料</small></p>
+                </div>
+            `;
+            return;
+        }
+        
+        routeMapList.innerHTML = '';
+        
+        // 處理每條路線
         externalData.processedRoutes.forEach((route, index) => {
+            console.log(`處理路線 ${index + 1}: ${route.routeName}`);
+            
             // 添加路線到側邊欄列表
             const routeItem = document.createElement('div');
             routeItem.className = 'route-info-card';
-            routeItem.innerHTML = `
-                <h5>${route.routeName}</h5>
-                <p><small>${route.addressCount} 個地址點 | ${route.totalKm} km</small></p>
-                <button class="btn btn-sm btn-primary" onclick="app.showExternalRouteOnMap('${route.routeName}')">
-                    <i class="fas fa-eye"></i> 顯示路線
-                </button>
-                <button class="btn btn-sm btn-info" onclick="app.showRouteAddresses('${route.routeName}')">
-                    <i class="fas fa-list"></i> 地址清單
-                </button>
+            routeItem.style.cssText = `
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             `;
+            
+            routeItem.innerHTML = `
+                <h5 style="margin: 0 0 0.5rem 0; color: #1e293b;">${route.routeName}</h5>
+                <p style="margin: 0 0 1rem 0; color: #64748b; font-size: 0.875rem;">
+                    <i class="fas fa-map-marker-alt"></i> ${route.addressCount} 個地址點 | 
+                    <i class="fas fa-route"></i> ${route.totalKm} km
+                </p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-sm btn-primary" onclick="app.showExternalRouteOnMap('${route.routeName}')">
+                        <i class="fas fa-eye"></i> 顯示路線
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="app.showRouteAddresses('${route.routeName}')">
+                        <i class="fas fa-list"></i> 地址清單
+                    </button>
+                </div>
+            `;
+            
             routeMapList.appendChild(routeItem);
-
+            
             // 為每個地址創建地圖標記
             this.createRouteMarkersFromAddresses(route, index);
         });
         
-        this.showNotification(`已載入 ${externalData.processedRoutes.length} 條外部路線`, 'success');
+        this.showNotification(`已載入 ${externalData.processedRoutes.length} 條路線`, 'success');
         
     } catch (error) {
         console.error('載入外部路線到地圖失敗:', error);
+        
+        const routeMapList = document.getElementById('routeMapList');
+        routeMapList.innerHTML = `
+            <div style="padding: 2rem; text-align: center; color: #dc2626;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <p>載入路線失敗</p>
+                <p><small>${error.message}</small></p>
+                <button class="btn btn-sm btn-secondary" onclick="app.loadRoutesOnMap()" style="margin-top: 1rem;">
+                    <i class="fas fa-sync-alt"></i> 重新載入
+                </button>
+            </div>
+        `;
+        
         this.showNotification('載入外部路線失敗', 'error');
     }
 }
+
 
 // 新增：從地址創建地圖標記
 async createRouteMarkersFromAddresses(route, routeIndex) {
@@ -4941,22 +5026,43 @@ async getRoutes() {
     }
 }
 
-// 新增處理外部路線資料的函數
+// 修正獲取外部路線資料的函數
 async getExternalRouteData() {
     try {
+        console.log('開始獲取外部路線資料...');
+        
         const routeData = await this.apiCall('getRouteTableFromExternalSheet', {
             targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
         });
         
-        // 處理地址資料以供地圖使用
+        console.log('原始路線資料:', routeData);
+        
+        // 確保 routeData 是陣列
+        if (!Array.isArray(routeData)) {
+            console.error('路線資料不是陣列格式:', routeData);
+            throw new Error('路線資料格式錯誤');
+        }
+        
+        if (routeData.length === 0) {
+            console.warn('沒有找到路線資料');
+            return {
+                rawData: [],
+                processedRoutes: []
+            };
+        }
+        
+        // 處理地址資料 - 注意這裡的參數結構
         const processedRoutes = await this.apiCall('processRouteAddresses', {
-            routeData: routeData
+            routeData: routeData  // 確保參數名稱正確
         });
+        
+        console.log('處理後的路線資料:', processedRoutes);
         
         return {
             rawData: routeData,
-            processedRoutes: processedRoutes
+            processedRoutes: processedRoutes || []
         };
+        
     } catch (error) {
         console.error('獲取外部路線資料失敗:', error);
         throw error;
