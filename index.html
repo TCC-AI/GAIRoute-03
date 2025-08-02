@@ -3349,7 +3349,7 @@ async fetchDeliveryPoints() {
         // 顯示進度訊息
         const loadingSpinner = document.querySelector('.loading-spinner p');
         if (loadingSpinner) {
-            loadingSpinner.textContent = '正在同步日期到外部工作表...';
+            loadingSpinner.textContent = '正在同步提取日期對應資料...';
         }
         
         // 1. 寫入指定日期到外部 Google Sheet
@@ -3359,7 +3359,7 @@ async fetchDeliveryPoints() {
         });
         
         if (loadingSpinner) {
-            loadingSpinner.textContent = '正在執行自動完成程序...';
+            loadingSpinner.textContent = '正在執行【路徑導航設計程序】...';
         }
         
         // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
