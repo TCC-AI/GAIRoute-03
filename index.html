@@ -1524,14 +1524,42 @@
             }
         }
 
-        /* 路線卡片容器 */
+/* 路線卡片容器 */
 .route-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(5, 1fr); /* 固定5列 */
+  gap: 1.2rem; /* 稍微縮小間距以適應更多卡片 */
   margin-top: 2rem;
   padding: 1rem;
 }
+
+/* 響應式調整 - 在較小螢幕上保持適當的顯示 */
+@media (max-width: 1600px) {
+  .route-cards-container {
+    grid-template-columns: repeat(4, 1fr); /* 中等螢幕顯示4列 */
+  }
+}
+
+@media (max-width: 1200px) {
+  .route-cards-container {
+    grid-template-columns: repeat(3, 1fr); /* 較小螢幕顯示3列 */
+  }
+}
+
+@media (max-width: 900px) {
+  .route-cards-container {
+    grid-template-columns: repeat(2, 1fr); /* 平板顯示2列 */
+  }
+}
+
+@media (max-width: 600px) {
+  .route-cards-container {
+    grid-template-columns: 1fr; /* 手機顯示1列 */
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+}
+
 
 /* 路線卡片基本樣式 */
 .route-card {
@@ -1543,6 +1571,7 @@
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+    min-width: 220px; /* 設定最小寬度確保內容可讀性 */
 }
 
 .route-card:hover {
