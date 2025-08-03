@@ -2316,7 +2316,7 @@
                 <div class="dashboard-grid" id="dashboardStats">
                     <div class="card">
                         <div class="card-header">
-                            <h3>今日配送總板數</h3>
+                            <h3>今日收送總板數</h3>
                             <i class="fas fa-shipping-fast"></i>
                         </div>
                         <div class="card-body">
@@ -2743,7 +2743,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbx2A9jz37amKNiMjTG86xd9Ie-BWFDY-D4sIebwhXB75ts0dlFlS2K5_--JtsCuvM5R/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzwHJPjyixO6LW7a-nHNBBGGzb5RFi7axZL78_o-M0lCQC6ZFDxnzpeneKxJ4V4HVLk/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -5271,10 +5271,12 @@ async loadDashboard() {
     try {
         let dashboardData;
         let routePalletSum = 0;
+        let routePalletNonZeroCount = 0;
         
         if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
             dashboardData = this.getMockData('getDashboardData');
             routePalletSum = 163; // 模擬資料
+            routePalletNonZeroCount = 4; // 模擬非零次數
             if (!this.isOnline) {
                 this.showNotification('目前使用離線模式', 'warning');
             }
@@ -5282,20 +5284,30 @@ async loadDashboard() {
             // 獲取基本儀表板資料
             dashboardData = await this.apiCall('getDashboardData');
             
-            // 獲取各路線板數總和
+            // 同時獲取各路線板數總和和非零次數
             try {
-                routePalletSum = await this.apiCall('getRoutePalletSum', {
-                    targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
-                });
+                const [palletSum, nonZeroCount] = await Promise.all([
+                    this.apiCall('getRoutePalletSum', {
+                        targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                    }),
+                    this.apiCall('getRoutePalletNonZeroCount', {
+                        targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                    })
+                ]);
+                
+                routePalletSum = palletSum;
+                routePalletNonZeroCount = nonZeroCount;
+                
             } catch (error) {
-                console.error('獲取路線板數總和失敗:', error);
+                console.error('獲取路線板數資料失敗:', error);
                 routePalletSum = 0;
+                routePalletNonZeroCount = 0;
             }
         }
         
-        // 更新統計數據 - 使用路線板數總和替代原來的今日配送數
+        // 更新統計數據
         document.getElementById('todayDeliveries').textContent = routePalletSum;
-        document.getElementById('vehicleUsage').textContent = `${dashboardData.vehicleUsage || 0}%`;
+        document.getElementById('vehicleUsage').textContent = routePalletNonZeroCount; // 改為顯示非零次數
         document.getElementById('onTimeRate').textContent = `${dashboardData.onTimeRate || 0}%`;
         document.getElementById('alertCount').textContent = dashboardData.alertCount || 0;
 
@@ -5314,6 +5326,7 @@ async loadDashboard() {
         this.hideLoading();
     }
 }
+
 
 
             // 載入路線管理資料
