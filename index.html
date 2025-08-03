@@ -3171,7 +3171,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbz2p_fsR33G_xxllE0ePx4jslVJW_15unBAoYUnWXhpv4mmwqBdpbv9Hzt1qEm4JT3P/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzCXh-5wVYVfYY5rabZ-qBmBquPlU2iiDfid7sWd1HUgAmx4Z5jiDX8O8Nvdg7drFJ5/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3609,20 +3609,22 @@
                 }
             }
 
-            // 格式化天氣資料
-            formatWeatherData(data) {
-                return {
-                    temperature: Math.round(data.main.temp),
-                    feelsLike: Math.round(data.main.feels_like),
-                    humidity: data.main.humidity,
-                    description: data.weather[0].description,
-                    icon: data.weather[0].icon,
-                    windSpeed: Math.round(data.wind.speed * 3.6), // m/s 轉 km/h
-                    visibility: Math.round(data.visibility / 1000), // m 轉 km
-                    pressure: data.main.pressure,
-                    location: data.name
-                };
-            }
+// 格式化天氣資料 - 確保數據一致性
+formatWeatherData(data) {
+    const temp = Math.round(data.main.temp);
+    return {
+        temperature: temp, // 確保溫度是整數
+        feelsLike: Math.round(data.main.feels_like),
+        humidity: data.main.humidity,
+        description: data.weather[0].description,
+        icon: data.weather[0].icon,
+        windSpeed: Math.round(data.wind.speed * 3.6), // m/s 轉 km/h
+        visibility: Math.round(data.visibility / 1000), // m 轉 km
+        pressure: data.main.pressure,
+        location: data.name
+    };
+}
+
 
             // 獲取天氣圖示
             getWeatherIcon(iconCode) {
@@ -3649,20 +3651,22 @@
                 return iconMap[iconCode] || 'fas fa-cloud';
             }
 
-            // 模擬天氣資料 (當 API 無法使用時)
-            getMockWeatherData() {
-                return {
-                    temperature: 25,
-                    feelsLike: 28,
-                    humidity: 65,
-                    description: '多雲',
-                    icon: '02d',
-                    windSpeed: 8,
-                    visibility: 10,
-                    pressure: 1013,
-                    location: '台北市'
-                };
-            }
+// 修正模擬天氣資料
+getMockWeatherData() {
+    const baseTemp = 25; // 設定基準溫度
+    return {
+        temperature: baseTemp,
+        feelsLike: baseTemp + 3, // 體感溫度通常比實際溫度高一點
+        humidity: 65,
+        description: '多雲',
+        icon: '02d',
+        windSpeed: 8,
+        visibility: 10,
+        pressure: 1013,
+        location: '台北市'
+    };
+}
+
         }
 
         // DOM 元素
@@ -4741,18 +4745,192 @@ refreshDispatchTable() {
                 }
             }
 
-            // 更新天氣顯示
-            updateWeatherDisplay(weather) {
-                document.getElementById('weatherTemp').textContent = `${weather.temperature}°C`;
-                document.getElementById('weatherDescription').textContent = weather.description;
-                document.getElementById('weatherVisibility').textContent = `${weather.visibility} km`;
-                document.getElementById('weatherWind').textContent = `${weather.windSpeed} km/h`;
-                document.getElementById('weatherHumidity').textContent = `${weather.humidity}%`;
-                document.getElementById('weatherFeelsLike').textContent = `${weather.feelsLike}°C`;
-                
-                const weatherIcon = document.getElementById('weatherIcon');
-                weatherIcon.innerHTML = `<i class="${this.weatherService.getWeatherIcon(weather.icon)}"></i>`;
-            }
+           // 更新天氣顯示 - 修正版
+updateWeatherDisplay(weather) {
+    console.log('更新天氣資料:', weather); // 調試用
+    
+    // 確保所有元素都存在才進行更新
+    const elements = {
+        weatherTemp: document.getElementById('weatherTemp'),
+        weatherDescription: document.getElementById('weatherDescription'),
+        weatherFeelsLike: document.getElementById('weatherFeelsLike'),
+        weatherHumidity: document.getElementById('weatherHumidity'),
+        weatherWind: document.getElementById('weatherWind'),
+        weatherVisibility: document.getElementById('weatherVisibility'),
+        weatherLocation: document.getElementById('weatherLocation'),
+        weatherUpdateTime: document.getElementById('weatherUpdateTime'),
+        weatherIconLarge: document.getElementById('weatherIconLarge'),
+        humidityProgress: document.getElementById('humidityProgress'),
+        windDirection: document.getElementById('windDirection'),
+        uvIndex: document.getElementById('uvIndex'),
+        airQuality: document.getElementById('airQuality'),
+        rainChance: document.getElementById('rainChance'),
+        hourlyForecast: document.getElementById('hourlyForecast')
+    };
+    
+    // 基本資訊更新
+    if (elements.weatherTemp) elements.weatherTemp.textContent = weather.temperature;
+    if (elements.weatherDescription) elements.weatherDescription.textContent = weather.description;
+    if (elements.weatherFeelsLike) elements.weatherFeelsLike.textContent = `${weather.feelsLike}°C`;
+    if (elements.weatherHumidity) elements.weatherHumidity.textContent = `${weather.humidity}%`;
+    if (elements.weatherWind) elements.weatherWind.textContent = `${weather.windSpeed} km/h`;
+    if (elements.weatherVisibility) elements.weatherVisibility.textContent = `${weather.visibility} km`;
+    if (elements.weatherLocation) elements.weatherLocation.textContent = weather.location || '台北市';
+    if (elements.weatherUpdateTime) {
+        elements.weatherUpdateTime.textContent = new Date().toLocaleTimeString('zh-TW', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    // 更新大圖示
+    if (elements.weatherIconLarge) {
+        elements.weatherIconLarge.innerHTML = `<i class="${this.weatherService.getWeatherIcon(weather.icon)}"></i>`;
+    }
+    
+    // 濕度進度條
+    if (elements.humidityProgress) {
+        elements.humidityProgress.style.width = `${weather.humidity}%`;
+    }
+    
+    // 風向資訊
+    if (elements.windDirection) {
+        elements.windDirection.textContent = this.getWindDirection(weather.windSpeed);
+    }
+    
+    // 紫外線指數 - 確保有數值
+    const uvValue = this.calculateUVIndex(weather.temperature, weather.description);
+    if (elements.uvIndex) {
+        elements.uvIndex.textContent = uvValue.text;
+        elements.uvIndex.className = `value ${uvValue.class}`;
+    }
+    
+    // 空氣品質 - 確保有數值
+    const aqiValue = this.calculateAQI(weather.visibility, weather.humidity);
+    if (elements.airQuality) {
+        elements.airQuality.textContent = aqiValue.text;
+        elements.airQuality.className = `value ${aqiValue.class}`;
+    }
+    
+    // 降雨機率 - 確保有數值
+    const rainChance = this.calculateRainChance(weather.description, weather.humidity);
+    if (elements.rainChance) {
+        elements.rainChance.textContent = `${rainChance}%`;
+    }
+    
+    // 更新背景漸層
+    this.updateWeatherBackground(weather.icon, weather.temperature);
+    
+    // 添加天氣粒子效果
+    this.addWeatherParticles(weather.icon);
+    
+    // 更新24小時預報 - 使用當前溫度作為基準，確保溫度一致
+    this.updateHourlyForecast(weather);
+}
+
+// 修正24小時預報，確保溫度一致
+updateHourlyForecast(currentWeather) {
+    const forecastContainer = document.getElementById('hourlyForecast');
+    if (!forecastContainer) return;
+    
+    const now = new Date();
+    const currentTemp = parseInt(currentWeather.temperature); // 確保是整數
+    
+    // 生成未來24小時的模擬預報
+    let forecastHtml = `
+        <div class="forecast-item">
+            <span class="time">現在</span>
+            <i class="${this.weatherService.getWeatherIcon(currentWeather.icon)}"></i>
+            <span class="temp">${currentTemp}°</span>
+        </div>
+    `;
+    
+    for (let i = 1; i <= 6; i++) {
+        const futureTime = new Date(now.getTime() + i * 60 * 60 * 1000);
+        const hour = futureTime.getHours();
+        
+        // 基於當前溫度進行合理的溫度變化
+        let temp = currentTemp;
+        if (hour >= 6 && hour <= 14) {
+            temp += Math.round(Math.random() * 3); // 白天稍微升溫
+        } else if (hour >= 18 || hour <= 6) {
+            temp -= Math.round(Math.random() * 2 + 1); // 晚上降溫
+        } else {
+            temp += Math.round(Math.random() * 2 - 1); // 其他時間小幅變化
+        }
+        
+        const iconVariation = this.getHourlyIcon(currentWeather.icon, hour);
+        
+        forecastHtml += `
+            <div class="forecast-item">
+                <span class="time">${hour.toString().padStart(2, '0')}:00</span>
+                <i class="${iconVariation}"></i>
+                <span class="temp">${temp}°</span>
+            </div>
+        `;
+    }
+    
+    forecastContainer.innerHTML = forecastHtml;
+}
+
+// 修正計算函數，確保都有回傳值
+getWindDirection(windSpeed) {
+    const speed = parseFloat(windSpeed) || 0;
+    if (speed < 1) return '無風';
+    if (speed < 5) return '微風';
+    if (speed < 10) return '輕風';
+    if (speed < 20) return '和風';
+    if (speed < 30) return '勁風';
+    return '強風';
+}
+
+// 修正紫外線指數計算
+calculateUVIndex(temperature, description) {
+    const temp = parseFloat(temperature) || 25;
+    const desc = (description || '').toLowerCase();
+    
+    let uv = Math.round(temp / 4);
+    if (desc.includes('晴') || desc.includes('sun') || desc.includes('clear')) uv += 3;
+    if (desc.includes('雲') || desc.includes('cloud')) uv -= 1;
+    if (desc.includes('雨') || desc.includes('rain')) uv -= 2;
+    
+    uv = Math.max(1, Math.min(11, uv));
+    
+    if (uv <= 2) return { text: `${uv} (低)`, class: '' };
+    if (uv <= 5) return { text: `${uv} (中)`, class: '' };
+    if (uv <= 7) return { text: `${uv} (高)`, class: 'uv-high' };
+    if (uv <= 10) return { text: `${uv} (極高)`, class: 'uv-very-high' };
+    return { text: `${uv} (危險)`, class: 'uv-extreme' };
+}
+
+// 修正空氣品質計算
+calculateAQI(visibility, humidity) {
+    const vis = parseFloat(visibility) || 10;
+    const hum = parseFloat(humidity) || 50;
+    
+    let aqi = Math.round((15 - vis) * 15 + hum / 3);
+    aqi = Math.max(10, Math.min(300, aqi));
+    
+    if (aqi <= 50) return { text: '良好', class: 'aqi-good' };
+    if (aqi <= 100) return { text: '普通', class: 'aqi-moderate' };
+    if (aqi <= 150) return { text: '不良', class: 'aqi-poor' };
+    return { text: '危險', class: 'aqi-bad' };
+}
+
+// 修正降雨機率計算
+calculateRainChance(description, humidity) {
+    const desc = (description || '').toLowerCase();
+    const hum = parseFloat(humidity) || 50;
+    
+    let chance = Math.round(hum / 3);
+    if (desc.includes('雨') || desc.includes('rain')) chance += 40;
+    if (desc.includes('雲') || desc.includes('cloud')) chance += 15;
+    if (desc.includes('晴') || desc.includes('sun') || desc.includes('clear')) chance -= 20;
+    if (desc.includes('雷') || desc.includes('thunder')) chance += 60;
+    
+    return Math.max(0, Math.min(100, chance));
+}
+
 
                         // 切換地圖檢視模式
             async toggleMapView() {
