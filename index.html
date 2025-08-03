@@ -2170,7 +2170,7 @@
             <!-- GAI-<br>精準智慧物流路徑規劃頁面 -->
             <div id="route-optimization" class="page">
                 <div class="page-header">
-                    <h1><i class="fas fa-brain"></i> GAI-精準智慧物流路徑規劃</h1>
+                    <h1><i class="fas fa-brain"></i> GAI-<br>精準智慧物流路徑規劃</h1>
                 </div>
                                 <!-- 派車收送點清單區塊 -->
                 <div id="deliveryPointsPanel" class="card" style="margin-bottom: 1.5rem;">
@@ -3652,7 +3652,7 @@ async handleAIPreplan() {
                 </div>
             `;
             
-            this.showNotification('當日各路線表載入完成', 'success');
+            this.showNotification('當日各路線表計算完成', 'success');
         } else {
             throw new Error('無法取得路線表資料或資料為空');
         }
