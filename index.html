@@ -5265,42 +5265,56 @@ async showRouteAddresses(routeName) {
                 return mockData[action] || {};
             }
 
-            // 載入主控台資料
-            async loadDashboard() {
-                this.showLoading();
-                try {
-                    let dashboardData;
-                    
-                    if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
-                        dashboardData = this.getMockData('getDashboardData');
-                        if (!this.isOnline) {
-                            this.showNotification('目前使用離線模式', 'warning');
-                        }
-                    } else {
-                        dashboardData = await this.apiCall('getDashboardData');
-                    }
-                    
-                    // 更新統計數據
-                    document.getElementById('todayDeliveries').textContent = dashboardData.todayDeliveries || 0;
-                    document.getElementById('vehicleUsage').textContent = `${dashboardData.vehicleUsage || 0}%`;
-                    document.getElementById('onTimeRate').textContent = `${dashboardData.onTimeRate || 0}%`;
-                    document.getElementById('alertCount').textContent = dashboardData.alertCount || 0;
-
-                                        // 如果有異常，更新警示樣式
-                    const alertElement = document.getElementById('alertCount');
-                    if (dashboardData.alertCount > 0) {
-                        alertElement.classList.add('alert');
-                    } else {
-                        alertElement.classList.remove('alert');
-                    }
-
-                } catch (error) {
-                    console.error('載入主控台資料失敗:', error);
-                    this.showNotification('載入主控台資料失敗', 'error');
-                } finally {
-                    this.hideLoading();
-                }
+// 載入主控台資料 (修改版)
+async loadDashboard() {
+    this.showLoading();
+    try {
+        let dashboardData;
+        let routePalletSum = 0;
+        
+        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
+            dashboardData = this.getMockData('getDashboardData');
+            routePalletSum = 163; // 模擬資料
+            if (!this.isOnline) {
+                this.showNotification('目前使用離線模式', 'warning');
             }
+        } else {
+            // 獲取基本儀表板資料
+            dashboardData = await this.apiCall('getDashboardData');
+            
+            // 獲取各路線板數總和
+            try {
+                routePalletSum = await this.apiCall('getRoutePalletSum', {
+                    targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                });
+            } catch (error) {
+                console.error('獲取路線板數總和失敗:', error);
+                routePalletSum = 0;
+            }
+        }
+        
+        // 更新統計數據 - 使用路線板數總和替代原來的今日配送數
+        document.getElementById('todayDeliveries').textContent = routePalletSum;
+        document.getElementById('vehicleUsage').textContent = `${dashboardData.vehicleUsage || 0}%`;
+        document.getElementById('onTimeRate').textContent = `${dashboardData.onTimeRate || 0}%`;
+        document.getElementById('alertCount').textContent = dashboardData.alertCount || 0;
+
+        // 如果有異常，更新警示樣式
+        const alertElement = document.getElementById('alertCount');
+        if (dashboardData.alertCount > 0) {
+            alertElement.classList.add('alert');
+        } else {
+            alertElement.classList.remove('alert');
+        }
+
+    } catch (error) {
+        console.error('載入主控台資料失敗:', error);
+        this.showNotification('載入主控台資料失敗', 'error');
+    } finally {
+        this.hideLoading();
+    }
+}
+
 
             // 載入路線管理資料
             async loadRouteManagement() {
