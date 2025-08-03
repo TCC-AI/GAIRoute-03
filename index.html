@@ -3690,7 +3690,7 @@ async fetchDeliveryPoints() {
         await this.waitForSheetGeneration(20000); // 等待20秒
         
         if (loadingSpinner) {
-            loadingSpinner.textContent = '正在載入託收託運回報資料...';
+            loadingSpinner.textContent = '正在同步託收託運回報資料...';
         }
         
         // 4. 使用重試機制獲取託收託運回報工作表資料
