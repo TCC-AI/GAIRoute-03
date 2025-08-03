@@ -401,6 +401,18 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            animation: loginCardFloat 6s ease-in-out infinite;
+}
+
+@keyframes loginCardFloat {
+    0%, 100% { 
+        transform: translateY(0px) scale(1);
+        box-shadow: var(--shadow-2xl);
+    }
+    50% { 
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.35);
+    }
         }
 
         .login-card::before {
@@ -467,7 +479,22 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: var(--white);
             color: var(--gray-800);
+            position: relative;
+    overflow: hidden;
         }
+        .form-input::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%);
+}
+
+
 
         .form-input:focus {
             outline: none;
@@ -475,6 +502,9 @@
             box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
             transform: translateY(-1px);
         }
+        .form-input:focus::after {
+    width: 100%;
+}
 
         .login-btn {
             width: 100%;
@@ -628,6 +658,29 @@
             position: relative;
             overflow: hidden;
         }
+        .menu-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.menu-item:hover::after {
+    left: 100%;
+}
+
+.menu-item i {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-item:hover i {
+    transform: scale(1.2) rotate(5deg);
+    color: var(--primary-blue);
+}
 
         .menu-item::before {
             content: '';
@@ -672,7 +725,19 @@
 
         .page {
             display: none;
+             opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .page.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.page.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+}
 
         .page.active {
             display: block;
@@ -725,6 +790,7 @@
             position: relative;
             overflow: hidden;
             letter-spacing: 0.025em;
+            
         }
 
         .btn::before {
@@ -741,6 +807,23 @@
         .btn:hover::before {
             left: 100%;
         }
+        .btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::after {
+    width: 300px;
+    height: 300px;
+}
 
         .btn-primary {
             background: var(--gradient-primary);
@@ -846,8 +929,31 @@
             box-shadow: var(--shadow-lg);
             margin-bottom: 2rem;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+           
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
         }
+        .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.03) 0%, rgba(20, 184, 166, 0.02) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    border-radius: 20px;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
 
         .card:hover {
             transform: translateY(-4px);
@@ -890,7 +996,24 @@
             background-clip: text;
             margin-bottom: 0.5rem;
             line-height: 1.2;
+             position: relative;
+    overflow: hidden;
         }
+        .stat-number::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
 
         .stat-number.alert {
             background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
@@ -1266,7 +1389,23 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
+             backdrop-filter: blur(12px);
         }
+        .loading-spinner {
+    /* 現有樣式保持 */
+    animation: spinnerPulse 2s ease-in-out infinite;
+}
+
+@keyframes spinnerPulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: var(--shadow-2xl);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.4);
+    }
+}
 
         .loading-overlay.show {
             display: flex;
@@ -1403,7 +1542,21 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             min-width: 300px;
+            animation: notificationSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        @keyframes notificationSlide {
+    0% {
+        transform: translateX(100%) scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(-10px) scale(1.05);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
 
         .notification.show {
             transform: translateX(0);
