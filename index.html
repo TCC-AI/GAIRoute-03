@@ -417,6 +417,78 @@
         .login-header {
             margin-bottom: 2.5rem;
         }
+        /* 登入頁面 R0 Logo 樣式 */
+.login-logo-image {
+    width: 80px;
+    height: auto;
+    max-width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    object-fit: contain;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 10;
+    animation: loginLogoFloat 6s ease-in-out infinite;
+}
+
+/* R0 Logo 浮動動畫 */
+@keyframes loginLogoFloat {
+    0%, 100% { 
+        transform: translateY(0px) scale(1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    50% { 
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 8px 20px rgba(14, 165, 233, 0.25);
+    }
+}
+
+/* R0 Logo 懸停效果 */
+.login-logo-image:hover {
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 12px 30px rgba(14, 165, 233, 0.3);
+    animation: loginLogoFloat 3s ease-in-out infinite;
+}
+
+/* R0 Logo 光暈效果 */
+.login-logo-image::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+    animation: logoGlow 4s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(0.9);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .login-logo-image {
+        width: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-logo-image {
+        width: 60px;
+    }
+}
+
 
         .login-header i {
             font-size: 3.5rem;
@@ -2196,10 +2268,12 @@
     <div id="loginContainer" class="login-container">
         <div class="login-card">
             <div class="login-header">
-                               <i class="fas fa-truck"></i>
-                <h1>昶青智慧冷鏈物流</h1>
-                <p>派車GAI數據管理系統</p>
-            </div>
+    <img src="R0.png" alt="R0 Logo" class="login-logo-image">
+    <i class="fas fa-truck"></i>
+    <h1>昶青智慧冷鏈物流</h1>
+    <p>派車GAI數據管理系統</p>
+</div>
+
             <form class="login-form" id="loginForm">
                 <div class="form-group">
                     <label for="username">帳號</label>
