@@ -3171,7 +3171,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbzvRynz7azxZrogqZnJ5XafYMxeRisUtDaLh2sMNREZTsX9eDh5iDPkJU1H3b8GiuCz/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzCXh-5wVYVfYY5rabZ-qBmBquPlU2iiDfid7sWd1HUgAmx4Z5jiDX8O8Nvdg7drFJ5/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3652,22 +3652,20 @@ formatWeatherData(data) {
             }
 
 // 修正模擬天氣資料
-// 修正 WeatherService 類別中的模擬資料
 getMockWeatherData() {
-    // 🔥 確保模擬資料與真實API結構一致
+    const baseTemp = 25; // 設定基準溫度
     return {
-        temperature: 18, // 與API截圖一致
-        feelsLike: 36, // 與API截圖一致
+        temperature: baseTemp,
+        feelsLike: baseTemp + 3, // 體感溫度通常比實際溫度高一點
         humidity: 65,
         description: '多雲',
         icon: '02d',
-        windSpeed: 6, // 1.7 m/s * 3.6 ≈ 6 km/h
+        windSpeed: 8,
         visibility: 10,
         pressure: 1013,
         location: '台北市'
     };
 }
-
 
         }
 
@@ -4733,122 +4731,19 @@ refreshDispatchTable() {
                 this.loadWeatherData();
             }
 
-            // 修正前端的天氣數據接收和顯示
-async function loadWeatherData() {
-    try {
-        console.log('=== 前端開始載入天氣資料 ===');
-        
-        const response = await fetch(API_URL + '?t=' + Date.now(), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'getCurrentWeather',
-                timestamp: Date.now()
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        
-        if (!result.success) {
-            throw new Error(result.error || '獲取天氣資料失敗');
-        }
-        
-        const data = result.data;
-        
-        console.log('=== 前端接收到的天氣資料 ===');
-        console.log('接收溫度:', data.temperature);
-        console.log('接收體感溫度:', data.feelsLike);
-        console.log('接收風速:', data.windSpeed);
-        console.log('接收濕度:', data.humidity);
-        console.log('接收能見度:', data.visibility);
-        
-        // 🔥 關鍵修正：確保顯示的數據與API一致
-        updateWeatherDisplay(data);
-        
-    } catch (error) {
-        console.error('載入天氣資料失敗:', error);
-        app.showNotification('天氣資料載入失敗', 'error');
-        
-        // 使用模擬資料作為備用
-        const mockWeather = app.weatherService.getMockWeatherData();
-        updateWeatherDisplay(mockWeather);
-    }
-}
-
-// 修正天氣顯示函數
-function updateWeatherDisplay(weather) {
-    console.log('=== 更新天氣顯示 ===');
-    console.log('顯示溫度:', weather.temperature);
-    console.log('顯示體感溫度:', weather.feelsLike);
-    console.log('顯示風速:', weather.windSpeed);
-    
-    // 確保所有元素都存在才進行更新
-    const elements = {
-        weatherTemp: document.getElementById('weatherTemp'),
-        weatherDescription: document.getElementById('weatherDescription'),
-        weatherFeelsLike: document.getElementById('weatherFeelsLike'),
-        weatherHumidity: document.getElementById('weatherHumidity'),
-        weatherWind: document.getElementById('weatherWind'),
-        weatherVisibility: document.getElementById('weatherVisibility'),
-        weatherLocation: document.getElementById('weatherLocation'),
-        weatherUpdateTime: document.getElementById('weatherUpdateTime'),
-        weatherIconLarge: document.getElementById('weatherIconLarge'),
-        humidityProgress: document.getElementById('humidityProgress')
-    };
-    
-    // 🔥 關鍵修正：直接使用API返回的數值，不再進行額外處理
-    if (elements.weatherTemp) {
-        elements.weatherTemp.textContent = weather.temperature; // 直接顯示
-    }
-    
-    if (elements.weatherFeelsLike) {
-        elements.weatherFeelsLike.textContent = `${weather.feelsLike}°C`; // 直接顯示
-    }
-    
-    if (elements.weatherHumidity) {
-        elements.weatherHumidity.textContent = `${weather.humidity}%`;
-    }
-    
-    if (elements.weatherWind) {
-        elements.weatherWind.textContent = `${weather.windSpeed} km/h`; // 直接顯示
-    }
-    
-    if (elements.weatherVisibility) {
-        elements.weatherVisibility.textContent = `${weather.visibility} km`;
-    }
-    
-    if (elements.weatherDescription) {
-        elements.weatherDescription.textContent = weather.description;
-    }
-    
-    if (elements.weatherLocation) {
-        elements.weatherLocation.textContent = weather.location || '台北市';
-    }
-    
-    if (elements.weatherUpdateTime) {
-        elements.weatherUpdateTime.textContent = new Date().toLocaleTimeString('zh-TW', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-    
-    // 更新大圖示
-    if (elements.weatherIconLarge) {
-        elements.weatherIconLarge.innerHTML = `<i class="${app.weatherService.getWeatherIcon(weather.icon)}"></i>`;
-    }
-    
-    // 濕度進度條
-    if (elements.humidityProgress) {
-        elements.humidityProgress.style.width = `${weather.humidity}%`;
-    }
-    
-    console.log('=== 天氣顯示更新完成 ===');
-}
-
+            // 載入天氣資料
+            async loadWeatherData() {
+                try {
+                    // 使用台北市座標
+                    const weather = await this.weatherService.getCurrentWeather(25.0330, 121.5654);
+                    this.updateWeatherDisplay(weather);
+                } catch (error) {
+                    console.error('載入天氣資料失敗:', error);
+                    // 使用模擬資料
+                    const mockWeather = this.weatherService.getMockWeatherData();
+                    this.updateWeatherDisplay(mockWeather);
+                }
+            }
 
            // 更新天氣顯示 - 修正版
 updateWeatherDisplay(weather) {
@@ -7483,7 +7378,7 @@ document.getElementById('ai-preplan-btn').addEventListener('click', async functi
 
   try {
     // 呼叫後端API獲取明日建議派車表
-    const response = await fetch('https://script.google.com/macros/s/AKfycbxH0p4bVcrm89-uXGQVYTNcOznt3xpnicDovrCwbOi89pZan54iCqUPU064iJIEee0Q/exec', {
+    const response = await fetch('hhttps://script.google.com/macros/s/AKfycbxH0p4bVcrm89-uXGQVYTNcOznt3xpnicDovrCwbOi89pZan54iCqUPU064iJIEee0Q/exec', {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({
