@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* 側邊選單 Logo 區域 */
+       /* 側邊選單 Logo 區域 */
 .sidebar-logo {
     display: flex;
     justify-content: center;
@@ -16,45 +16,118 @@
     padding: 1rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 0.6rem;
-  
 }
 
 .sidebar-logo-image {
-    width: 120px;
-    height: auto;
-    max-width: 100%;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    object-fit: contain;
+    width: 120px;                 /* 固定寬度為 120 像素 */
+    height: auto;                 /* 高度自動調整，保持圖片原始比例 */
+    max-width: 100%;              /* 最大寬度不超過父容器，確保響應式效果 */
+    border-radius: 8px;           /* 圓角 8 像素，讓圖片邊角更柔和 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);  /* 陰影效果：向下 4px，模糊 12px，黑色半透明 */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);  /* 所有屬性變化的過渡動畫，持續 0.3 秒 */
+    object-fit: contain;          /* 圖片縮放方式：保持比例，完整顯示在容器內 */
+    position: relative;           /* 相對定位，為偽元素動畫做準備 */
+    z-index: 2;                   /* 設定層級，確保圖片在動畫效果之上 */
+}
+
+/* 創建波動輻射動畫效果 */
+.sidebar-logo-image::before,
+.sidebar-logo-image::after {
+    content: '';                  /* 創建偽元素，用於製作動畫效果 */
+    position: absolute;           /* 絕對定位，相對於圖片位置 */
+    top: 50%;                     /* 垂直置中 */
+    left: 50%;                    /* 水平置中 */
+    transform: translate(-50%, -50%);  /* 精確置中對齊 */
+    width: 100%;                  /* 初始寬度與圖片相同 */
+    height: 100%;                 /* 初始高度與圖片相同 */
+    border: 2px solid rgba(14, 165, 233, 0.6);  /* 邊框：2px 實線，藍色半透明 */
+    border-radius: 8px;           /* 圓角與圖片一致 */
+    z-index: 1;                   /* 設定在圖片下方 */
+    pointer-events: none;         /* 不響應滑鼠事件，避免干擾圖片互動 */
+}
+
+.sidebar-logo-image::before {
+    animation: ripple-wave 2s infinite ease-out;  /* 第一層波動動畫：2秒循環，無限次，緩出效果 */
+}
+
+.sidebar-logo-image::after {
+    animation: ripple-wave 2s infinite ease-out 1s;  /* 第二層波動動畫：延遲1秒開始，形成層疊效果 */
+    border-color: rgba(20, 184, 166, 0.4);  /* 第二層使用青綠色，透明度更低 */
+}
+
+/* 定義波動輻射關鍵幀動畫 */
+@keyframes ripple-wave {
+    0% {
+        transform: translate(-50%, -50%) scale(1);  /* 起始：正常大小，置中 */
+        opacity: 0.8;                /* 起始透明度 80% */
+        border-width: 2px;            /* 起始邊框寬度 2px */
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.3);  /* 中間：放大到 1.3 倍 */
+        opacity: 0.4;                /* 中間透明度降至 40% */
+        border-width: 1px;            /* 邊框變細至 1px */
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.6);  /* 結束：放大到 1.6 倍 */
+        opacity: 0;                   /* 完全透明 */
+        border-width: 0;              /* 邊框消失 */
+    }
 }
 
 .sidebar-logo-image:hover {
-    transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);       /* 滑鼠懸停時放大 1.02 倍（2% 放大效果） */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);  /* 懸停時陰影加深：向下 6px，模糊 20px */
+}
+
+/* 懸停時加速動畫效果 */
+.sidebar-logo-image:hover::before {
+    animation: ripple-wave 1.2s infinite ease-out;  /* 懸停時動畫加速至 1.2 秒 */
+}
+
+.sidebar-logo-image:hover::after {
+    animation: ripple-wave 1.2s infinite ease-out 0.6s;  /* 懸停時第二層動畫也加速，延遲 0.6 秒 */
 }
 
 /* 調整選單列表的上邊距 */
 .menu-list {
-    list-style: none;
-    padding: 0 0.6rem;
-    margin-top: 0; /* 移除原本的上邊距 */
+    list-style: none;            /* 移除列表項目的預設圓點或數字 */
+    padding: 0 0.6rem;           /* 內邊距：上下 0，左右 0.6rem（約 9.6px） */
+    margin-top: 0;               /* 移除原本的上邊距 */
 }
 
 /* 響應式調整 */
-@media (max-width: 768px) {
+@media (max-width: 768px) {      /* 當螢幕寬度小於等於 768px 時（平板尺寸） */
     .sidebar-logo {
-        padding: 1rem 0.5rem;
+        padding: 1rem 0.5rem;    /* 縮小內邊距：上下 1rem，左右 0.5rem */
     }
     
     .sidebar-logo-image {
-        width: 120px; /* 在小螢幕上稍微縮小 */
+        width: 120px;            /* 在小螢幕上稍微縮小 */
+    }
+    
+    /* 在小螢幕上調整動畫強度 */
+    @keyframes ripple-wave {
+        0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.6;            /* 小螢幕上降低起始透明度 */
+            border-width: 1px;       /* 小螢幕上使用較細的邊框 */
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.2);  /* 小螢幕上減少放大倍數 */
+            opacity: 0.3;
+            border-width: 0.5px;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1.4);  /* 小螢幕上最大放大倍數 */
+            opacity: 0;
+            border-width: 0;
+        }
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 480px) {      /* 當螢幕寬度小於等於 480px 時（手機尺寸） */
     .sidebar-logo-image {
-        width: 100px; /* 在更小的螢幕上進一步縮小 */
+        width: 100px;            /* 在更小的螢幕上進一步縮小 */
     }
 }
 
