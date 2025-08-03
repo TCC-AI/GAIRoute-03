@@ -8,6 +8,56 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* 側邊選單 Logo 區域 */
+.sidebar-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(20, 184, 166, 0.03) 100%);
+}
+
+.sidebar-logo-image {
+    width: 150px;
+    height: auto;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    object-fit: contain;
+}
+
+.sidebar-logo-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 調整選單列表的上邊距 */
+.menu-list {
+    list-style: none;
+    padding: 0 0.6rem;
+    margin-top: 0; /* 移除原本的上邊距 */
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .sidebar-logo {
+        padding: 1rem 0.5rem;
+    }
+    
+    .sidebar-logo-image {
+        width: 120px; /* 在小螢幕上稍微縮小 */
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar-logo-image {
+        width: 100px; /* 在更小的螢幕上進一步縮小 */
+    }
+}
+
         /* ===== 重新設計的 CSS 樣式 ===== */
         * {
             margin: 0;
@@ -1822,6 +1872,10 @@
 
         <!-- 側邊選單 -->
         <aside class="sidebar" id="sidebar">
+            <!-- 新增 R1.png 圖形區域 -->
+            <div class="sidebar-logo">
+                <img src="R1.png" alt="R1 Logo" class="sidebar-logo-image">
+            </div>
             <ul class="menu-list">
                 <li class="menu-item active" data-page="dashboard" data-permission="dashboard">
                     <i class="fas fa-tachometer-alt"></i>
