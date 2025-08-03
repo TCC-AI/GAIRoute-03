@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-/* 側邊選單 Logo 區域 - 修正震波動畫版本 */
+/* 側邊選單 Logo 區域 - 細邊框震波版本 */
 .sidebar-logo {
     display: flex;
     justify-content: center;
@@ -17,7 +17,6 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 0.6rem;
     position: relative;
-    /* 確保容器有足夠空間給震波 */
     overflow: visible;
 }
 
@@ -30,8 +29,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     object-fit: contain;
     position: relative;
-    z-index: 10; /* 提高層級確保在震波之上 */
-    /* 強制啟動動畫 */
+    z-index: 10;
     animation: logo-breathing 4s ease-in-out infinite;
 }
 
@@ -42,139 +40,191 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     50% { 
-        transform: scale(1.03);
-        box-shadow: 0 8px 24px rgba(14, 165, 233, 0.25);
+        transform: scale(1.02);
+        box-shadow: 0 6px 18px rgba(14, 165, 233, 0.2);
     }
 }
 
-/* 第一層震波動畫 - 修正版 */
+/* 第一層細邊框震波 */
 .sidebar-logo-image::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    border: 3px solid rgba(14, 165, 233, 0.8);
-    border-radius: 8px;
-    transform: translate(-50%, -50%) scale(1);
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 1px solid rgba(14, 165, 233, 0.8);
+    border-radius: 10px;
     z-index: -1;
     pointer-events: none;
     opacity: 0;
-    animation: ripple-wave-1 3s infinite ease-out;
+    animation: thin-ripple-1 2.5s infinite ease-out;
 }
 
-/* 第二層震波動畫 - 修正版 */
+/* 第二層細邊框震波 */
 .sidebar-logo-image::after {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    border: 2px solid rgba(20, 184, 166, 0.6);
-    border-radius: 8px;
-    transform: translate(-50%, -50%) scale(1);
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 1px solid rgba(20, 184, 166, 0.6);
+    border-radius: 10px;
     z-index: -2;
     pointer-events: none;
     opacity: 0;
-    animation: ripple-wave-2 3s infinite ease-out 1.5s;
+    animation: thin-ripple-2 2.5s infinite ease-out 1.25s;
 }
 
-/* 第一層震波關鍵幀 - 重新設計 */
-@keyframes ripple-wave-1 {
+/* 第一層細震波動畫 */
+@keyframes thin-ripple-1 {
     0% {
-        transform: translate(-50%, -50%) scale(1);
+        transform: scale(1);
         opacity: 0;
-        border-width: 3px;
+        border-width: 1px;
     }
-    10% {
+    5% {
         opacity: 0.8;
     }
-    40% {
-        transform: translate(-50%, -50%) scale(1.4);
+    25% {
+        transform: scale(1.1);
         opacity: 0.6;
-        border-width: 2px;
-    }
-    70% {
-        transform: translate(-50%, -50%) scale(1.8);
-        opacity: 0.3;
         border-width: 1px;
     }
-    100% {
-        transform: translate(-50%, -50%) scale(2.2);
-        opacity: 0;
-        border-width: 0px;
-    }
-}
-
-/* 第二層震波關鍵幀 - 重新設計 */
-@keyframes ripple-wave-2 {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0;
-        border-width: 2px;
-    }
-    15% {
-        opacity: 0.6;
-    }
-    45% {
-        transform: translate(-50%, -50%) scale(1.5);
+    50% {
+        transform: scale(1.25);
         opacity: 0.4;
-        border-width: 1.5px;
+        border-width: 0.8px;
     }
     75% {
-        transform: translate(-50%, -50%) scale(2.0);
+        transform: scale(1.4);
         opacity: 0.2;
-        border-width: 1px;
+        border-width: 0.5px;
     }
     100% {
-        transform: translate(-50%, -50%) scale(2.5);
+        transform: scale(1.6);
         opacity: 0;
         border-width: 0px;
     }
 }
 
-/* 滑鼠懸停效果增強 */
+/* 第二層細震波動畫 */
+@keyframes thin-ripple-2 {
+    0% {
+        transform: scale(1);
+        opacity: 0;
+        border-width: 1px;
+    }
+    8% {
+        opacity: 0.6;
+    }
+    30% {
+        transform: scale(1.15);
+        opacity: 0.4;
+        border-width: 0.8px;
+    }
+    55% {
+        transform: scale(1.3);
+        opacity: 0.3;
+        border-width: 0.6px;
+    }
+    80% {
+        transform: scale(1.5);
+        opacity: 0.1;
+        border-width: 0.3px;
+    }
+    100% {
+        transform: scale(1.7);
+        opacity: 0;
+        border-width: 0px;
+    }
+}
+
+/* 滑鼠懸停效果 */
 .sidebar-logo-image:hover {
-    transform: scale(1.08);
-    box-shadow: 0 12px 32px rgba(14, 165, 233, 0.4);
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
     animation: logo-breathing 2s ease-in-out infinite;
 }
 
 /* 懸停時震波加速 */
 .sidebar-logo-image:hover::before {
-    animation: ripple-wave-1 2s infinite ease-out;
+    animation: thin-ripple-1 1.8s infinite ease-out;
 }
 
 .sidebar-logo-image:hover::after {
-    animation: ripple-wave-2 2s infinite ease-out 1s;
+    animation: thin-ripple-2 1.8s infinite ease-out 0.9s;
 }
 
-/* 第三層背景光暈效果 - 修正版 */
+/* 第三層震波（更細更遠）*/
+.sidebar-logo::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120px;
+    height: 120px;
+    border: 0.5px solid rgba(6, 182, 212, 0.4);
+    border-radius: 8px;
+    transform: translate(-50%, -50%);
+    z-index: -3;
+    pointer-events: none;
+    opacity: 0;
+    animation: ultra-thin-ripple 3s infinite ease-out 2s;
+}
+
+/* 超細震波動畫 */
+@keyframes ultra-thin-ripple {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+        border-width: 0.5px;
+    }
+    10% {
+        opacity: 0.4;
+    }
+    40% {
+        transform: translate(-50%, -50%) scale(1.3);
+        opacity: 0.2;
+        border-width: 0.3px;
+    }
+    70% {
+        transform: translate(-50%, -50%) scale(1.6);
+        opacity: 0.1;
+        border-width: 0.2px;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+        border-width: 0px;
+    }
+}
+
+/* 背景光暈（更柔和）*/
 .sidebar-logo::before {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 180px;
-    height: 180px;
-    background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, transparent 70%);
     border-radius: 50%;
     transform: translate(-50%, -50%);
     z-index: 0;
-    animation: glow-pulse 5s ease-in-out infinite;
+    animation: subtle-glow 4s ease-in-out infinite;
 }
 
-/* 光暈脈動動畫 */
-@keyframes glow-pulse {
+/* 柔和光暈動畫 */
+@keyframes subtle-glow {
     0%, 100% {
-        opacity: 0.4;
-        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0.3;
+        transform: translate(-50%, -50%) scale(0.8);
     }
     50% {
-        opacity: 0.7;
-        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1.1);
     }
 }
 
@@ -185,41 +235,13 @@
     }
     
     .sidebar-logo::before {
-        width: 150px;
-        height: 150px;
+        width: 140px;
+        height: 140px;
     }
     
-    /* 在小螢幕上減少動畫強度 */
-    @keyframes ripple-wave-1 {
-        0% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0;
-            border-width: 2px;
-        }
-        15% {
-            opacity: 0.6;
-        }
-        100% {
-            transform: translate(-50%, -50%) scale(1.8);
-            opacity: 0;
-            border-width: 0;
-        }
-    }
-    
-    @keyframes ripple-wave-2 {
-        0% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0;
-            border-width: 1px;
-        }
-        20% {
-            opacity: 0.4;
-        }
-        100% {
-            transform: translate(-50%, -50%) scale(1.6);
-            opacity: 0;
-            border-width: 0;
-        }
+    .sidebar-logo::after {
+        width: 100px;
+        height: 100px;
     }
 }
 
@@ -229,31 +251,36 @@
     }
     
     .sidebar-logo::before {
-        width: 130px;
-        height: 130px;
+        width: 120px;
+        height: 120px;
+    }
+    
+    .sidebar-logo::after {
+        width: 90px;
+        height: 90px;
     }
 }
 
-/* 強制瀏覽器硬體加速 */
+/* 硬體加速優化 */
 .sidebar-logo-image,
 .sidebar-logo-image::before,
 .sidebar-logo-image::after,
-.sidebar-logo::before {
+.sidebar-logo::before,
+.sidebar-logo::after {
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    -webkit-perspective: 1000px;
-    perspective: 1000px;
-    will-change: transform, opacity;
+    will-change: transform, opacity, border-width;
 }
 
-/* 調整選單列表的上邊距 */
+/* 調整選單列表 */
 .menu-list {
     list-style: none;
     padding: 0 0.6rem;
     margin-top: 0;
 }
+
 
 
 
