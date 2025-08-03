@@ -3277,13 +3277,52 @@
                 this.weatherService = new WeatherService();
                 this.isMapViewActive = false;
                 this.currentWaypoints = [];
-            }
+                 this.routePalletSumCache = {
+                    value: 0,
+                    timestamp: 0,
+                    ttl: 300000 // 5分鐘快取
+                };
+                this.routePalletNonZeroCountCache = {
+                    value: 0,
+                    timestamp: 0,
+                    ttl: 300000 // 5分鐘快取
+                };
+                        }
 
             // 初始化系統
             init() {
                 this.bindEvents();
                 this.checkLoginStatus();
             }
+            // 獲取非零次數的快取方法
+async getRoutePalletNonZeroCountWithCache() {
+    const now = Date.now();
+    
+    // 檢查快取是否有效
+    if (this.routePalletNonZeroCountCache.timestamp + this.routePalletNonZeroCountCache.ttl > now) {
+        console.log('使用快取的非零次數:', this.routePalletNonZeroCountCache.value);
+        return this.routePalletNonZeroCountCache.value;
+    }
+    
+    try {
+        const count = await this.apiCall('getRoutePalletNonZeroCount', {
+            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+        });
+        
+        // 更新快取
+        this.routePalletNonZeroCountCache = {
+            value: count,
+            timestamp: now,
+            ttl: 300000
+        };
+        
+        return count;
+    } catch (error) {
+        console.error('獲取路線板數非零次數失敗:', error);
+        // 如果有快取資料，即使過期也使用
+        return this.routePalletNonZeroCountCache.value || 0;
+    }
+}
 
             // 綁定事件
             bindEvents() {
