@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-/* 側邊選單 Logo 區域 - 完整震波動畫版本 */
+/* 側邊選單 Logo 區域 - 修正震波動畫版本 */
 .sidebar-logo {
     display: flex;
     justify-content: center;
@@ -16,6 +16,9 @@
     padding: 1rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 0.6rem;
+    position: relative;
+    /* 確保容器有足夠空間給震波 */
+    overflow: visible;
 }
 
 .sidebar-logo-image {
@@ -27,9 +30,9 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     object-fit: contain;
     position: relative;
-    z-index: 2;
+    z-index: 10; /* 提高層級確保在震波之上 */
     /* 強制啟動動畫 */
-    animation: logo-breathing 5s ease-in-out infinite;
+    animation: logo-breathing 4s ease-in-out infinite;
 }
 
 /* Logo 呼吸動畫 */
@@ -39,135 +42,139 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     50% { 
-        transform: scale(1.02);
-        box-shadow: 0 8px 22px rgba(251, 146, 60, 0.2);
+        transform: scale(1.03);
+        box-shadow: 0 8px 24px rgba(14, 165, 233, 0.25);
     }
 }
 
-/* 第一層震波動畫 */
+/* 第一層震波動畫 - 修正版 */
 .sidebar-logo-image::before {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
     border: 3px solid rgba(14, 165, 233, 0.8);
     border-radius: 8px;
+    transform: translate(-50%, -50%) scale(1);
     z-index: -1;
     pointer-events: none;
-    animation: ripple-wave-1 2.5s infinite ease-out;
+    opacity: 0;
+    animation: ripple-wave-1 3s infinite ease-out;
 }
 
-/* 第二層震波動畫 */
+/* 第二層震波動畫 - 修正版 */
 .sidebar-logo-image::after {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
     border: 2px solid rgba(20, 184, 166, 0.6);
     border-radius: 8px;
+    transform: translate(-50%, -50%) scale(1);
     z-index: -2;
     pointer-events: none;
-    animation: ripple-wave-2 2.5s infinite ease-out 1.25s;
+    opacity: 0;
+    animation: ripple-wave-2 3s infinite ease-out 1.5s;
 }
 
-/* 第一層震波關鍵幀 */
+/* 第一層震波關鍵幀 - 重新設計 */
 @keyframes ripple-wave-1 {
     0% {
         transform: translate(-50%, -50%) scale(1);
-        opacity: 0.8;
+        opacity: 0;
         border-width: 3px;
     }
-    30% {
-        transform: translate(-50%, -50%) scale(1.2);
+    10% {
+        opacity: 0.8;
+    }
+    40% {
+        transform: translate(-50%, -50%) scale(1.4);
         opacity: 0.6;
         border-width: 2px;
     }
-    60% {
-        transform: translate(-50%, -50%) scale(1.5);
+    70% {
+        transform: translate(-50%, -50%) scale(1.8);
         opacity: 0.3;
         border-width: 1px;
     }
     100% {
-        transform: translate(-50%, -50%) scale(1.8);
+        transform: translate(-50%, -50%) scale(2.2);
         opacity: 0;
-        border-width: 0;
+        border-width: 0px;
     }
 }
 
-/* 第二層震波關鍵幀 */
+/* 第二層震波關鍵幀 - 重新設計 */
 @keyframes ripple-wave-2 {
     0% {
         transform: translate(-50%, -50%) scale(1);
-        opacity: 0.6;
+        opacity: 0;
         border-width: 2px;
     }
-    35% {
-        transform: translate(-50%, -50%) scale(1.3);
+    15% {
+        opacity: 0.6;
+    }
+    45% {
+        transform: translate(-50%, -50%) scale(1.5);
         opacity: 0.4;
         border-width: 1.5px;
     }
-    70% {
-        transform: translate(-50%, -50%) scale(1.6);
+    75% {
+        transform: translate(-50%, -50%) scale(2.0);
         opacity: 0.2;
         border-width: 1px;
     }
     100% {
-        transform: translate(-50%, -50%) scale(2);
+        transform: translate(-50%, -50%) scale(2.5);
         opacity: 0;
-        border-width: 0;
+        border-width: 0px;
     }
 }
 
 /* 滑鼠懸停效果增強 */
 .sidebar-logo-image:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
-    animation: logo-breathing 1.5s ease-in-out infinite;
+    transform: scale(1.08);
+    box-shadow: 0 12px 32px rgba(14, 165, 233, 0.4);
+    animation: logo-breathing 2s ease-in-out infinite;
 }
 
 /* 懸停時震波加速 */
 .sidebar-logo-image:hover::before {
-    animation: ripple-wave-1 1.5s infinite ease-out;
+    animation: ripple-wave-1 2s infinite ease-out;
 }
 
 .sidebar-logo-image:hover::after {
-    animation: ripple-wave-2 1.5s infinite ease-out 0.75s;
+    animation: ripple-wave-2 2s infinite ease-out 1s;
 }
 
-/* 第三層輔助光暈效果 */
-.sidebar-logo {
-    position: relative;
-}
-
+/* 第三層背景光暈效果 - 修正版 */
 .sidebar-logo::before {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: 160px;
-    height: 160px;
-    background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
     border-radius: 50%;
+    transform: translate(-50%, -50%);
     z-index: 0;
-    animation: glow-pulse 4s ease-in-out infinite;
+    animation: glow-pulse 5s ease-in-out infinite;
 }
 
 /* 光暈脈動動畫 */
 @keyframes glow-pulse {
     0%, 100% {
-        opacity: 0.3;
-        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.4;
+        transform: translate(-50%, -50%) scale(0.9);
     }
     50% {
-        opacity: 0.6;
-        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.7;
+        transform: translate(-50%, -50%) scale(1.2);
     }
 }
 
@@ -178,19 +185,22 @@
     }
     
     .sidebar-logo::before {
-        width: 140px;
-        height: 140px;
+        width: 150px;
+        height: 150px;
     }
     
     /* 在小螢幕上減少動畫強度 */
     @keyframes ripple-wave-1 {
         0% {
             transform: translate(-50%, -50%) scale(1);
-            opacity: 0.6;
+            opacity: 0;
             border-width: 2px;
         }
+        15% {
+            opacity: 0.6;
+        }
         100% {
-            transform: translate(-50%, -50%) scale(1.5);
+            transform: translate(-50%, -50%) scale(1.8);
             opacity: 0;
             border-width: 0;
         }
@@ -199,11 +209,14 @@
     @keyframes ripple-wave-2 {
         0% {
             transform: translate(-50%, -50%) scale(1);
-            opacity: 0.4;
+            opacity: 0;
             border-width: 1px;
         }
+        20% {
+            opacity: 0.4;
+        }
         100% {
-            transform: translate(-50%, -50%) scale(1.3);
+            transform: translate(-50%, -50%) scale(1.6);
             opacity: 0;
             border-width: 0;
         }
@@ -216,22 +229,23 @@
     }
     
     .sidebar-logo::before {
-        width: 120px;
-        height: 120px;
+        width: 130px;
+        height: 130px;
     }
 }
 
-/* 確保動畫在所有瀏覽器中正常工作 */
+/* 強制瀏覽器硬體加速 */
 .sidebar-logo-image,
 .sidebar-logo-image::before,
 .sidebar-logo-image::after,
 .sidebar-logo::before {
-    -webkit-animation-fill-mode: both;
-    animation-fill-mode: both;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    -webkit-transform-style: preserve-3d;
-    transform-style: preserve-3d;
+    -webkit-perspective: 1000px;
+    perspective: 1000px;
+    will-change: transform, opacity;
 }
 
 /* 調整選單列表的上邊距 */
@@ -240,6 +254,7 @@
     padding: 0 0.6rem;
     margin-top: 0;
 }
+
 
 
 
