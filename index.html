@@ -2743,7 +2743,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwStNiItT7rQ4CkNHAueSj7I2Sse2ZVy47s4zY6hm4wvOXBaQs90i0GfXPc9iougzvl/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwur3U-ux0qOtalEF_VojloytYnS3RcRzsxkXOB1Uq4zI2uN4gTe4emWJyM-rl-OYak/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -5311,11 +5311,13 @@ async loadDashboard() {
         let dashboardData;
         let routePalletSum = 0;
         let routePalletNonZeroPercentage = 0;
+        let routeTableLastBValue = 0;
         
         if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
             dashboardData = this.getMockData('getDashboardData');
             routePalletSum = 163; // 模擬資料
-            routePalletNonZeroPercentage = 10; // 模擬百分比 (4/40*100 = 10%)
+            routePalletNonZeroPercentage = 10; // 模擬百分比
+            routeTableLastBValue = 7436.04; // 模擬路線表B欄位最後值
             if (!this.isOnline) {
                 this.showNotification('目前使用離線模式', 'warning');
             }
@@ -5323,31 +5325,36 @@ async loadDashboard() {
             // 獲取基本儀表板資料
             dashboardData = await this.apiCall('getDashboardData');
             
-            // 同時獲取各路線板數總和和非零百分比
+            // 同時獲取各項數據
             try {
-                const [palletSum, nonZeroPercentage] = await Promise.all([
+                const [palletSum, nonZeroPercentage, lastBValue] = await Promise.all([
                     this.apiCall('getRoutePalletSum', {
                         targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
                     }),
                     this.apiCall('getRoutePalletNonZeroPercentage', {
+                        targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                    }),
+                    this.apiCall('getRouteTableLastBValue', {
                         targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
                     })
                 ]);
                 
                 routePalletSum = palletSum;
                 routePalletNonZeroPercentage = nonZeroPercentage;
+                routeTableLastBValue = lastBValue;
                 
             } catch (error) {
-                console.error('獲取路線板數資料失敗:', error);
+                console.error('獲取外部資料失敗:', error);
                 routePalletSum = 0;
                 routePalletNonZeroPercentage = 0;
+                routeTableLastBValue = 0;
             }
         }
         
         // 更新統計數據
         document.getElementById('todayDeliveries').textContent = routePalletSum;
-        document.getElementById('vehicleUsage').textContent = `${routePalletNonZeroPercentage}%`; // 顯示百分比
-        document.getElementById('onTimeRate').textContent = `${dashboardData.onTimeRate || 0}%`;
+        document.getElementById('vehicleUsage').textContent = `${routePalletNonZeroPercentage}%`;
+        document.getElementById('onTimeRate').textContent = routeTableLastBValue; // 顯示路線表B欄位最後值
         document.getElementById('alertCount').textContent = dashboardData.alertCount || 0;
 
         // 如果有異常，更新警示樣式
