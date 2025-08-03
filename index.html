@@ -2157,7 +2157,7 @@
                     <div class="weather-header">
                         <div>
                             <div class="weather-temp" id="weatherTemp">--°C</div>
-                            <div id="weatherDescription">資料同步中...</div>
+                            <div id="weatherDescription">資料同步化...</div>
                         </div>
                         <div class="weather-icon" id="weatherIcon">
                             <i class="fas fa-cloud"></i>
@@ -2652,11 +2652,11 @@
         </main>
     </div>
 
-    <!-- 資料同步中遮罩 -->
+    <!-- 資料同步化遮罩 -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner">
             <i class="fas fa-spinner fa-spin"></i>
-            <p>資料同步中...</p>
+            <p>資料同步化...</p>
         </div>
     </div>
 
@@ -4439,7 +4439,7 @@ async loadRoutesOnMap() {
         console.log('開始載入路線到地圖...');
         
         const routeMapList = document.getElementById('routeMapList');
-        routeMapList.innerHTML = '<div style="padding: 1rem; text-align: center;">資料同步中...</div>';
+        routeMapList.innerHTML = '<div style="padding: 1rem; text-align: center;">資料同步化...</div>';
         
         this.mapsIntegration.clearMarkers();
         
@@ -5579,7 +5579,7 @@ async viewExternalRoute(routeName) {
                         <p>${routeId}</p>
                     </div>
                     <div class="form-group">
-                        <label>路線資訊資料同步中...</label>
+                        <label>路線資訊資料同步化...</label>
                     </div>
                 `);
             }
@@ -6123,12 +6123,12 @@ async viewExternalRoute(routeName) {
                 }
             }
 
-            // 顯示資料同步中
+            // 顯示資料同步化
             showLoading() {
                 elements.loadingOverlay.classList.add('show');
             }
 
-            // 隱藏資料同步中
+            // 隱藏資料同步化
             hideLoading() {
                 elements.loadingOverlay.classList.remove('show');
             }
