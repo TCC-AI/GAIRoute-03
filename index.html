@@ -47,11 +47,11 @@
 }
 
 .sidebar-logo-image::before {
-    animation: ripple-wave 2s infinite ease-out;  /* 第一層波動動畫：2秒循環，無限次，緩出效果 */
+    animation: ripple-wave 2s infinite ease-out !important;  /* 第一層波動動畫：2秒循環，無限次，緩出效果 */
 }
 
 .sidebar-logo-image::after {
-    animation: ripple-wave 2s infinite ease-out 1s;  /* 第二層波動動畫：延遲1秒開始，形成層疊效果 */
+    animation: ripple-wave 2s infinite ease-out 1s !important;  /* 第二層波動動畫：延遲1秒開始，形成層疊效果 */
     border-color: rgba(20, 184, 166, 0.4);  /* 第二層使用青綠色，透明度更低 */
 }
 
