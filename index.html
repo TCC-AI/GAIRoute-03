@@ -416,121 +416,19 @@
         .login-header {
             margin-bottom: 2.5rem;
         }
-       /* 登入頁面 R0 Logo 容器 */
-.login-logo-container {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 1rem;
-    overflow: hidden; /* 確保亮光點不會超出邊界 */
-}
-
-/* 登入頁面 R0 Logo 樣式 */
+        /* 登入頁面 R0 Logo 樣式 */
 .login-logo-image {
-    width: 420px;
+    width:420px;
     height: auto;
     max-width: 100%;
     border-radius: 16px;
     box-shadow: 0 0px 0px rgba(0, 0, 0, 0.15);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     object-fit: contain;
+    margin-bottom: 1rem;
     position: relative;
     z-index: 10;
-    display: block;
-}
-
-/* 增強版亮光點 - 帶尾巴效果 */
-.light-point {
-    position: absolute;
-    width: 15px;
-    height: 15px;
-    background: radial-gradient(circle, 
-        rgba(255, 255, 255, 1) 0%, 
-        rgba(255, 255, 255, 0.9) 20%,
-        rgba(14, 165, 233, 0.8) 40%, 
-        rgba(14, 165, 233, 0.4) 70%,
-        transparent 100%);
-    border-radius: 50%;
-    box-shadow: 
-        0 0 12px rgba(255, 255, 255, 1),
-        0 0 24px rgba(14, 165, 233, 0.8),
-        0 0 36px rgba(14, 165, 233, 0.6),
-        0 0 48px rgba(14, 165, 233, 0.4);
-    opacity: 0;
-    z-index: 20;
-    pointer-events: none;
     
-    /* 亮光點移動動畫 */
-    animation: lightPointMove 10s infinite ease-in-out;
-}
-
-/* 亮光尾巴效果 */
-.light-point::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: -30px;
-    width: 30px;
-    height: 3px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(14, 165, 233, 0.3) 30%, 
-        rgba(14, 165, 233, 0.6) 70%, 
-        rgba(255, 255, 255, 0.8) 100%);
-    transform: translateY(-50%);
-    border-radius: 2px;
-    opacity: 0.8;
-}
-
-/* 亮光前導效果 */
-.light-point::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -20px;
-    width: 20px;
-    height: 2px;
-    background: linear-gradient(90deg, 
-        rgba(255, 255, 255, 0.9) 0%, 
-        rgba(14, 165, 233, 0.5) 50%, 
-        transparent 100%);
-    transform: translateY(-50%);
-    border-radius: 2px;
-    opacity: 0.6;
-}
-
-
-/* 亮光點移動軌跡動畫 */
-@keyframes lightPointMove {
-    0% {
-        top: 8%;
-        left: 5%;
-        opacity: 0;
-        transform: scale(0.5);
-    }
-    
-    2% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    
-    18% {
-        top: 8%;
-        left: 95%;
-        opacity: 1;
-        transform: scale(1);
-    }
-    
-    20% {
-        opacity: 0;
-        transform: scale(0.5);
-    }
-    
-    100% {
-        top: 8%;
-        left: 95%;
-        opacity: 0;
-        transform: scale(0.5);
-    }
 }
 
 /* R0 Logo 浮動動畫 */
@@ -550,11 +448,6 @@
     transform: translateY(-3px) scale(1.1);
     box-shadow: 0 12px 30px rgba(14, 165, 233, 0.3);
     animation: loginLogoFloat 3s ease-in-out infinite;
-}
-
-/* 當懸停時，亮光點動畫加速 */
-.login-logo-container:hover .light-point {
-    animation: lightPointMove 6s infinite ease-in-out;
 }
 
 /* R0 Logo 光暈效果 */
@@ -582,67 +475,17 @@
     }
 }
 
-/* 亮光軌跡效果（可選增強） */
-.light-point::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 40px;
-    height: 2px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(255, 255, 255, 0.6) 20%, 
-        rgba(14, 165, 233, 0.8) 50%, 
-        rgba(255, 255, 255, 0.6) 80%, 
-        transparent 100%);
-    transform: translate(-50%, -50%);
-    border-radius: 2px;
-    opacity: 0.7;
-}
-
 /* 響應式調整 */
 @media (max-width: 768px) {
     .login-logo-image {
-        width: 300px;
-    }
-    
-    .light-point {
-        width: 10px;
-        height: 10px;
-    }
-    
-    .light-point::after {
-        width: 30px;
-        height: 1.5px;
+        width: 70px;
     }
 }
 
 @media (max-width: 480px) {
     .login-logo-image {
-        width: 250px;
+        width: 60px;
     }
-    
-    .light-point {
-        width: 8px;
-        height: 8px;
-    }
-    
-    .light-point::after {
-        width: 25px;
-        height: 1px;
-    }
-}
-
-/* 硬體加速優化 */
-.light-point,
-.login-logo-image,
-.login-logo-container {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    will-change: transform, opacity;
 }
 
 
@@ -2283,15 +2126,11 @@
     <div id="loginContainer" class="login-container">
         <div class="login-card">
             <div class="login-header">
-    <div class="login-logo-container">
-        <img src="R0.png" alt="R0 Logo" class="login-logo-image">
-        <div class="light-point"></div>
-    </div>
+    <img src="R0.png" alt="R0 Logo" class="login-logo-image">
     <i class="fas fa-truck"></i>
     <h1>派車GAI數據管理系統</h1>
     <p></p>
 </div>
-
 
             <form class="login-form" id="loginForm">
                 <div class="form-group">
@@ -2978,7 +2817,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbzUgb_ZAkwSWtTzMZsbO1oHlU_oeLCydGNTqTvfk4zIn-EVSk-rDUnL0ATFziNkAesn/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycby6adKg0bqTZRQYftx95YCx30RKcQseENP5dVRd-zcjNasYDI7DUiY0EzceCpKie3ZR/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
