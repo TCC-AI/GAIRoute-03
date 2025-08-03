@@ -2743,7 +2743,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwoMInmJJKY0l0FNJJvC3EUCEsVMtc3PaFO2Occfr_z0WcoonbCuFc5MitjT5MwE8_5/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwur3U-ux0qOtalEF_VojloytYnS3RcRzsxkXOB1Uq4zI2uN4gTe4emWJyM-rl-OYak/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -5312,14 +5312,12 @@ async loadDashboard() {
         let routePalletSum = 0;
         let routePalletNonZeroPercentage = 0;
         let routeTableLastBValue = 0;
-        let routeTableAlertValue = 0;
         
         if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
             dashboardData = this.getMockData('getDashboardData');
             routePalletSum = 163; // 模擬資料
             routePalletNonZeroPercentage = 10; // 模擬百分比
             routeTableLastBValue = 7436.04; // 模擬路線表B欄位最後值
-            routeTableAlertValue = 2.01; // 模擬異常警示值 (7436.04 × 0.27 ÷ 1000)
             if (!this.isOnline) {
                 this.showNotification('目前使用離線模式', 'warning');
             }
@@ -5329,7 +5327,7 @@ async loadDashboard() {
             
             // 同時獲取各項數據
             try {
-                const [palletSum, nonZeroPercentage, lastBValue, alertValue] = await Promise.all([
+                const [palletSum, nonZeroPercentage, lastBValue] = await Promise.all([
                     this.apiCall('getRoutePalletSum', {
                         targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
                     }),
@@ -5338,48 +5336,20 @@ async loadDashboard() {
                     }),
                     this.apiCall('getRouteTableLastBValue', {
                         targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
-                    }),
-                    this.apiCall('getRouteTableAlertValue', {
-                        targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
                     })
                 ]);
                 
                 routePalletSum = palletSum;
                 routePalletNonZeroPercentage = nonZeroPercentage;
                 routeTableLastBValue = lastBValue;
-                routeTableAlertValue = alertValue;
                 
             } catch (error) {
                 console.error('獲取外部資料失敗:', error);
                 routePalletSum = 0;
                 routePalletNonZeroPercentage = 0;
                 routeTableLastBValue = 0;
-                routeTableAlertValue = 0;
             }
         }
-        
-        // 更新統計數據
-        document.getElementById('todayDeliveries').textContent = routePalletSum;
-        document.getElementById('vehicleUsage').textContent = `${routePalletNonZeroPercentage}%`;
-        document.getElementById('onTimeRate').textContent = routeTableLastBValue;
-        document.getElementById('alertCount').textContent = routeTableAlertValue; // 顯示計算後的異常警示值
-
-        // 根據異常警示值更新樣式
-        const alertElement = document.getElementById('alertCount');
-        if (routeTableAlertValue > 2) { // 可以根據需要調整閾值
-            alertElement.classList.add('alert');
-        } else {
-            alertElement.classList.remove('alert');
-        }
-
-    } catch (error) {
-        console.error('載入主控台資料失敗:', error);
-        this.showNotification('載入主控台資料失敗', 'error');
-    } finally {
-        this.hideLoading();
-    }
-}
-
         
         // 更新統計數據
         document.getElementById('todayDeliveries').textContent = routePalletSum;
