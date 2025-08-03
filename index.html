@@ -423,6 +423,7 @@
     margin-bottom: 1rem;
     overflow: hidden; /* 確保亮光點不會超出邊界 */
 }
+
 /* 登入頁面 R0 Logo 樣式 */
 .login-logo-image {
     width: 420px;
@@ -440,25 +441,23 @@
 /* 亮光點樣式 */
 .light-point {
     position: absolute;
-    width: 15px;
-    height: 15px;
+    width: 12px;
+    height: 12px;
     background: radial-gradient(circle, 
         rgba(255, 255, 255, 1) 0%, 
-        rgba(255, 255, 255, 0.9) 20%,
-        rgba(14, 165, 233, 0.8) 40%, 
-        rgba(14, 165, 233, 0.4) 70%,
+        rgba(255, 255, 255, 0.8) 30%, 
+        rgba(14, 165, 233, 0.6) 60%, 
         transparent 100%);
     border-radius: 50%;
     box-shadow: 
-        0 0 12px rgba(255, 255, 255, 1),
-        0 0 24px rgba(14, 165, 233, 0.8),
-        0 0 36px rgba(14, 165, 233, 0.6),
-        0 0 48px rgba(14, 165, 233, 0.4);
+        0 0 8px rgba(255, 255, 255, 0.8),
+        0 0 16px rgba(14, 165, 233, 0.6),
+        0 0 24px rgba(14, 165, 233, 0.4);
     opacity: 0;
     z-index: 20;
     pointer-events: none;
     
-    /* 亮光點移動動畫 - 每10秒執行一次，持續2秒 */
+    /* 亮光點移動動畫 */
     animation: lightPointMove 10s infinite ease-in-out;
 }
 
@@ -476,14 +475,14 @@
         transform: scale(1);
     }
     
-    20% {
+    18% {
         top: 8%;
         left: 95%;
         opacity: 1;
         transform: scale(1);
     }
     
-    22% {
+    20% {
         opacity: 0;
         transform: scale(0.5);
     }
@@ -494,41 +493,6 @@
         opacity: 0;
         transform: scale(0.5);
     }
-}
-
-/* 亮光尾巴效果 */
-.light-point::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: -30px;
-    width: 30px;
-    height: 3px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(14, 165, 233, 0.3) 30%, 
-        rgba(14, 165, 233, 0.6) 70%, 
-        rgba(255, 255, 255, 0.8) 100%);
-    transform: translateY(-50%);
-    border-radius: 2px;
-    opacity: 0.8;
-}
-
-/* 亮光前導效果 */
-.light-point::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -20px;
-    width: 20px;
-    height: 2px;
-    background: linear-gradient(90deg, 
-        rgba(255, 255, 255, 0.9) 0%, 
-        rgba(14, 165, 233, 0.5) 50%, 
-        transparent 100%);
-    transform: translateY(-50%);
-    border-radius: 2px;
-    opacity: 0.6;
 }
 
 /* R0 Logo 浮動動畫 */
@@ -580,6 +544,25 @@
     }
 }
 
+/* 亮光軌跡效果（可選增強） */
+.light-point::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.6) 20%, 
+        rgba(14, 165, 233, 0.8) 50%, 
+        rgba(255, 255, 255, 0.6) 80%, 
+        transparent 100%);
+    transform: translate(-50%, -50%);
+    border-radius: 2px;
+    opacity: 0.7;
+}
+
 /* 響應式調整 */
 @media (max-width: 768px) {
     .login-logo-image {
@@ -587,20 +570,13 @@
     }
     
     .light-point {
-        width: 12px;
-        height: 12px;
-    }
-    
-    .light-point::before {
-        width: 25px;
-        height: 2.5px;
-        left: -25px;
+        width: 10px;
+        height: 10px;
     }
     
     .light-point::after {
-        width: 15px;
+        width: 30px;
         height: 1.5px;
-        right: -15px;
     }
 }
 
@@ -610,20 +586,13 @@
     }
     
     .light-point {
-        width: 10px;
-        height: 10px;
-    }
-    
-    .light-point::before {
-        width: 20px;
-        height: 2px;
-        left: -20px;
+        width: 8px;
+        height: 8px;
     }
     
     .light-point::after {
-        width: 12px;
+        width: 25px;
         height: 1px;
-        right: -12px;
     }
 }
 
@@ -637,6 +606,7 @@
     backface-visibility: hidden;
     will-change: transform, opacity;
 }
+
 
         .login-header i {
             font-size: 3.5rem;
