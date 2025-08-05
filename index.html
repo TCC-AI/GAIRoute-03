@@ -3380,7 +3380,7 @@ async getRoutePalletNonZeroCountWithCache() {
     
     try {
         const count = await this.apiCall('getRoutePalletNonZeroCount', {
-            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
         });
         
         // 更新快取
@@ -3539,7 +3539,7 @@ document.getElementById('debugRouteData')?.addEventListener('click', async () =>
         
         // 第一步：測試獲取原始資料
         const rawData = await this.apiCall('getRouteTableFromExternalSheet', {
-            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
         });
         
         console.log('原始資料:', rawData);
@@ -3746,7 +3746,7 @@ async fetchDeliveryPoints() {
         // 1. 寫入指定日期到外部 Google Sheet
         await this.apiCall('setSpecifiedDateToExternalSheet', { 
             date: date,
-            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
         });
         
         if (loadingSpinner) {
@@ -3798,7 +3798,7 @@ async getFilteredDeliveryReportWithRetry(maxRetries = 3, retryDelay = 5000) {
             console.log(`嘗試獲取託收託運回報資料 (第 ${attempt} 次)`);
             
             const result = await this.apiCall('getFilteredDeliveryReport', {
-                targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
             });
             
             if (result && result.length > 0) {
@@ -3834,7 +3834,7 @@ delay(ms) {
 async getFilteredDeliveryReport() {
     try {
         const result = await this.apiCall('getFilteredDeliveryReport', {
-            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
         });
         return result;
     } catch (error) {
@@ -4002,7 +4002,7 @@ async handleAIPreplan() {
         console.log('開始獲取當日各路線表...');
         
         const result = await this.apiCall('getCurrentDayRouteTable', {
-            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
         });
         
         console.log('API 返回結果:', result);
@@ -5405,16 +5405,16 @@ async loadDashboard() {
             try {
                 const [palletSum, nonZeroPercentage, lastBValue, alertValue] = await Promise.all([
                     this.apiCall('getRoutePalletSum', {
-                        targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                        targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
                     }),
                     this.apiCall('getRoutePalletNonZeroPercentage', {
-                        targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                        targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
                     }),
                     this.apiCall('getRouteTableLastBValue', {
-                        targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                        targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
                     }),
                     this.apiCall('getRouteTableAlertValue', {
-                        targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                        targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
                     })
                 ]);
                 
@@ -5480,7 +5480,7 @@ async getRoutes() {
         } else {
             // 從外部 Google Sheet 獲取路線資料
             return await this.apiCall('getRouteTableFromExternalSheet', {
-                targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+                targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
             });
         }
     } catch (error) {
@@ -5495,7 +5495,7 @@ async getExternalRouteData() {
         console.log('開始獲取外部路線資料...');
         
         const routeData = await this.apiCall('getRouteTableFromExternalSheet', {
-            targetSpreadsheetId: '109Qjbwi08bvficzUHx0hkON7UgL08i5zXQ6BPI4KwIE'
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
         });
         
         console.log('原始路線資料:', routeData);
