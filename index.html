@@ -6774,31 +6774,46 @@ function formatDateForSheet(dateStr) {
 document.getElementById('fetchDeliveryPointsBtn').addEventListener('click', fetchDeliveryPoints);
 
 async function fetchDeliveryPoints() {
-  const dateInput = document.getElementById('deliveryDatePicker').value;
-  if (!dateInput) {
-    app.showNotification('請選擇日期', 'warning');
-    return;
-  }
-  const date = formatDateForSheet(dateInput);
-// 1. 寫入指定日期
-  try {
-    await app.apiCall('setSpecifiedDate', { date });
-  } catch (e) {
-    app.showNotification('寫入指定日期失敗', 'error');
-    // return; // 若要強制中斷查詢可加這行
-  }
+    // 保持原有的日期輸入檢查
+    const dateInput = document.getElementById('deliveryDatePicker').value;
+    if (!dateInput) {
+        app.showNotification('請選擇日期', 'warning');
+        return;
+    }
+    
+    const date = formatDateForSheet(dateInput);
+    
+    // 1. 寫入指定日期（保持原有邏輯）
+    try {
+        await app.apiCall('setSpecifiedDate', { date });
+    } catch (e) {
+        app.showNotification('寫入指定日期失敗', 'error');
+        // return; // 若要強制中斷查詢可加這行
+    }
 
-  // 呼叫 GAS API
-  app.showLoading();
-  try {
-    const data = await app.apiCall('getDeliveryPoints', { date });
-    renderDeliveryPointsTable(data);
-  } catch (e) {
-    app.showNotification('資料載入失敗', 'error');
-  } finally {
-    app.hideLoading();
-  }
+    // 2. 獲取託收託運回報資料（修改這部分）
+    app.showLoading();
+    try {
+        // 修改：加入 targetSpreadsheetId 參數
+        const data = await app.apiCall('getDeliveryPoints', { 
+            date,
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        
+        console.log(`獲取到 ${data.length} 筆資料`);
+        renderDeliveryPointsTable(data);
+        
+        // 顯示成功訊息
+        app.showNotification(`成功載入 ${data.length} 筆資料`, 'success');
+        
+    } catch (e) {
+        console.error('獲取託收託運回報失敗:', e);
+        app.showNotification('資料載入失敗: ' + e.message, 'error');
+    } finally {
+        app.hideLoading();
+    }
 }
+
 // 新增一個去前導零的工具
 function removeLeadingZero(dateStr) {
   return dateStr.replace(/\/0(\d)/g, '/$1');
