@@ -6440,6 +6440,12 @@ async viewExternalRoute(routeName) {
             showLoading() {
                 elements.loadingOverlay.classList.add('show');
             }
+           
+
+            // 隱藏資料同步化
+            hideLoading() {
+                elements.loadingOverlay.classList.remove('show');
+            }
             // 【新增】帶取消功能的載入遮罩
 showLoadingWithCancel(message = '資料同步化...', onCancel = null) {
     const overlay = document.getElementById('loadingOverlay');
@@ -6485,11 +6491,15 @@ updateLoadingProgress(percent, status) {
     }
 }
 
-
-            // 隱藏資料同步化
-            hideLoading() {
-                elements.loadingOverlay.classList.remove('show');
-            }
+// 顯示模態視窗
+showModal(title, content, confirmCallback = null) {
+    elements.modalTitle.textContent = title;
+    elements.modalBody.innerHTML = content;
+    elements.modal.classList.add('show');
+    
+    // 設定確認按鈕回調
+    elements.modalConfirm.onclick = confirmCallback || (() => this.hideModal());
+}
 
             // 顯示模態視窗
             showModal(title, content, confirmCallback = null) {
@@ -7035,16 +7045,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 系統初始化完成標記
         window.dispatchGAISystemReady = true;
         
-        console.log('昶青智慧冷鏈物流派車GAI數據管理系統初始化完成');
-        console.log('版本: 1.0.0');
-        console.log('作者: 昶青智慧冷鏈物流技術團隊');
-        console.log('最後更新: 2025-06-27');
-
-        // 工具：將 yyyy-mm-dd 轉 yyyy/MM/dd
-function formatDateForSheet(dateStr) {
-  if (!dateStr) return '';
-  return dateStr.replace(/-/g, '/');
-}
+        
 
 // 綁定事件
 document.getElementById('fetchDeliveryPointsBtn').addEventListener('click', fetchDeliveryPoints);
@@ -7405,6 +7406,40 @@ function collapseAllRoutes() {
         btn.querySelector('i').className = 'fas fa-chevron-down';
     });
 }
+        console.log('昶青智慧冷鏈物流派車GAI數據管理系統初始化完成');
+        console.log('版本: 1.0.0');
+        console.log('作者: 昶青智慧冷鏈物流技術團隊');
+        console.log('最後更新: 2025-06-27');
+
+        // 【新增】取消載入功能
+        function cancelLoading() {
+            if (window.currentCancelCallback) {
+                window.currentCancelCallback();
+            }
+            if (window.app) {
+                window.app.hideLoading();
+                window.app.showNotification('操作已取消', 'info');
+            }
+        }
+
+        // 【新增】全域更新載入進度函數
+        function updateLoadingProgress(percent, status) {
+            const progressBar = document.getElementById('loadingProgressBar');
+            const statusText = document.getElementById('loadingStatus');
+            
+            if (progressBar) {
+                progressBar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+            }
+            if (statusText) {
+                statusText.textContent = status;
+            }
+        }
+
+        // 工具：將 yyyy-mm-dd 轉 yyyy/MM/dd
+        function formatDateForSheet(dateStr) {
+          if (!dateStr) return '';
+          return dateStr.replace(/-/g, '/');
+        }
 
     </script>
 
