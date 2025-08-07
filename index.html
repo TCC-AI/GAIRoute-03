@@ -3811,54 +3811,36 @@ async fetchDeliveryPoints() {
     }
     const date = this.formatDateForSheet(dateInput);
 
-    this.showLoading();
+    // 使用內嵌式載入提示
+    this.showInlineLoading('deliveryPointsTableContainer', '正在同步提取日期對應資料...');
+    
     try {
-        // 顯示進度訊息
-        const loadingSpinner = document.querySelector('.loading-spinner p');
-        if (loadingSpinner) {
-            loadingSpinner.textContent = '正在同步提取日期對應資料...';
-        }
+        // 1. 快速寫入日期（背景執行，不等待完成）
+        this.quickWriteDate(date).catch(e => 
+            console.warn('日期寫入警告（不影響主流程）:', e)
+        );
+
+        this.updateInlineLoading('deliveryPointsTableContainer', '正在啟動【路徑導航設計】程序...');
         
-        // 1. 寫入指定日期到外部 Google Sheet
-        await this.apiCall('setSpecifiedDateToExternalSheet', { 
-            date: date,
-            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-        });
+        // 2. 背景執行外部程序（不阻塞主流程）
+        this.executeBackgroundProcess().catch(e => 
+            console.warn('背景程序警告（不影響主流程）:', e)
+        );
         
-        if (loadingSpinner) {
-            loadingSpinner.textContent = '正在執行【路徑導航設計】程序...';
-        }
+        this.updateInlineLoading('deliveryPointsTableContainer', '正在快速檢查資料可用性...');
         
-        // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
-        await this.executeExternalAutoCompleteProcess();
+        // 3. 使用快速輪詢機制獲取資料
+        const reportData = await this.fastPollForData();
         
-        if (loadingSpinner) {
-            loadingSpinner.textContent = '正在等待工作表生成...';
-        }
-        
-        // 3. 增加等待時間並加入重試機制
-        await this.waitForSheetGeneration(20000); // 等待20秒
-        
-        if (loadingSpinner) {
-            loadingSpinner.textContent = '正在同步託收託運回報資料...';
-        }
-        
-        // 4. 使用重試機制獲取託收託運回報工作表資料
-        const reportData = await this.getFilteredDeliveryReportWithRetry();
-        
-        // 5. 顯示資料
+        // 4. 顯示資料
         this.displayDeliveryReport(reportData);
         
-        this.showNotification(
-            `✅ 操作完成！\n📅 日期已同步至外部工作表\n🔄 自動完成程序已執行\n📊 託收託運回報已載入`, 
-            'success'
-        );
+        this.showNotification('✅ 資料載入完成！', 'success');
         
     } catch (e) {
         console.error('操作失敗:', e);
-        this.showNotification(`❌ 操作失敗: ${e.message}`, 'error');
-    } finally {
-        this.hideLoading();
+        this.showNotification(`❌ 載入失敗: ${e.message}`, 'error');
+        this.hideInlineLoading('deliveryPointsTableContainer');
     }
 }
 
@@ -6404,6 +6386,124 @@ async viewExternalRoute(routeName) {
                     }, 300);
                 }, duration);
             }
+            // 顯示通知
+showNotification(message, type = 'info', duration = 5000) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    elements.notificationContainer.appendChild(notification);
+    
+    // 觸發動畫
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // 自動隱藏
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, duration);
+}
+
+    // ========== 👇 在這裡添加新的內嵌式載入提示方法 👇 ==========
+    
+    // 內嵌式載入提示
+    showInlineLoading(containerId, message) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="inline-loading" style="
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                padding: 2rem; 
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); 
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            ">
+                <div style="text-align: center;">
+                    <div class="loading-spinner-small" style="
+                        width: 28px; 
+                        height: 28px; 
+                        border: 3px solid #e2e8f0; 
+                        border-top: 3px solid #0ea5e9; 
+                        border-radius: 50%; 
+                        animation: spin 1s linear infinite;
+                        margin: 0 auto 1rem auto;
+                    "></div>
+                    <p style="
+                        margin: 0; 
+                        color: #64748b; 
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                    " class="loading-message">${message}</p>
+                    <div style="
+                        width: 200px; 
+                        height: 4px; 
+                        background: #e2e8f0; 
+                        border-radius: 2px; 
+                        margin: 1rem auto 0 auto;
+                        overflow: hidden;
+                    ">
+                        <div style="
+                            width: 40%; 
+                            height: 100%; 
+                            background: linear-gradient(90deg, #0ea5e9, #14b8a6); 
+                            border-radius: 2px;
+                            animation: progressSlide 2s ease-in-out infinite;
+                        "></div>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @keyframes progressSlide {
+                    0% { transform: translateX(-100%); }
+                    50% { transform: translateX(150%); }
+                    100% { transform: translateX(-100%); }
+                }
+            </style>
+        `;
+    }
+    
+    // 更新內嵌載入訊息
+    updateInlineLoading(containerId, message) {
+        const container = document.getElementById(containerId);
+        const messageElement = container?.querySelector('.loading-message');
+        if (messageElement) {
+            messageElement.textContent = message;
+            console.log(`📝 載入狀態更新: ${message}`);
+        }
+    }
+    
+    // 隱藏內嵌載入
+    hideInlineLoading(containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div style="
+                    color: #ef4444; 
+                    padding: 2rem; 
+                    text-align: center;
+                    background: #fef2f2;
+                    border: 1px solid #fecaca;
+                    border-radius: 8px;
+                ">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 1rem;"></i>
+                    <p>載入失敗，請重試</p>
+                </div>
+            `;
+        }
+    }
+    
+    // ========== 👆 新方法添加結束 👆 ==========
+
         }
 
 // Google Maps 初始化回調函數
