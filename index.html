@@ -3811,298 +3811,56 @@ async fetchDeliveryPoints() {
     }
     const date = this.formatDateForSheet(dateInput);
 
-    // 使用輕量級進度提示而非全螢幕遮罩
-    this.showInlineLoading('deliveryPointsTableContainer', '正在同步提取日期對應資料...');
-    
+    this.showLoading();
     try {
-        // 1. 快速寫入日期（不等待完成）
-        this.apiCall('setSpecifiedDateToExternalSheet', { 
+        // 顯示進度訊息
+        const loadingSpinner = document.querySelector('.loading-spinner p');
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在同步提取日期對應資料...';
+        }
+        
+        // 1. 寫入指定日期到外部 Google Sheet
+        await this.apiCall('setSpecifiedDateToExternalSheet', { 
             date: date,
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-        }).catch(e => console.warn('日期寫入警告:', e)); // 不阻塞主流程
-
-        this.updateInlineLoading('deliveryPointsTableContainer', '正在執行【路徑導航設計】程序...');
+        });
         
-        // 2. 並行執行外部程序（不等待回應）
-        this.executeExternalAutoCompleteProcess().catch(e => console.warn('外部程序警告:', e));
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在執行【路徑導航設計】程序...';
+        }
         
-        this.updateInlineLoading('deliveryPointsTableContainer', '正在嘗試獲取資料...');
+        // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
+        await this.executeExternalAutoCompleteProcess();
         
-        // 3. 使用輪詢方式快速檢查資料
-        const reportData = await this.pollForData();
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在等待工作表生成...';
+        }
         
-        // 4. 顯示資料
+        // 3. 增加等待時間並加入重試機制
+        await this.waitForSheetGeneration(20000); // 等待20秒
+        
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在同步託收託運回報資料...';
+        }
+        
+        // 4. 使用重試機制獲取託收託運回報工作表資料
+        const reportData = await this.getFilteredDeliveryReportWithRetry();
+        
+        // 5. 顯示資料
         this.displayDeliveryReport(reportData);
         
-        this.showNotification('✅ 資料載入完成！', 'success');
+        this.showNotification(
+            `✅ 操作完成！\n📅 日期已同步至外部工作表\n🔄 自動完成程序已執行\n📊 託收託運回報已載入`, 
+            'success'
+        );
         
     } catch (e) {
         console.error('操作失敗:', e);
         this.showNotification(`❌ 操作失敗: ${e.message}`, 'error');
-        this.hideInlineLoading('deliveryPointsTableContainer');
+    } finally {
+        this.hideLoading();
     }
 }
-
-// 新增：內嵌式載入提示
-showInlineLoading(containerId, message) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = `
-        <div class="inline-loading" style="
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 2rem; 
-            background: #f8fafc; 
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        ">
-            <div style="text-align: center;">
-                <div class="loading-spinner-small" style="
-                    width: 24px; 
-                    height: 24px; 
-                    border: 2px solid #e2e8f0; 
-                    border-top: 2px solid #0ea5e9; 
-                    border-radius: 50%; 
-                    animation: spin 1s linear infinite;
-                    margin: 0 auto 1rem auto;
-                "></div>
-                <p style="margin: 0; color: #64748b; font-size: 0.875rem;">${message}</p>
-            </div>
-        </div>
-    `;
-}
-
-// 更新內嵌載入訊息
-updateInlineLoading(containerId, message) {
-    const container = document.getElementById(containerId);
-    const messageElement = container.querySelector('.inline-loading p');
-    if (messageElement) {
-        messageElement.textContent = message;
-    }
-}
-
-// 隱藏內嵌載入
-hideInlineLoading(containerId) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '<div style="color: #888; padding: 2rem; text-align: center;">載入失敗</div>';
-}
-// 新增：快速輪詢獲取資料
-async pollForData(maxAttempts = 6, interval = 3000) {
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-            console.log(`嘗試獲取資料 (第 ${attempt}/${maxAttempts} 次)`);
-            
-            const result = await this.apiCall('getFilteredDeliveryReport', {
-                targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-            });
-            
-            if (result && result.length > 0) {
-                console.log(`✅ 成功獲取資料，共 ${result.length} 筆`);
-                return result;
-            }
-            
-            if (attempt < maxAttempts) {
-                // 顯示倒數計時
-                this.updateInlineLoading('deliveryPointsTableContainer', 
-                    `正在等待資料生成... (${maxAttempts - attempt} 次重試剩餘)`);
-                await this.delay(interval);
-            }
-            
-        } catch (error) {
-            console.warn(`第 ${attempt} 次嘗試失敗:`, error);
-            
-            if (attempt < maxAttempts) {
-                this.updateInlineLoading('deliveryPointsTableContainer', 
-                    `重試中... (${maxAttempts - attempt} 次剩餘)`);
-                await this.delay(interval);
-            }
-        }
-    }
-    
-    // 如果所有嘗試都失敗，返回空資料但不報錯
-    console.log('⚠️ 未獲取到資料，但不影響系統運行');
-    return [];
-}
-// 修改：背景執行長時間任務
-async executeExternalAutoCompleteProcess() {
-    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbzwoFym1PhjntX39HnZwq1KPEuI49zu2yOCGbxUap4RJtqH-wnG9n-dbnVwtpVzK3sbuw/exec';
-    
-    try {
-        // 發送請求但不等待回應
-        fetch(externalGasUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({
-                action: 'autoCompleteProcess',
-                data: { timestamp: new Date().toISOString() }
-            }),
-            mode: 'no-cors'
-        }).then(() => {
-            console.log('✅ 外部程序請求已發送');
-        }).catch(e => {
-            console.warn('⚠️ 外部程序請求失敗，但不影響主流程:', e);
-        });
-        
-        // 立即返回，不等待
-        return { success: true, message: '背景程序已啟動' };
-        
-    } catch (error) {
-        console.warn('外部程序執行失敗，但不影響主流程:', error);
-        return { success: false, message: '背景程序啟動失敗' };
-    }
-}
-// 新增：資料快取管理
-class DataCache {
-    constructor() {
-        this.cache = new Map();
-        this.cacheTTL = 5 * 60 * 1000; // 5分鐘
-    }
-    
-    set(key, data) {
-        this.cache.set(key, {
-            data: data,
-            timestamp: Date.now()
-        });
-    }
-    
-    get(key) {
-        const cached = this.cache.get(key);
-        if (!cached) return null;
-        
-        if (Date.now() - cached.timestamp > this.cacheTTL) {
-            this.cache.delete(key);
-            return null;
-        }
-        
-        return cached.data;
-    }
-    
-    has(key) {
-        return this.get(key) !== null;
-    }
-}
-
-const dataCache = new DataCache();
-
-// 修改：使用快取的資料獲取
-async getFilteredDeliveryReportWithCache(date) {
-    const cacheKey = `delivery_report_${date}`;
-    
-    // 檢查快取
-    const cachedData = dataCache.get(cacheKey);
-    if (cachedData) {
-        console.log('✅ 使用快取資料');
-        this.showNotification('使用快取資料，載入完成！', 'info');
-        return cachedData;
-    }
-    
-    // 快取未命中，獲取新資料
-    try {
-        const data = await this.pollForData();
-        if (data && data.length > 0) {
-            dataCache.set(cacheKey, data);
-        }
-        return data;
-    } catch (error) {
-        throw error;
-    }
-}
-// 新增：取消操作功能
-class CancellableOperation {
-    constructor() {
-        this.cancelled = false;
-        this.controller = new AbortController();
-    }
-    
-    cancel() {
-        this.cancelled = true;
-        this.controller.abort();
-        console.log('🚫 操作已取消');
-    }
-    
-    isCancelled() {
-        return this.cancelled;
-    }
-    
-    getSignal() {
-        return this.controller.signal;
-    }
-}
-
-// 修改：可取消的資料獲取
-async fetchDeliveryPointsWithCancel() {
-    // 取消前一個操作
-    if (this.currentOperation) {
-        this.currentOperation.cancel();
-    }
-    
-    this.currentOperation = new CancellableOperation();
-    
-    const dateInput = document.getElementById('deliveryDatePicker').value;
-    if (!dateInput) {
-        this.showNotification('請選擇日期', 'warning');
-        return;
-    }
-    
-    // 顯示可取消的載入界面
-    this.showCancellableLoading('deliveryPointsTableContainer', '正在載入資料...', () => {
-        this.currentOperation.cancel();
-        this.hideInlineLoading('deliveryPointsTableContainer');
-        this.showNotification('操作已取消', 'info');
-    });
-    
-    try {
-        const date = this.formatDateForSheet(dateInput);
-        
-        // 檢查是否被取消
-        if (this.currentOperation.isCancelled()) return;
-        
-        // 執行資料獲取...
-        const data = await this.getFilteredDeliveryReportWithCache(date);
-        
-        if (this.currentOperation.isCancelled()) return;
-        
-        this.displayDeliveryReport(data);
-        this.showNotification('✅ 資料載入完成！', 'success');
-        
-    } catch (error) {
-        if (!this.currentOperation.isCancelled()) {
-            this.showNotification(`載入失敗: ${error.message}`, 'error');
-        }
-    }
-}
-
-// 可取消的載入界面
-showCancellableLoading(containerId, message, onCancel) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = `
-        <div class="cancellable-loading" style="
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 2rem; 
-            background: #f8fafc; 
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        ">
-            <div style="display: flex; align-items: center;">
-                <div class="loading-spinner-small" style="
-                    width: 20px; height: 20px; 
-                    border: 2px solid #e2e8f0; 
-                    border-top: 2px solid #0ea5e9; 
-                    border-radius: 50%; 
-                    animation: spin 1s linear infinite;
-                    margin-right: 1rem;
-                "></div>
-                <span style="color: #64748b;">${message}</span>
-            </div>
-            <button class="btn btn-sm btn-secondary" onclick="(${onCancel.toString()})()">
-                <i class="fas fa-times"></i> 取消
-            </button>
-        </div>
-    `;
-}
-
 
 // 新增等待函數
 async waitForSheetGeneration(ms) {
