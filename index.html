@@ -2889,7 +2889,7 @@
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbyg_iMcJhRtTUM4JSIxzTRHxYyKN_haikT69tR5CUO6AZzn2JSPs5LH3Kdaz_A0UKNM/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbyydhF0BnUsc_a_tU5Pogewazuz1oM2a5jOCUbvhXO3Y4-44HCQFevE1MdDuVQhKGIp/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3598,6 +3598,10 @@ async getRoutePalletNonZeroCountWithCache() {
 // AI預排按鈕事件
 document.getElementById('ai-preplan-btn')?.addEventListener('click', async () => {
     await this.handleAIPreplan();
+});
+// 👇 在這裡插入新的事件監聽器
+document.getElementById('ai-preplan-btn-b')?.addEventListener('click', async () => {
+    await this.handleAIPreplanBMode();
 });
 
 // 派車收送點查詢按鈕
@@ -4331,7 +4335,81 @@ exportRouteTable() {
 refreshRouteTable() {
     this.handleAIPreplan();
 }
+// 👇 在這裡添加 B模態處理方法
+async handleAIPreplanBMode() {
+    const resultDiv = document.getElementById('gai-route-result');
+    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在佈建AI當日各路線預排表(高裝載模態)...';
 
+    try {
+        console.log('開始獲取當日各路線表(B)...');
+        
+        const result = await this.apiCall('getCurrentDayRouteTableB', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        
+        console.log('API 返回結果:', result);
+        
+        if (result && result.length > 0) {
+            const cardsHtml = this.convertToRouteCards(result);
+            resultDiv.innerHTML = `
+                <div style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%); margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <h4 style="margin: 0; color: #059669; font-size: 1.5rem; font-weight: 700;">
+                                <i class="fas fa-route" style="margin-right: 0.5rem; color: #10b981;"></i>
+                                當日各路線表(B) - 高裝載模態
+                            </h4>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">
+                                資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${getUniqueRouteCount(result)} 條路線
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-secondary btn-sm" onclick="expandAllRoutes()" title="展開所有路線">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="collapseAllRoutes()" title="收折所有路線">
+                                <i class="fas fa-compress-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${cardsHtml}
+                    <div style="margin-top: 2rem; text-align: center; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                        <button class="btn btn-success btn-sm" onclick="app.exportRouteTableB()" style="margin-right: 0.5rem;">
+                            <i class="fas fa-download"></i> 匯出路線表(B)
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.refreshRouteTableB()">
+                            <i class="fas fa-sync-alt"></i> 重新整理
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            this.showNotification('當日各路線表(B)計算完成', 'success');
+        } else {
+            throw new Error('無法取得路線表(B)資料或資料為空');
+        }
+    } catch (e) {
+        console.error('載入路線表(B)失敗:', e);
+        resultDiv.innerHTML = `
+            <div style="color: #dc2626; padding: 2rem; border: 2px dashed #fecaca; border-radius: 12px; background: #fef2f2; text-align: center;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <h4 style="margin-bottom: 0.5rem;">載入失敗</h4>
+                <p style="margin-bottom: 1rem;">${e.message}</p>
+                <small style="color: #991b1b;">請檢查網路連線或聯絡系統管理員</small>
+            </div>
+        `;
+    }
+}
+
+// 匯出路線表(B)功能
+exportRouteTableB() {
+    this.showNotification('匯出功能開發中...', 'info');
+}
+
+// 重新整理路線表(B)
+refreshRouteTableB() {
+    this.handleAIPreplanBMode();
+}
 
 // 工具方法
 formatDateForSheet(dateStr) {
