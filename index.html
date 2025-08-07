@@ -2119,71 +2119,6 @@
   margin-bottom: 1rem;
   opacity: 0.5;
 }
-/* 添加更流暢的載入動畫 */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-@keyframes slideInUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-/* 局部載入指示器 */
-.local-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border-radius: 12px;
-    border: 2px dashed #cbd5e1;
-    animation: slideInUp 0.3s ease-out;
-}
-
-.local-loading .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #e2e8f0;
-    border-top: 4px solid #0ea5e9;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
-}
-
-.progress-container {
-    width: 100%;
-    max-width: 300px;
-    margin-top: 1rem;
-}
-
-.progress-bar-bg {
-    background: #e2e8f0;
-    height: 6px;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.progress-bar-fill {
-    background: linear-gradient(90deg, #0ea5e9, #14b8a6);
-    height: 100%;
-    width: 0%;
-    transition: width 0.3s ease;
-    border-radius: 3px;
-}
 
     </style>
 <body>
@@ -3876,242 +3811,56 @@ async fetchDeliveryPoints() {
     }
     const date = this.formatDateForSheet(dateInput);
 
-    // 改用局部載入指示器，而非全屏遮罩
-    const container = document.getElementById('deliveryPointsTableContainer');
-    const originalContent = container.innerHTML;
-    
-    // 顯示內嵌載入指示器
-    container.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; padding: 3rem; background: #f8fafc; border-radius: 8px; border: 2px dashed #cbd5e1;">
-            <div style="text-align: center;">
-                <div style="width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid #0ea5e9; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
-                <p style="color: #64748b; margin: 0; font-weight: 500;">正在同步託收託運回報資料...</p>
-                <div id="loadingProgress" style="margin-top: 1rem;">
-                    <div style="background: #e2e8f0; height: 4px; border-radius: 2px; overflow: hidden;">
-                        <div id="progressBar" style="background: #0ea5e9; height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 2px;"></div>
-                    </div>
-                    <p id="progressText" style="font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0;">準備中...</p>
-                </div>
-            </div>
-        </div>
-    `;
-
+    this.showLoading();
     try {
-        // 模擬進度更新
-        const updateProgress = (percent, text) => {
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            if (progressBar) progressBar.style.width = `${percent}%`;
-            if (progressText) progressText.textContent = text;
-        };
-
+        // 顯示進度訊息
+        const loadingSpinner = document.querySelector('.loading-spinner p');
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在同步提取日期對應資料...';
+        }
+        
         // 1. 寫入指定日期到外部 Google Sheet
-        updateProgress(20, '正在同步提取日期對應資料...');
         await this.apiCall('setSpecifiedDateToExternalSheet', { 
             date: date,
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
         });
         
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在執行【路徑導航設計】程序...';
+        }
+        
         // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
-        updateProgress(40, '正在執行【路徑導航設計】程序...');
         await this.executeExternalAutoCompleteProcess();
         
-        // 3. 等待工作表生成
-        updateProgress(60, '正在等待工作表生成...');
-        await this.waitForSheetGeneration(10000); // 減少等待時間到10秒
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在等待工作表生成...';
+        }
         
-        // 4. 獲取託收託運回報工作表資料
-        updateProgress(80, '正在載入託收託運回報...');
-        const reportData = await this.getFilteredDeliveryReportWithRetry(2, 3000); // 減少重試次數和間隔
+        // 3. 增加等待時間並加入重試機制
+        await this.waitForSheetGeneration(20000); // 等待20秒
         
-        updateProgress(100, '載入完成');
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在同步託收託運回報資料...';
+        }
+        
+        // 4. 使用重試機制獲取託收託運回報工作表資料
+        const reportData = await this.getFilteredDeliveryReportWithRetry();
         
         // 5. 顯示資料
         this.displayDeliveryReport(reportData);
         
         this.showNotification(
-            `✅ 操作完成！載入 ${reportData.length} 筆資料`, 
+            `✅ 操作完成！\n📅 日期已同步至外部工作表\n🔄 自動完成程序已執行\n📊 託收託運回報已載入`, 
             'success'
         );
         
     } catch (e) {
         console.error('操作失敗:', e);
-        // 恢復原始內容
-        container.innerHTML = originalContent;
         this.showNotification(`❌ 操作失敗: ${e.message}`, 'error');
-    }
-}
-// 修改載入遮罩，添加取消功能
-showLoadingWithCancel(message = '資料同步化...', onCancel = null) {
-    const overlay = document.getElementById('loadingOverlay');
-    const spinner = overlay.querySelector('.loading-spinner');
-    
-    spinner.innerHTML = `
-        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #0ea5e9; margin-bottom: 1.5rem;"></i>
-        <p style="color: #64748b; font-weight: 500; font-size: 1.1rem; margin-bottom: 1rem;">${message}</p>
-        <div style="background: #e2e8f0; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 1rem; width: 300px;">
-            <div id="loadingProgressBar" style="background: linear-gradient(90deg, #0ea5e9, #14b8a6); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 3px;"></div>
-        </div>
-        <div id="loadingStatus" style="font-size: 0.875rem; color: #64748b; margin-bottom: 1.5rem;">準備中...</div>
-        ${onCancel ? `
-            <button onclick="cancelLoading()" style="
-                background: #6b7280; 
-                color: white; 
-                border: none; 
-                padding: 0.5rem 1rem; 
-                border-radius: 6px; 
-                cursor: pointer;
-                font-size: 0.875rem;
-                transition: background 0.2s;
-            " onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
-                <i class="fas fa-times"></i> 取消載入
-            </button>
-        ` : ''}
-    `;
-    
-    overlay.classList.add('show');
-    
-    // 儲存取消回調
-    window.currentCancelCallback = onCancel;
-}
-
-// 取消載入功能
-function cancelLoading() {
-    if (window.currentCancelCallback) {
-        window.currentCancelCallback();
-    }
-    if (window.app) {
-        window.app.hideLoading();
-        window.app.showNotification('操作已取消', 'info');
-    }
-}
-
-// 更新載入進度
-function updateLoadingProgress(percent, status) {
-    const progressBar = document.getElementById('loadingProgressBar');
-    const statusText = document.getElementById('loadingStatus');
-    
-    if (progressBar) {
-        progressBar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
-    }
-    if (statusText) {
-        statusText.textContent = status;
-    }
-}
-// 添加智能快取和批量處理
-class DataCache {
-    constructor() {
-        this.cache = new Map();
-        this.requestQueue = new Map();
-    }
-    
-    // 防重複請求
-    async getOrFetch(key, fetchFunction, ttl = 300000) {
-        // 檢查快取
-        const cached = this.cache.get(key);
-        if (cached && Date.now() - cached.timestamp < ttl) {
-            return cached.data;
-        }
-        
-        // 檢查是否已在請求中
-        if (this.requestQueue.has(key)) {
-            return await this.requestQueue.get(key);
-        }
-        
-        // 創建新請求
-        const promise = fetchFunction().then(data => {
-            this.cache.set(key, {
-                data,
-                timestamp: Date.now()
-            });
-            this.requestQueue.delete(key);
-            return data;
-        }).catch(error => {
-            this.requestQueue.delete(key);
-            throw error;
-        });
-        
-        this.requestQueue.set(key, promise);
-        return promise;
-    }
-}
-
-// 使用快取優化的fetchDeliveryPoints
-async fetchDeliveryPoints() {
-    const dateInput = document.getElementById('deliveryDatePicker').value;
-    if (!dateInput) {
-        this.showNotification('請選擇日期', 'warning');
-        return;
-    }
-    
-    const date = this.formatDateForSheet(dateInput);
-    const cacheKey = `delivery_points_${date}`;
-    
-    // 檢查是否有快取資料
-    if (this.dataCache && this.dataCache.cache.has(cacheKey)) {
-        const cached = this.dataCache.cache.get(cacheKey);
-        if (Date.now() - cached.timestamp < 300000) { // 5分鐘內的快取
-            this.displayDeliveryReport(cached.data);
-            this.showNotification('已載入快取資料', 'info');
-            return;
-        }
-    }
-    
-    // 使用非阻塞載入
-    this.showLoadingWithCancel('正在載入資料...', () => {
-        // 取消邏輯
-        this.cancelCurrentRequest = true;
-    });
-    
-    try {
-        this.cancelCurrentRequest = false;
-        
-        // 並行處理多個步驟
-        const promises = [];
-        
-        // 步驟1：設定日期
-        updateLoadingProgress(25, '正在設定查詢日期...');
-        promises.push(this.apiCall('setSpecifiedDateToExternalSheet', { 
-            date: date,
-            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-        }));
-        
-        await Promise.all(promises);
-        
-        if (this.cancelCurrentRequest) return;
-        
-        // 步驟2：觸發處理程序
-        updateLoadingProgress(50, '正在處理資料...');
-        await this.executeExternalAutoCompleteProcess();
-        
-        if (this.cancelCurrentRequest) return;
-        
-        // 步驟3：獲取結果（減少等待時間）
-        updateLoadingProgress(75, '正在獲取結果...');
-        const reportData = await this.getFilteredDeliveryReportWithRetry(2, 2000);
-        
-        updateLoadingProgress(100, '完成');
-        
-        // 快取結果
-        if (this.dataCache) {
-            this.dataCache.cache.set(cacheKey, {
-                data: reportData,
-                timestamp: Date.now()
-            });
-        }
-        
-        this.displayDeliveryReport(reportData);
-        this.showNotification(`載入完成，共 ${reportData.length} 筆資料`, 'success');
-        
-    } catch (e) {
-        console.error('載入失敗:', e);
-        this.showNotification(`載入失敗: ${e.message}`, 'error');
     } finally {
         this.hideLoading();
-        this.cancelCurrentRequest = false;
     }
 }
-
 
 // 新增等待函數
 async waitForSheetGeneration(ms) {
