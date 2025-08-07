@@ -3811,54 +3811,36 @@ async fetchDeliveryPoints() {
     }
     const date = this.formatDateForSheet(dateInput);
 
-    this.showLoading();
+    // 使用內嵌式載入提示
+    this.showInlineLoading('deliveryPointsTableContainer', '正在同步提取日期對應資料...');
+    
     try {
-        // 顯示進度訊息
-        const loadingSpinner = document.querySelector('.loading-spinner p');
-        if (loadingSpinner) {
-            loadingSpinner.textContent = '正在同步提取日期對應資料...';
-        }
+        // 1. 快速寫入日期（背景執行，不等待完成）
+        this.quickWriteDate(date).catch(e => 
+            console.warn('日期寫入警告（不影響主流程）:', e)
+        );
+
+        this.updateInlineLoading('deliveryPointsTableContainer', '正在啟動【路徑導航設計】程序...');
         
-        // 1. 寫入指定日期到外部 Google Sheet
-        await this.apiCall('setSpecifiedDateToExternalSheet', { 
-            date: date,
-            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-        });
+        // 2. 背景執行外部程序（不阻塞主流程）
+        this.executeBackgroundProcess().catch(e => 
+            console.warn('背景程序警告（不影響主流程）:', e)
+        );
         
-        if (loadingSpinner) {
-            loadingSpinner.textContent = '正在執行【路徑導航設計】程序...';
-        }
+        this.updateInlineLoading('deliveryPointsTableContainer', '正在快速檢查資料可用性...');
         
-        // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
-        await this.executeExternalAutoCompleteProcess();
+        // 3. 使用快速輪詢機制獲取資料
+        const reportData = await this.fastPollForData();
         
-        if (loadingSpinner) {
-            loadingSpinner.textContent = '正在等待工作表生成...';
-        }
-        
-        // 3. 增加等待時間並加入重試機制
-        await this.waitForSheetGeneration(20000); // 等待20秒
-        
-        if (loadingSpinner) {
-            loadingSpinner.textContent = '正在同步託收託運回報資料...';
-        }
-        
-        // 4. 使用重試機制獲取託收託運回報工作表資料
-        const reportData = await this.getFilteredDeliveryReportWithRetry();
-        
-        // 5. 顯示資料
+        // 4. 顯示資料
         this.displayDeliveryReport(reportData);
         
-        this.showNotification(
-            `✅ 操作完成！\n📅 日期已同步至外部工作表\n🔄 自動完成程序已執行\n📊 託收託運回報已載入`, 
-            'success'
-        );
+        this.showNotification('✅ 資料載入完成！', 'success');
         
     } catch (e) {
         console.error('操作失敗:', e);
-        this.showNotification(`❌ 操作失敗: ${e.message}`, 'error');
-    } finally {
-        this.hideLoading();
+        this.showNotification(`❌ 載入失敗: ${e.message}`, 'error');
+        this.hideInlineLoading('deliveryPointsTableContainer');
     }
 }
 
@@ -3867,35 +3849,12 @@ async waitForSheetGeneration(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// 新增重試機制的獲取函數
+// 保留原函數作為備用，但使用新的快速輪詢模式
 async getFilteredDeliveryReportWithRetry(maxRetries = 3, retryDelay = 5000) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`嘗試獲取託收託運回報資料 (第 ${attempt} 次)`);
-            
-            const result = await this.apiCall('getFilteredDeliveryReport', {
-                targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-            });
-            
-            if (result && result.length > 0) {
-                console.log(`成功獲取資料，共 ${result.length} 筆`);
-                return result;
-            } else if (attempt < maxRetries) {
-                console.log(`第 ${attempt} 次嘗試無資料，等待 ${retryDelay/1000} 秒後重試...`);
-                await this.waitForSheetGeneration(retryDelay);
-            }
-            
-        } catch (error) {
-            console.error(`第 ${attempt} 次嘗試失敗:`, error);
-            
-            if (attempt < maxRetries) {
-                console.log(`等待 ${retryDelay/1000} 秒後重試...`);
-                await this.waitForSheetGeneration(retryDelay);
-            } else {
-                throw new Error(`經過 ${maxRetries} 次嘗試後仍無法獲取資料: ${error.message}`);
-            }
-        }
-    }
+    console.log('🔄 使用快速輪詢模式替代傳統重試機制');
+    return await this.fastPollForData();
+}
+
     
     // 如果所有重試都沒有資料，返回空陣列
     console.log('所有重試完成，但未獲取到資料');
@@ -4323,6 +4282,132 @@ generateRouteDetails(routeData) {
 
     
     return detailsHtml;
+}
+// 快速寫入日期（背景執行）
+async quickWriteDate(date) {
+    console.log('🚀 背景任務：快速寫入日期...');
+    try {
+        // 使用 Promise 但不等待結果
+        const writePromise = this.apiCall('setSpecifiedDateToExternalSheet', { 
+            date: date,
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        
+        // 設定超時，避免長時間等待
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('寫入超時')), 5000)
+        );
+        
+        await Promise.race([writePromise, timeoutPromise]);
+        console.log('✅ 日期寫入完成');
+        
+    } catch (error) {
+        console.warn('⚠️ 日期寫入失敗（不影響主流程）:', error.message);
+        // 不拋出錯誤，讓主流程繼續
+    }
+}
+
+// 背景執行外部程序
+async executeBackgroundProcess() {
+    console.log('🚀 背景任務：啟動外部程序...');
+    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbzwoFym1PhjntX39HnZwq1KPEuI49zu2yOCGbxUap4RJtqH-wnG9n-dbnVwtpVzK3sbuw/exec';
+    
+    try {
+        // 使用 fetch 但設定短超時
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒超時
+        
+        fetch(externalGasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+                action: 'autoCompleteProcess',
+                data: { 
+                    timestamp: new Date().toISOString(),
+                    source: '昶青智慧冷鏈物流派車系統-快速模式'
+                }
+            }),
+            mode: 'no-cors',
+            signal: controller.signal
+        }).then(() => {
+            clearTimeout(timeoutId);
+            console.log('✅ 外部程序請求已發送');
+        }).catch(e => {
+            clearTimeout(timeoutId);
+            if (e.name !== 'AbortError') {
+                console.warn('⚠️ 外部程序請求失敗（不影響主流程）:', e.message);
+            }
+        });
+        
+        console.log('🔄 外部程序已在背景執行');
+        
+    } catch (error) {
+        console.warn('⚠️ 背景程序啟動失敗（不影響主流程）:', error.message);
+    }
+}
+// 快速輪詢獲取資料
+async fastPollForData() {
+    const maxAttempts = 8;  // 增加嘗試次數
+    const baseInterval = 2000;  // 基礎間隔2秒
+    const maxInterval = 5000;   // 最大間隔5秒
+    
+    console.log('🔍 開始快速輪詢資料...');
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            console.log(`📡 第 ${attempt}/${maxAttempts} 次嘗試獲取資料`);
+            
+            // 更新載入狀態
+            this.updateInlineLoading('deliveryPointsTableContainer', 
+                `正在獲取資料... (第 ${attempt}/${maxAttempts} 次嘗試)`);
+            
+            const result = await this.apiCall('getFilteredDeliveryReport', {
+                targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+            });
+            
+            if (result && result.length > 0) {
+                console.log(`✅ 成功獲取資料！共 ${result.length} 筆記錄`);
+                return result;
+            }
+            
+            // 如果還有重試機會
+            if (attempt < maxAttempts) {
+                // 動態調整等待時間（前幾次快一點，後面慢一點）
+                const waitTime = Math.min(baseInterval + (attempt - 1) * 500, maxInterval);
+                
+                this.updateInlineLoading('deliveryPointsTableContainer', 
+                    `資料尚未準備就緒，${waitTime/1000}秒後重試... (${maxAttempts - attempt} 次剩餘)`);
+                
+                console.log(`⏳ 等待 ${waitTime/1000} 秒後重試...`);
+                await this.delay(waitTime);
+            }
+            
+        } catch (error) {
+            console.warn(`❌ 第 ${attempt} 次嘗試失敗:`, error.message);
+            
+            if (attempt < maxAttempts) {
+                const waitTime = Math.min(baseInterval + attempt * 500, maxInterval);
+                
+                this.updateInlineLoading('deliveryPointsTableContainer', 
+                    `連線異常，${waitTime/1000}秒後重試... (${maxAttempts - attempt} 次剩餘)`);
+                
+                await this.delay(waitTime);
+            } else {
+                // 最後一次嘗試失敗，拋出錯誤
+                throw new Error(`經過 ${maxAttempts} 次嘗試後仍無法獲取資料: ${error.message}`);
+            }
+        }
+    }
+    
+    // 所有嘗試都沒有獲取到資料
+    console.log('⚠️ 所有嘗試完成，但未獲取到資料');
+    this.showNotification('資料可能還在生成中，請稍後再試', 'warning');
+    return [];
+}
+
+// 延遲函數（如果還沒有的話）
+delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
@@ -6404,6 +6489,124 @@ async viewExternalRoute(routeName) {
                     }, 300);
                 }, duration);
             }
+            // 顯示通知
+showNotification(message, type = 'info', duration = 5000) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    elements.notificationContainer.appendChild(notification);
+    
+    // 觸發動畫
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // 自動隱藏
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, duration);
+}
+
+    // ========== 👇 在這裡添加新的內嵌式載入提示方法 👇 ==========
+    
+    // 內嵌式載入提示
+    showInlineLoading(containerId, message) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="inline-loading" style="
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                padding: 2rem; 
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); 
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            ">
+                <div style="text-align: center;">
+                    <div class="loading-spinner-small" style="
+                        width: 28px; 
+                        height: 28px; 
+                        border: 3px solid #e2e8f0; 
+                        border-top: 3px solid #0ea5e9; 
+                        border-radius: 50%; 
+                        animation: spin 1s linear infinite;
+                        margin: 0 auto 1rem auto;
+                    "></div>
+                    <p style="
+                        margin: 0; 
+                        color: #64748b; 
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                    " class="loading-message">${message}</p>
+                    <div style="
+                        width: 200px; 
+                        height: 4px; 
+                        background: #e2e8f0; 
+                        border-radius: 2px; 
+                        margin: 1rem auto 0 auto;
+                        overflow: hidden;
+                    ">
+                        <div style="
+                            width: 40%; 
+                            height: 100%; 
+                            background: linear-gradient(90deg, #0ea5e9, #14b8a6); 
+                            border-radius: 2px;
+                            animation: progressSlide 2s ease-in-out infinite;
+                        "></div>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @keyframes progressSlide {
+                    0% { transform: translateX(-100%); }
+                    50% { transform: translateX(150%); }
+                    100% { transform: translateX(-100%); }
+                }
+            </style>
+        `;
+    }
+    
+    // 更新內嵌載入訊息
+    updateInlineLoading(containerId, message) {
+        const container = document.getElementById(containerId);
+        const messageElement = container?.querySelector('.loading-message');
+        if (messageElement) {
+            messageElement.textContent = message;
+            console.log(`📝 載入狀態更新: ${message}`);
+        }
+    }
+    
+    // 隱藏內嵌載入
+    hideInlineLoading(containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div style="
+                    color: #ef4444; 
+                    padding: 2rem; 
+                    text-align: center;
+                    background: #fef2f2;
+                    border: 1px solid #fecaca;
+                    border-radius: 8px;
+                ">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; margin-bottom: 1rem;"></i>
+                    <p>載入失敗，請重試</p>
+                </div>
+            `;
+        }
+    }
+    
+    // ========== 👆 新方法添加結束 👆 ==========
+
         }
 
 // Google Maps 初始化回調函數
