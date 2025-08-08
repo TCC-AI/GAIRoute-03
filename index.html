@@ -3834,6 +3834,10 @@ async fetchDeliveryPoints() {
         // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
         await this.executeExternalAutoCompleteProcess();
         
+        if (loadingSpinner) {
+            loadingSpinner.textContent = '正在等待工作表生成...';
+        }
+        
         // 3. 較短的等待時間 - 🔥 更新載入訊息而不是顯示新的載入
         this.updatePartialLoadingMessage('deliveryPointsTableContainer', '正在等待工作表生成...');
         await this.waitForSheetGeneration(10000);
