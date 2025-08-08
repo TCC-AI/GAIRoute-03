@@ -2119,6 +2119,198 @@
   margin-bottom: 1rem;
   opacity: 0.5;
 }
+/* =========== 任務步驟條 Overlay =========== */
+.task-progress-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.45);
+  backdrop-filter: blur(4px);
+  z-index: 12000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+  animation: fadeIn .25s ease;
+}
+@keyframes fadeIn {from{opacity:0}to{opacity:1}}
+
+.task-progress-panel {
+  width: 480px;
+  max-width: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 15px 50px -10px rgba(0,0,0,.25);
+  padding: 1.5rem 1.75rem 1.75rem;
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+  position:relative;
+}
+
+.tp-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:600;
+  font-size:1.05rem;
+  color:#0f172a;
+}
+
+.tp-cancel-btn {
+  background: #f1f5f9;
+  border:none;
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  cursor:pointer;
+  color:#64748b;
+  transition:.25s;
+}
+.tp-cancel-btn:hover { background:#fee2e2; color:#dc2626; }
+
+.tp-steps {
+  display:flex;
+  flex-direction:column;
+  gap:.6rem;
+  max-height:220px;
+  overflow-y:auto;
+  padding-right:.25rem;
+}
+
+.tp-step {
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  font-size:.85rem;
+  padding:.55rem .75rem;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  background:#f8fafc;
+  position:relative;
+}
+.tp-step.running { border-color:#0ea5e9; background:#f0f9ff; }
+.tp-step.done { border-color:#10b981; background:#ecfdf5; }
+.tp-step.error { border-color:#ef4444; background:#fef2f2; }
+.tp-step .tp-icon {
+  width:26px; height:26px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#e2e8f0;
+  color:#475569;
+  font-size:.8rem;
+}
+.tp-step.running .tp-icon { background:#0ea5e9; color:#fff; animation:pulse 1.2s infinite; }
+.tp-step.done .tp-icon { background:#10b981; color:#fff; }
+.tp-step.error .tp-icon { background:#ef4444; color:#fff; }
+
+@keyframes pulse {
+  0%,100% { transform:scale(1); opacity:1; }
+  50% { transform:scale(.9); opacity:.7; }
+}
+
+.tp-step .tp-label { flex:1; line-height:1.3; }
+.tp-step .tp-status {
+  font-size:.7rem;
+  font-weight:600;
+  letter-spacing:.5px;
+  color:#64748b;
+}
+
+.tp-footer {
+  display:flex;
+  flex-direction:column;
+  gap:.5rem;
+  margin-top:.25rem;
+}
+
+.tp-progress-bar {
+  height:10px;
+  background:#e2e8f0;
+  border-radius:6px;
+  overflow:hidden;
+  position:relative;
+}
+.tp-progress-fill {
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#0ea5e9,#14b8a6);
+  transition:width .35s cubic-bezier(.4,.0,.2,1);
+  position:relative;
+}
+.tp-progress-fill::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.5) 60%,rgba(255,255,255,0) 80%);
+  animation: shimmer 2s linear infinite;
+  mix-blend-mode:overlay;
+  opacity:.4;
+}
+@keyframes shimmer { 0%{transform:translateX(-100%)}100%{transform:translateX(100%)} }
+
+.tp-status-line {
+  display:flex;
+  justify-content:space-between;
+  font-size:.75rem;
+  color:#475569;
+  font-weight:500;
+}
+
+/* 儀表板時間戳與新鮮度 */
+.dashboard-data-meta {
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  margin:-1rem 0 1.5rem;
+  font-size:.75rem;
+  color:#64748b;
+  flex-wrap:wrap;
+}
+.dashboard-data-meta .fresh-badge {
+  background:#ecfdf5;
+  color:#059669;
+  padding:.25rem .6rem;
+  font-weight:600;
+  font-size:.65rem;
+  border-radius:999px;
+  letter-spacing:.5px;
+  border:1px solid #d1fae5;
+}
+.dashboard-data-meta .fresh-badge.stale {
+  background:#fff7ed;
+  color:#c2410c;
+  border-color:#fed7aa;
+}
+.dashboard-data-meta .fresh-badge.expired {
+  background:#fef2f2;
+  color:#dc2626;
+  border-color:#fecaca;
+}
+
+/* 快取先行數值淡入 */
+.stat-number.fast-show {
+  opacity:.35;
+  filter:grayscale(40%);
+  transition:opacity .4s, filter .4s;
+}
+.stat-number.updated {
+  opacity:1;
+  filter:none;
+}
+
+/* 淡入動畫 */
+.fade-in {
+  animation: fadeInSoft .45s ease;
+}
+@keyframes fadeInSoft {
+  from { opacity:0; transform:translateY(6px); }
+  to { opacity:1; transform:translateY(0); }
+}
 
     </style>
 <body>
@@ -2426,10 +2618,16 @@
                             <h3>溫室氣體排放量（CO₂e）</h3>
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
+                        
                         <div class="card-body">
                             <div class="stat-number alert" id="alertCount">0</div>
                             <div class="stat-label">噸 CO₂</div>
                         </div>
+                        <div id="dashboardDataMeta" class="dashboard-data-meta">
+  <span id="dashboardTimestamp">--:--:--</span>
+  <span id="dashboardFreshBadge" class="fresh-badge">最新</span>
+</div>
+
                     </div>
                 </div>
 
@@ -3592,6 +3790,322 @@ async getRoutePalletNonZeroCountWithCache() {
                 document.getElementById('searchRoutes')?.addEventListener('click', () => {
                     this.searchRoutes();
                 });
+                /* ================== 任務步驟管理器 ================== */
+class TaskProgressManager {
+  constructor() {
+    this.overlay = document.getElementById('taskProgressOverlay');
+    this.stepsContainer = document.getElementById('tpSteps');
+    this.progressFill = document.getElementById('tpProgressFill');
+    this.percentEl = document.getElementById('tpPercent');
+    this.currentLabelEl = document.getElementById('tpCurrentLabel');
+    this.cancelBtn = document.getElementById('tpCancelBtn');
+    this.titleEl = document.getElementById('tpTitle');
+    this.currentTask = null;
+    this.listeners();
+  }
+  listeners() {
+    this.cancelBtn.addEventListener('click', ()=> {
+      if (this.currentTask && !this.currentTask.canceled) {
+        this.currentTask.canceled = true;
+        this.currentLabelEl.textContent = '已要求中斷，等待清理...';
+        this.overlay.classList.add('canceling');
+      } else {
+        this.hide();
+      }
+    });
+  }
+  start(taskId, title, stepLabels) {
+    this.currentTask = {
+      id: taskId,
+      steps: stepLabels.map((t,i)=>({index:i,label:t,status:'pending'})),
+      canceled:false
+    };
+    this.titleEl.innerHTML = `<i class="fas fa-cogs"></i> ${title}`;
+    this.renderSteps();
+    this.updateProgress(0,'初始化...');
+    this.show();
+    return this.currentTask;
+  }
+  renderSteps() {
+    this.stepsContainer.innerHTML = this.currentTask.steps.map(s=>`
+      <div class="tp-step tp-step-${s.index}" data-step="${s.index}">
+        <div class="tp-icon"><i class="fas fa-circle-notch"></i></div>
+        <div class="tp-label">${s.index+1}. ${s.label}</div>
+        <div class="tp-status">待處理</div>
+      </div>`).join('');
+  }
+  setStepRunning(i) {
+    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
+    if (!el) return;
+    el.classList.remove('done','error');
+    el.classList.add('running');
+    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    el.querySelector('.tp-status').textContent = '執行中';
+  }
+  setStepDone(i, text='完成') {
+    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
+    if (!el) return;
+    el.classList.remove('running','error');
+    el.classList.add('done');
+    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-check"></i>';
+    el.querySelector('.tp-status').textContent = text;
+  }
+  setStepError(i, msg='失敗') {
+    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
+    if (!el) return;
+    el.classList.remove('running','done');
+    el.classList.add('error');
+    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-times"></i>';
+    el.querySelector('.tp-status').textContent = msg;
+  }
+  updateProgress(pct, label) {
+    this.progressFill.style.width = `${pct}%`;
+    this.percentEl.textContent = `${Math.round(pct)}%`;
+    if (label) this.currentLabelEl.textContent = label;
+  }
+  complete(finalLabel='全部完成') {
+    this.updateProgress(100, finalLabel);
+    setTimeout(()=> this.hide(), 800);
+  }
+  show(){ this.overlay.style.display='flex'; }
+  hide(){
+    this.overlay.style.display='none';
+    this.currentTask=null;
+    this.stepsContainer.innerHTML='';
+    this.progressFill.style.width='0%';
+  }
+  isCanceled(){
+    return this.currentTask?.canceled;
+  }
+}
+
+const TaskProgress = new TaskProgressManager();
+
+/* ============== Dashboard 快取 + Timestamp ============== */
+const DashboardCache = {
+  key: 'dashboardAggCache_v1',
+  set(data){
+    localStorage.setItem(this.key, JSON.stringify({
+      ts: Date.now(),
+      data
+    }));
+  },
+  get(){
+    try {
+      const raw = localStorage.getItem(this.key);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    } catch(e){
+      return null;
+    }
+  }
+};
+
+function formatTime(ts){
+  const d = new Date(ts);
+  return d.toLocaleTimeString('zh-TW',{hour12:false});
+}
+
+function updateDashboardTimestamp(ts){
+  const timeEl = document.getElementById('dashboardTimestamp');
+  const badge = document.getElementById('dashboardFreshBadge');
+  if(!timeEl || !badge) return;
+  timeEl.textContent = '資料時間 ' + formatTime(ts);
+  const ageSec = (Date.now()-ts)/1000;
+  badge.classList.remove('stale','expired');
+  if (ageSec < 60){
+    badge.textContent='最新';
+  } else if (ageSec < 180){
+    badge.textContent='稍舊';
+    badge.classList.add('stale');
+  } else {
+    badge.textContent='過期';
+    badge.classList.add('expired');
+  }
+}
+
+/* ========= 儀表板顯示快取優先 → 再淡入更新 ========= */
+DispatchGAISystem.prototype.renderDashboardFast = function(cached){
+  if(!cached) return;
+  const d = cached.data;
+  // 先套數值：加上 fast-show 樣式
+  document.getElementById('todayDeliveries').textContent = d.pallets ?? d.todayDeliveries ?? '-';
+  document.getElementById('vehicleUsage').textContent = (d.nonZeroPct ?? d.vehicleUsage ?? '-') + '%';
+  document.getElementById('onTimeRate').textContent = d.lastB ?? d.onTimeRate ?? '-';
+  document.getElementById('alertCount').textContent = d.alert ?? d.alertCount ?? '-';
+  ['todayDeliveries','vehicleUsage','onTimeRate','alertCount'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.add('fast-show');
+  });
+  updateDashboardTimestamp(cached.ts);
+};
+
+DispatchGAISystem.prototype.applyDashboardUpdate = function(newData){
+  // 更新 + 淡入
+  const mapping = {
+    todayDeliveries: newData.pallets ?? newData.todayDeliveries,
+    vehicleUsage: (newData.nonZeroPct ?? newData.vehicleUsage) + '%',
+    onTimeRate: newData.lastB ?? newData.onTimeRate,
+    alertCount: newData.alert ?? newData.alertCount
+  };
+  Object.entries(mapping).forEach(([id,val])=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.textContent = val;
+    el.classList.add('updated');
+    el.classList.remove('fast-show');
+    el.classList.add('fade-in');
+    setTimeout(()=>{ el.classList.remove('fade-in'); },600);
+  });
+  updateDashboardTimestamp(Date.now());
+};
+
+/* ============== 改寫 loadDashboard，支援快取先行 ============== */
+const originalLoadDashboard = DispatchGAISystem.prototype.loadDashboard;
+DispatchGAISystem.prototype.loadDashboard = async function(){
+  try {
+    // 1. 快取先行
+    const cached = DashboardCache.get();
+    if (cached) {
+      this.renderDashboardFast(cached);
+    }
+    // 2. 真實載入（使用你原本的 loadDashboard 流程，但移除 showLoading 以降低遮罩感）
+    // 簡化：直接呼叫原本內容（clone）
+    await originalLoadDashboard.apply(this);
+    // 3. 把最新資料打包寫入快取
+    try {
+      const latest = {
+        pallets: parseFloat(document.getElementById('todayDeliveries').textContent) || 0,
+        nonZeroPct: parseFloat(document.getElementById('vehicleUsage').textContent) || 0,
+        lastB: document.getElementById('onTimeRate').textContent,
+        alert: document.getElementById('alertCount').textContent
+      };
+      DashboardCache.set(latest);
+      this.applyDashboardUpdate(latest);
+    } catch(e){}
+  } catch(e){
+    console.warn('載入儀表板失敗(含快取邏輯):',e);
+  } finally {
+    // 移除 fast-show 過渡
+    setTimeout(()=>{
+      ['todayDeliveries','vehicleUsage','onTimeRate','alertCount'].forEach(id=>{
+        const el=document.getElementById(id);
+        el && el.classList.remove('fast-show');
+      });
+    },800);
+  }
+};
+
+/* ============== 登入後背景預取 (常用地址 + 儀表板快取刷新) ============== */
+DispatchGAISystem.prototype.prefetchAfterLogin = async function(){
+  // 不阻塞 UI，只做 console 標記
+  console.log('[Prefetch] 開始背景預取');
+  const tasks = [];
+  // 預取路線 / 地址(常用 geocode) 示例：
+  tasks.push(
+    this.apiCall('getRouteTableFromExternalSheet',{
+      targetSpreadsheetId:'1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+    }).then(data=>{
+      // 做一個地址集合 (前 80 筆)
+      const addresses = [];
+      data.slice(0,80).forEach(row=>{
+        for(let i=1;i<=5;i++){
+          const a = row['地址'+i];
+            if(a && !addresses.includes(a)) addresses.push(a);
+        }
+      });
+      localStorage.setItem('prefetch_addresses_v1', JSON.stringify({ts:Date.now(),list:addresses}));
+      console.log('[Prefetch] 地址數量:', addresses.length);
+    }).catch(()=>{})
+  );
+  // 刷新儀表板再次寫入（補強快取）
+  tasks.push(this.loadDashboard().catch(()=>{}));
+  Promise.allSettled(tasks).then(()=>console.log('[Prefetch] 完成'));
+};
+
+/* ============== 長任務封裝示例：改造 fetchDeliveryPoints 使用步驟條 ============== */
+/* 下面是一個“範例改造版本”，不會破壞你原本的函數；你可以逐步替換 */
+
+DispatchGAISystem.prototype.fetchDeliveryPointsWithSteps = async function(){
+  const dateInput = document.getElementById('deliveryDatePicker').value;
+  if(!dateInput){ this.showNotification('請選擇日期','warning'); return; }
+
+  const steps = ['準備日期','觸發外部產生','等待產物','抓取資料並顯示'];
+  const task = TaskProgress.start('fetchDeliveryPoints','收送點資料同步',steps);
+
+  const update = (i, label, pctBase) => {
+    if(task.canceled) throw new Error('使用者已中斷');
+    TaskProgress.setStepRunning(i);
+    TaskProgress.updateProgress(pctBase,label);
+  };
+  const finishStep = (i, label, pct) => {
+    TaskProgress.setStepDone(i,label);
+    TaskProgress.updateProgress(pct,label);
+  };
+
+  try{
+    // Step 1
+    update(0,'設定日期...');
+    await this.apiCall('setSpecifiedDateToExternalSheet',{
+      date: this.formatDateForSheet(dateInput),
+      targetSpreadsheetId:'1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+    });
+    finishStep(0,'已設定', 15);
+
+    // Step 2
+    update(1,'呼叫外部流程...');
+    await this.executeExternalAutoCompleteProcess();
+    finishStep(1,'流程啟動', 35);
+
+    // Step 3
+    update(2,'等待資料生成...');
+    // 等待期間可做輪詢或固定延遲
+    for (let i=0;i<3;i++){
+      if(task.canceled) throw new Error('使用者已中斷');
+      await this.delay(1500);
+      TaskProgress.updateProgress(35 + (i+1)*8, `等待中 (${i+1}/3)...`);
+    }
+    finishStep(2,'生成完成', 65);
+
+    // Step 4
+    update(3,'抓取並過濾...');
+    const data = await this.getFilteredDeliveryReportWithRetryNoLoading(2,2500);
+    this.displayDeliveryReport(data);
+    finishStep(3,'顯示完成',100);
+    TaskProgress.complete('完成');
+    this.showNotification('收送點資料同步完成','success');
+  }catch(err){
+    console.error(err);
+    const current = task ? task.steps.findIndex(s=>s.status!=='done' && !s.error) : 0;
+    TaskProgress.setStepError(Math.max(current,0), '發生錯誤');
+    TaskProgress.updateProgress(100,'失敗');
+    this.showNotification(err.message || '同步失敗','error');
+    setTimeout(()=>TaskProgress.hide(), 1500);
+  }
+};
+
+/* 讓原本按鈕使用新的步驟版本（不移除原版，可平行測試） */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('fetchDeliveryPointsBtn');
+  if(btn){
+    btn.addEventListener('contextmenu', e=>{
+      // 右鍵改成使用新版測試
+      e.preventDefault();
+      app.fetchDeliveryPointsWithSteps();
+    });
+  }
+});
+
+/* ============== 將登入流程後接上 prefetch ============== */
+const originalHandleLogin = DispatchGAISystem.prototype.handleLogin;
+DispatchGAISystem.prototype.handleLogin = async function(){
+  await originalHandleLogin.apply(this);
+  if(this.isLoggedIn){
+    // 背景預取（不阻塞）
+    this.prefetchAfterLogin();
+  }
+};
+
 
                 // AI優化事件
                 // 在 bindEvents() 方法中添加以下代碼
@@ -7460,6 +7974,27 @@ function collapseAllRoutes() {
 }
 
     </script>
+<!-- 任務進度覆蓋層：步驟條 + 取消 -->
+<div id="taskProgressOverlay" class="task-progress-overlay" style="display:none;">
+  <div class="task-progress-panel">
+    <div class="tp-header">
+      <span id="tpTitle"><i class="fas fa-cogs"></i> 任務執行中</span>
+      <button id="tpCancelBtn" class="tp-cancel-btn"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="tpSteps" class="tp-steps">
+      <!-- 動態注入 -->
+    </div>
+    <div class="tp-footer">
+      <div class="tp-progress-bar">
+        <div class="tp-progress-fill" id="tpProgressFill"></div>
+      </div>
+      <div class="tp-status-line">
+        <span id="tpCurrentLabel">初始化...</span>
+        <span id="tpPercent">0%</span>
+      </div>
+    </div>
+  </div>
+</div>
 
    
 </body>
