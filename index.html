@@ -3834,19 +3834,19 @@ async fetchDeliveryPoints() {
         // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
         await this.executeExternalAutoCompleteProcess();
         
-        // 3. 較短的等待時間
-        this.showPartialLoading('deliveryPointsTableContainer', '正在等待工作表生成...');
-        await this.waitForSheetGeneration(10000); // 減少到10秒
+        // 3. 較短的等待時間 - 🔥 更新載入訊息而不是顯示新的載入
+        this.updatePartialLoadingMessage('deliveryPointsTableContainer', '正在等待工作表生成...');
+        await this.waitForSheetGeneration(10000);
         
-        // 4. 使用重試機制獲取託收託運回報工作表資料
-        const reportData = await this.getFilteredDeliveryReportWithRetry(2, 3000); // 減少重試次數和間隔
+        // 4. 使用重試機制獲取託收託運回報工作表資料 - 🔥 不顯示全屏載入
+        const reportData = await this.getFilteredDeliveryReportWithRetryNoLoading(2, 3000);
         
         // 5. 顯示資料並儲存快取
         this.displayDeliveryReport(reportData);
         
         // 儲存到快取
         if (reportData && reportData.length > 0) {
-            CacheManager.set(`delivery_${dateInput}`, reportData, 600000); // 10分鐘快取
+            CacheManager.set(`delivery_${dateInput}`, reportData, 600000);
         }
         
         this.showNotification('✅ 操作完成！', 'success');
@@ -3854,7 +3854,6 @@ async fetchDeliveryPoints() {
     } catch (e) {
         console.error('操作失敗:', e);
         this.showNotification(`❌ 操作失敗: ${e.message}`, 'error');
-        // 顯示錯誤狀態而非空白
         this.showErrorState('deliveryPointsTableContainer', e.message);
     }
 }
@@ -6387,6 +6386,63 @@ showLoading(message = '資料同步化...', allowInteraction = false) {
             hideLoading() {
                 elements.loadingOverlay.classList.remove('show');
             }
+            / 👇 在這裡插入以下新方法
+
+// 更新局部載入訊息（不重新創建載入元素）
+updatePartialLoadingMessage(containerId, message) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const loadingElement = container.querySelector('.partial-loading p');
+    if (loadingElement) {
+        loadingElement.textContent = message;
+    } else {
+        // 如果找不到現有的載入元素，創建新的
+        this.showPartialLoading(containerId, message);
+    }
+}
+
+// 不顯示全屏載入的重試機制
+async getFilteredDeliveryReportWithRetryNoLoading(maxRetries = 3, retryDelay = 5000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`嘗試獲取託收託運回報資料 (第 ${attempt} 次)`);
+            
+            // 🔥 更新局部載入訊息而不是顯示全屏載入
+            this.updatePartialLoadingMessage('deliveryPointsTableContainer', 
+                `正在獲取資料... (第 ${attempt}/${maxRetries} 次嘗試)`);
+            
+            const result = await this.apiCall('getFilteredDeliveryReport', {
+                targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+            });
+            
+            if (result && result.length > 0) {
+                console.log(`成功獲取資料，共 ${result.length} 筆`);
+                return result;
+            } else if (attempt < maxRetries) {
+                console.log(`第 ${attempt} 次嘗試無資料，等待 ${retryDelay/1000} 秒後重試...`);
+                this.updatePartialLoadingMessage('deliveryPointsTableContainer', 
+                    `第 ${attempt} 次無資料，${retryDelay/1000} 秒後重試...`);
+                await this.waitForSheetGeneration(retryDelay);
+            }
+            
+        } catch (error) {
+            console.error(`第 ${attempt} 次嘗試失敗:`, error);
+            
+            if (attempt < maxRetries) {
+                console.log(`等待 ${retryDelay/1000} 秒後重試...`);
+                this.updatePartialLoadingMessage('deliveryPointsTableContainer', 
+                    `第 ${attempt} 次失敗，${retryDelay/1000} 秒後重試...`);
+                await this.waitForSheetGeneration(retryDelay);
+            } else {
+                throw new Error(`經過 ${maxRetries} 次嘗試後仍無法獲取資料: ${error.message}`);
+            }
+        }
+    }
+    
+    console.log('所有重試完成，但未獲取到資料');
+    return [];
+}
             // 局部載入指示器
 showPartialLoading(containerId, message = '載入中...') {
     const container = document.getElementById(containerId);
