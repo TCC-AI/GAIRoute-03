@@ -2313,6 +2313,233 @@ justify-content:flex-end; / 右靠齊 */
   from { opacity:0; transform:translateY(6px); }
   to { opacity:1; transform:translateY(0); }
 }
+/* GAI數位秘書對話框樣式 */
+.gai-secretary-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 15000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.gai-secretary-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 20px;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 480px;
+    overflow: hidden;
+    position: relative;
+    animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gai-secretary-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #0ea5e9, #14b8a6, #f59e0b);
+}
+
+.gai-secretary-header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 2rem 1rem;
+    gap: 1rem;
+}
+
+.gai-secretary-avatar {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    animation: pulse 2s infinite;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.gai-secretary-title {
+    flex: 1;
+}
+
+.gai-secretary-title h4 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.gai-secretary-status {
+    font-size: 0.875rem;
+    color: #10b981;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gai-secretary-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+}
+
+.gai-secretary-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f1f5f9;
+    border-radius: 50%;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.gai-secretary-close:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    transform: scale(1.1);
+}
+
+.gai-secretary-body {
+    padding: 0 2rem 2rem;
+}
+
+.gai-secretary-message {
+    background: linear-gradient(135deg, #f0f9ff 0%, #f0fdfa 100%);
+    border: 1px solid rgba(14, 165, 233, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #334155;
+}
+
+.gai-secretary-message::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: -8px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #f0f9ff;
+}
+
+.gai-secretary-message .highlight-time {
+    color: #0ea5e9;
+    font-weight: 600;
+    background: rgba(14, 165, 233, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+}
+
+.gai-secretary-message .highlight-client {
+    color: #10b981;
+    font-weight: 600;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+}
+
+.gai-secretary-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.gai-secretary-actions .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.gai-secretary-actions .btn:hover {
+    transform: translateY(-1px);
+}
+
+/* 動畫效果 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+    }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .gai-secretary-modal {
+        padding: 1rem;
+    }
+    
+    .gai-secretary-header {
+        padding: 1rem 1.5rem 0.5rem;
+    }
+    
+    .gai-secretary-body {
+        padding: 0 1.5rem 1.5rem;
+    }
+    
+    .gai-secretary-actions {
+        flex-direction: column;
+    }
+    
+    .gai-secretary-actions .btn {
+        width: 100%;
+    }
+}
 
     </style>
 <body>
@@ -3089,7 +3316,7 @@ justify-content:flex-end; / 右靠齊 */
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbxrCZ8gq8vdxcjMtPfh5s76j9XwqmG-_1JxL-2sSuPyxyd2cCqVJkkmEnSCKgFgV8I2/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzUSK3-rfRVSVdsuP0oscHdkI8g5YW13bLJK6DAwhIuuvPhT5Owx2jLm7_vPkhqXvBw/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -5084,6 +5311,11 @@ refreshDispatchTable() {
                 this.loadDashboard();
                 this.initializeSheets();
                 this.loadWeatherData();
+                // 初始化 GAI 數位秘書
+    this.initGAISecretary();
+    
+    // 綁定 logo 點擊事件
+    this.bindLogoClickEvent();
             }
 
             // 載入天氣資料
@@ -7974,6 +8206,235 @@ function collapseAllRoutes() {
         btn.querySelector('i').className = 'fas fa-chevron-down';
     });
 }
+// GAI數位秘書功能類別
+class GAISecretaryService {
+    constructor() {
+        this.modal = document.getElementById('gaiSecretaryModal');
+        this.messageEl = document.getElementById('gaiSecretaryMessage');
+        this.closeBtn = document.getElementById('gaiSecretaryClose');
+        this.checkBtn = document.getElementById('gaiSecretaryCheck');
+        this.laterBtn = document.getElementById('gaiSecretaryLater');
+        
+        this.bindEvents();
+    }
+    
+    bindEvents() {
+        // 關閉按鈕事件
+        this.closeBtn?.addEventListener('click', () => {
+            this.hideModal();
+        });
+        
+        // 立即檢視按鈕事件
+        this.checkBtn?.addEventListener('click', () => {
+            this.handleCheckOrder();
+        });
+        
+        // 稍後處理按鈕事件
+        this.laterBtn?.addEventListener('click', () => {
+            this.handleLater();
+        });
+        
+        // 點擊外部關閉
+        this.modal?.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.hideModal();
+            }
+        });
+    }
+    
+    // 檢查並顯示最新訂單通知
+    async checkAndShowLatestOrder() {
+        try {
+            console.log('GAI數位秘書：檢查最新訂單...');
+            
+            // 獲取最新訂單資料
+            const latestOrderData = await this.getLatestOrderFromSheet();
+            
+            if (latestOrderData) {
+                this.showOrderNotification(latestOrderData);
+            } else {
+                console.log('GAI數位秘書：沒有找到最新訂單資料');
+            }
+            
+        } catch (error) {
+            console.error('GAI數位秘書檢查訂單失敗:', error);
+        }
+    }
+    
+    // 從 Google Sheet 獲取最新訂單
+    async getLatestOrderFromSheet() {
+        try {
+            const targetSpreadsheetId = '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc';
+            
+            // 調用後端 API 獲取最新訂單資料
+            const response = await fetch(CONFIG.GAS_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                body: JSON.stringify({
+                    action: 'getLatestOrderFromDeliveryReport',
+                    data: { targetSpreadsheetId },
+                    user: currentUser.username || 'system'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                return result.data;
+            }
+            
+            return null;
+            
+        } catch (error) {
+            console.error('獲取最新訂單失敗:', error);
+            return null;
+        }
+    }
+    
+    // 顯示訂單通知
+    showOrderNotification(orderData) {
+        const { time, client } = orderData;
+        
+        // 格式化時間顯示
+        const formattedTime = this.formatTimeDisplay(time);
+        
+        // 生成通知訊息
+        const message = `
+            您好，我是GAI數位秘書：<br>
+            剛剛 <span class="highlight-time">${formattedTime}</span> 已收到來自客戶 
+            <span class="highlight-client">${client}</span> 的訂單，請檢視。
+        `;
+        
+        this.messageEl.innerHTML = message;
+        this.showModal();
+        
+        // 記錄通知日誌
+        console.log(`GAI數位秘書通知：${formattedTime} 收到 ${client} 的訂單`);
+    }
+    
+    // 格式化時間顯示
+    formatTimeDisplay(timeString) {
+        try {
+            const date = new Date(timeString);
+            
+            // 格式化為 "2025/8/8 下午 10:28:58"
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            const period = hours >= 12 ? '下午' : '上午';
+            if (hours > 12) hours -= 12;
+            if (hours === 0) hours = 12;
+            
+            return `${year}/${month}/${day} ${period} ${hours}:${minutes}:${seconds}`;
+            
+        } catch (error) {
+            console.error('時間格式化失敗:', error);
+            return timeString;
+        }
+    }
+    
+    // 顯示對話框
+    showModal() {
+        if (this.modal) {
+            this.modal.style.display = 'flex';
+            
+            // 添加顯示動畫
+            setTimeout(() => {
+                this.modal.classList.add('show');
+            }, 10);
+        }
+    }
+    
+    // 隱藏對話框
+    hideModal() {
+        if (this.modal) {
+            this.modal.classList.remove('show');
+            
+            setTimeout(() => {
+                this.modal.style.display = 'none';
+            }, 300);
+        }
+    }
+    
+    // 處理立即檢視
+    handleCheckOrder() {
+        console.log('用戶選擇立即檢視訂單');
+        
+        // 切換到路線優化頁面
+        if (window.app) {
+            app.switchPage('route-optimization');
+        }
+        
+        this.hideModal();
+        
+        // 顯示成功訊息
+        if (window.app) {
+            app.showNotification('正在為您載入最新訂單資料...', 'info');
+        }
+    }
+    
+    // 處理稍後處理
+    handleLater() {
+        console.log('用戶選擇稍後處理');
+        this.hideModal();
+        
+        // 顯示提醒訊息
+        if (window.app) {
+            app.showNotification('已記錄，稍後會再次提醒您', 'info');
+        }
+        
+        // 設定稍後提醒（例如 30 分鐘後）
+        setTimeout(() => {
+            this.checkAndShowLatestOrder();
+        }, 30 * 60 * 1000); // 30分鐘
+    }
+}
+
+// 在 DispatchGAISystem 類別中添加 GAI 秘書功能
+DispatchGAISystem.prototype.initGAISecretary = function() {
+    this.gaiSecretary = new GAISecretaryService();
+};
+
+// 修改 logo 點擊事件，觸發 GAI 秘書檢查
+DispatchGAISystem.prototype.bindLogoClickEvent = function() {
+    const logoImage = document.querySelector('.sidebar-logo-image');
+    
+    if (logoImage) {
+        logoImage.addEventListener('click', () => {
+            console.log('Logo 被點擊，觸發 GAI 數位秘書檢查');
+            
+            if (this.gaiSecretary) {
+                this.gaiSecretary.checkAndShowLatestOrder();
+            }
+        });
+        
+        // 設定 logo 為可點擊狀態
+        logoImage.style.cursor = 'pointer';
+        logoImage.title = '點擊查看最新訊息';
+    }
+};
+
+// 在主控台載入時自動觸發檢查
+const originalSwitchPage = DispatchGAISystem.prototype.switchPage;
+DispatchGAISystem.prototype.switchPage = function(pageName) {
+    // 呼叫原始的 switchPage 方法
+    originalSwitchPage.call(this, pageName);
+    
+    // 如果切換到主控台頁面，觸發 GAI 秘書檢查
+    if (pageName === 'dashboard' && this.gaiSecretary) {
+        // 延遲 2 秒後檢查，讓頁面完全載入
+        setTimeout(() => {
+            this.gaiSecretary.checkAndShowLatestOrder();
+        }, 2000);
+    }
+};
 
     </script>
 <!-- 任務進度覆蓋層：步驟條 + 取消 -->
@@ -7996,6 +8457,36 @@ function collapseAllRoutes() {
       </div>
     </div>
   </div>
+</div>
+<!-- GAI數位秘書對話框 -->
+<div id="gaiSecretaryModal" class="gai-secretary-modal" style="display: none;">
+    <div class="gai-secretary-content">
+        <div class="gai-secretary-header">
+            <div class="gai-secretary-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="gai-secretary-title">
+                <h4>GAI數位秘書</h4>
+                <span class="gai-secretary-status">線上服務中</span>
+            </div>
+            <button class="gai-secretary-close" id="gaiSecretaryClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="gai-secretary-body">
+            <div class="gai-secretary-message" id="gaiSecretaryMessage">
+                <!-- 訊息內容將由 JavaScript 動態填入 -->
+            </div>
+            <div class="gai-secretary-actions">
+                <button class="btn btn-primary btn-sm" id="gaiSecretaryCheck">
+                    <i class="fas fa-eye"></i> 立即檢視
+                </button>
+                <button class="btn btn-secondary btn-sm" id="gaiSecretaryLater">
+                    <i class="fas fa-clock"></i> 稍後處理
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
    
