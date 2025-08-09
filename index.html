@@ -4719,7 +4719,8 @@ showLatestOrderDialog(formattedTime, client) {
     msg.innerHTML = `
       <div style="white-space:pre-line;">
 【您好，我是GAI數位秘書：
-剛剛【${formattedTime}】已收到來自客戶【${client || '未知客戶'}】的訂單，請檢視。】</div>
+剛剛 <span class="highlight-time">${time}</span> 已收到來自客戶 
+            <span class="highlight-client">${client}</span> 的訂單，請檢視。】</div>
     `;
 
     dlg.classList.add('appear');
