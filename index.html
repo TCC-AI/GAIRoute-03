@@ -5709,12 +5709,15 @@ document.addEventListener('click', function(event) {
     const bubble = document.getElementById('gaiSpeechBubble');
     const logoImg = document.querySelector('.sidebar-logo-image');
     
-    if (bubble.classList.contains('show') && 
+    if (bubble && logoImg && 
+        bubble.classList.contains('show') && 
         !bubble.contains(event.target) && 
-        !logoImg.contains(event.target)) {
+        !logoImg.contains(event.target) &&
+        typeof closeGAISpeechBubble === 'function') {
         closeGAISpeechBubble();
     }
 });
+
 
 
 
