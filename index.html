@@ -5305,14 +5305,64 @@ refreshDispatchTable() {
                 this.updateMenuPermissions();
             }
 
-            // 初始化主系統
-            async initializeMainSystem() {
-                this.checkConnection();
-                this.loadDashboard();
-                this.initializeSheets();
-                this.loadWeatherData();
-                // 初始化 GAI 數位秘書
-    this.initGAISecretary();
+            // 修改您現有的 initializeMainSystem 方法
+async initializeMainSystem() {
+    console.log('開始初始化主系統...');
+    
+    try {
+        // 基本系統檢查和載入
+        this.checkConnection();
+        this.loadDashboard();
+        this.initializeSheets();
+        this.loadWeatherData();
+        
+        // 🔥 確保在DOM完全準備好後初始化GAI秘書
+        setTimeout(() => {
+            this.initGAISecretary();
+            this.bindLogoClickEvent(); // 需要新增這個方法
+            console.log('GAI數位秘書初始化完成');
+        }, 1000);
+        
+    } catch (error) {
+        console.error('主系統初始化失敗:', error);
+        this.handleInitializationError(error); // 需要新增這個方法
+    }
+}
+// 在 initializeMainSystem 方法後面添加這些方法
+
+// Logo點擊事件綁定
+bindLogoClickEvent() {
+    const logo = document.querySelector('.logo, #logo, [data-logo]'); 
+    if (logo) {
+        logo.addEventListener('click', () => {
+            this.toggleGAISecretary();
+        });
+        console.log('Logo點擊事件已綁定');
+    } else {
+        console.warn('找不到Logo元素');
+    }
+},
+
+// 錯誤處理方法
+handleInitializationError(error) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'system-error';
+    errorDiv.innerHTML = `
+        <h3>系統初始化失敗</h3>
+        <p>錯誤訊息：${error.message}</p>
+        <button onclick="location.reload()">重新載入</button>
+    `;
+    document.body.appendChild(errorDiv);
+},
+
+// GAI秘書切換方法
+toggleGAISecretary() {
+    const secretary = document.querySelector('.gai-secretary');
+    if (secretary) {
+        secretary.style.display = secretary.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
     
     // 綁定 logo 點擊事件
     this.bindLogoClickEvent();
