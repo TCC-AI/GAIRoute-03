@@ -3319,7 +3319,7 @@ justify-content:flex-end; / 右靠齊 */
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbyLK5SMpg2iw2PTaVUWZeL8THO__5wggg1rideQ_pvTwgDW4-z4_6rJ3Ivx7g69F-lM/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbxJUPmrlUWL4oae13ukOR1YoXZ4P6tBme4GVdIRa8PiXSRWUrArXfqojh1pKwB9u5Hm/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -6263,7 +6263,6 @@ async showRouteAddresses(routeName) {
                 if (!currentUser.permissions) return false;
                 return currentUser.permissions.includes(permission);
             }
-
             // 顯示登入錯誤
             showLoginError(message) {
                 elements.loginError.textContent = message;
@@ -6336,6 +6335,7 @@ async showRouteAddresses(routeName) {
                         this.showGAISecretaryModal();
                     }, 1000);
                 }
+             }
 
 
             // 顯示存取被拒絕
