@@ -4573,43 +4573,46 @@ document.getElementById('debugRouteData')?.addEventListener('click', async () =>
  * 若失敗則 fallback 走 getFilteredDeliveryReport
  */
 /**
- * 修正版：確保一定返回最新訂單資訊
+/**
+ * 修正版：API失敗時不顯示假資訊
  */
 async fetchLatestOrderInfo() {
     const targetSpreadsheetId = '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc';
     
     try {
-        // 優先嘗試精簡API
+        // 嘗試精簡API
         const info = await this.apiCall('getLatestOrderInfo', { targetSpreadsheetId });
         if (info && info.time && info.client) {
-            return info;
+            return { ...info, isReal: true };
         }
         throw new Error('精簡API無有效資料');
     } catch (e) {
-        console.warn('[最新訂單] 精簡端點失敗，使用完整資料:', e.message);
+        console.warn('[最新訂單] 精簡端點失敗:', e.message);
     }
 
-    // Fallback：從完整資料中強制找出最新一筆
+    // Fallback：完整資料
     try {
         const rows = await this.apiCall('getFilteredDeliveryReport', { targetSpreadsheetId });
         if (!rows || !rows.length) {
-            // 🔥 即使無資料也要返回預設值
-            return this.getDefaultOrderInfo();
+            throw new Error('無資料可用');
         }
 
         const latestOrder = this.findLatestOrderFromRows(rows);
         if (latestOrder) {
-            return latestOrder;
+            return { ...latestOrder, isReal: true };
         } else {
-            // 🔥 找不到符合格式的資料時，取第一筆作為最新
-            return this.extractFirstValidOrder(rows);
+            throw new Error('找不到有效訂單資料');
         }
     } catch (fallbackErr) {
         console.error('[最新訂單] 完整資料也失敗:', fallbackErr);
-        // 🔥 最後保底：返回預設訂單資訊
-        return this.getDefaultOrderInfo();
+        // 🔥 修正：返回失敗狀態，不提供假資訊
+        return { 
+            error: true, 
+            message: '目前無法取得訂單資料，請檢查網路連線或稍後再試' 
+        };
     }
 }
+
 /**
  * 從資料列中尋找最新訂單
  */
@@ -5414,16 +5417,9 @@ formatTimeDisplay(timeString) {
 }
 
 /**
- * 修正版：確保一定顯示訂單資訊
+ * 修正版：根據真實資料狀態顯示不同內容
  */
 async showGAISecretaryModal() {
-    // 添加logo點擊動畫
-    const logoImg = document.querySelector('.sidebar-logo-image');
-    if (logoImg) {
-        logoImg.classList.add('clicked');
-        setTimeout(() => logoImg.classList.remove('clicked'), 600);
-    }
-    
     const modal = document.getElementById('gaiSecretaryModal');
     const modalBody = document.getElementById('gaiModalBody');
     
@@ -5438,82 +5434,85 @@ async showGAISecretaryModal() {
     modal.style.display = 'flex';
     
     try {
-        // 🔥 修改：一定會獲得訂單資訊
-        const latestData = await this.fetchLatestOrderInfo();
+        const result = await this.fetchLatestOrderInfo();
         
-        // 格式化時間顯示
-        const formattedTime = this.formatTaiwanDateTime(latestData.time);
-        
-        // 🔥 根據是否為預設資料調整顯示內容
-        let messageContent;
-        let iconStyle;
-        let titleColor;
-        
-        if (latestData.isDefault) {
-            // 預設資料的顯示樣式
-            iconStyle = 'background:linear-gradient(135deg,#64748b,#475569);';
-            titleColor = '#64748b';
-            messageContent = `
-                <p style="margin: 0; color: #374151; line-height: 1.6;">
-                    系統顯示最近一筆訂單來自客戶 <strong style="color: #059669;">${latestData.client}</strong>，
-                    時間為 <strong style="color: #0ea5e9;">${formattedTime}</strong>。
-                    <br><br>
-                    <small style="color: #64748b;">
-                        <i class="fas fa-info-circle"></i> 
-                        如需查看最新訂單詳情，請前往【GAI-精準智慧物流路徑規劃】頁面
-                    </small>
-                </p>
+        if (result.error) {
+            // 🔥 API失敗時的誠實顯示
+            modalBody.innerHTML = `
+                <div style="text-align: center; padding: 1.5rem;">
+                    <div style="background: linear-gradient(135deg, #ef4444, #dc2626); 
+                                width: 80px; height: 80px; border-radius: 50%; 
+                                display: flex; align-items: center; justify-content: center; 
+                                margin: 0 auto 1.5rem auto;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: white;"></i>
+                    </div>
+                    
+                    <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
+                        您好，我是GAI數位秘書
+                    </h4>
+                    
+                    <div style="background: #fef2f2; padding: 1.5rem; border-radius: 12px; 
+                                border-left: 4px solid #ef4444; text-align: left;">
+                        <p style="margin: 0; color: #374151; line-height: 1.6;">
+                            <i class="fas fa-wifi" style="color: #ef4444; margin-right: 0.5rem;"></i>
+                            抱歉，目前無法連線至訂單資料庫。
+                            <br><br>
+                            <strong style="color: #dc2626;">可能原因：</strong>
+                            <br>• 網路連線異常
+                            <br>• 資料庫暫時維護中
+                            <br>• API服務暫時不可用
+                            <br><br>
+                            <small style="color: #64748b;">
+                                請稍後再試，或直接前往【GAI-精準智慧物流路徑規劃】頁面查看
+                            </small>
+                        </p>
+                    </div>
+                </div>
             `;
         } else {
-            // 真實資料的顯示樣式
-            iconStyle = 'background:linear-gradient(135deg,#0ea5e9,#0284c7);';
-            titleColor = '#1e293b';
-            messageContent = `
-                <p style="margin: 0; color: #374151; line-height: 1.6;">
-                    剛剛 <strong style="color: #0ea5e9;">${formattedTime}</strong> 
-                    已收到來自客戶 <strong style="color: #059669;">${latestData.client}</strong> 的訂單，請檢視。
-                </p>
+            // 🔥 有真實資料時的正常顯示
+            const formattedTime = this.formatTaiwanDateTime(result.time);
+            
+            modalBody.innerHTML = `
+                <div style="text-align: center; padding: 1.5rem;">
+                    <div style="background: linear-gradient(135deg, #0ea5e9, #0284c7); 
+                                width: 80px; height: 80px; border-radius: 50%; 
+                                display: flex; align-items: center; justify-content: center; 
+                                margin: 0 auto 1.5rem auto; box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);">
+                        <i class="fas fa-robot" style="font-size: 2rem; color: white;"></i>
+                    </div>
+                    
+                    <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
+                        您好，我是GAI數位秘書
+                    </h4>
+                    
+                    <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 12px; 
+                                border-left: 4px solid #0ea5e9; text-align: left;">
+                        <p style="margin: 0; color: #374151; line-height: 1.6;">
+                            <i class="fas fa-check-circle" style="color: #059669; margin-right: 0.5rem;"></i>
+                            剛剛 <strong style="color: #0ea5e9;">${formattedTime}</strong> 
+                            已收到來自客戶 <strong style="color: #059669;">${result.client}</strong> 的訂單，請檢視。
+                        </p>
+                    </div>
+                    
+                    <div style="font-size: 0.875rem; color: #64748b; margin-top: 1rem;">
+                        <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                        點擊確認後可前往【GAI-精準智慧物流路徑規劃】查看詳細資訊
+                    </div>
+                </div>
             `;
         }
-
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 1.5rem;">
-                <div style="${iconStyle} 
-                            width: 80px; height: 80px; border-radius: 50%; 
-                            display: flex; align-items: center; justify-content: center; 
-                            margin: 0 auto 1.5rem auto; box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);">
-                    <i class="fas fa-robot" style="font-size: 2rem; color: white;"></i>
-                </div>
-                
-                <h4 style="color: ${titleColor}; margin-bottom: 1.5rem; font-size: 1.2rem;">
-                    您好，我是GAI數位秘書
-                </h4>
-                
-                <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; 
-                            border-left: 4px solid #0ea5e9; text-align: left; margin-bottom: 1rem;">
-                    ${messageContent}
-                </div>
-                
-                <div style="font-size: 0.875rem; color: #64748b; margin-top: 1rem;">
-                    <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
-                    點擊確認後可前往【GAI-精準智慧物流路徑規劃】查看詳細資訊
-                </div>
-            </div>
-        `;
         
     } catch (error) {
-        console.error('[GAI秘書] 顯示失敗:', error);
-        // 🔥 即使發生錯誤也要顯示基本資訊
-        const defaultData = this.getDefaultOrderInfo();
-        const formattedTime = this.formatTaiwanDateTime(defaultData.time);
-        
+        console.error('[GAI秘書] 系統錯誤:', error);
+        // 🔥 系統錯誤的誠實顯示
         modalBody.innerHTML = `
             <div style="text-align: center; padding: 1.5rem;">
                 <div style="background: linear-gradient(135deg, #f59e0b, #d97706); 
                             width: 80px; height: 80px; border-radius: 50%; 
                             display: flex; align-items: center; justify-content: center; 
                             margin: 0 auto 1.5rem auto;">
-                    <i class="fas fa-robot" style="font-size: 2rem; color: white;"></i>
+                    <i class="fas fa-cog" style="font-size: 2rem; color: white;"></i>
                 </div>
                 
                 <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
@@ -5523,12 +5522,11 @@ async showGAISecretaryModal() {
                 <div style="background: #fef3c7; padding: 1.5rem; border-radius: 12px; 
                             border-left: 4px solid #f59e0b; text-align: left;">
                     <p style="margin: 0; color: #374151; line-height: 1.6;">
-                        系統目前顯示最近訂單來自客戶 <strong style="color: #059669;">${defaultData.client}</strong>，
-                        時間 <strong style="color: #0ea5e9;">${formattedTime}</strong>。
+                        <i class="fas fa-tools" style="color: #f59e0b; margin-right: 0.5rem;"></i>
+                        系統發生未預期的錯誤，無法取得訂單資訊。
                         <br><br>
                         <small style="color: #92400e;">
-                            <i class="fas fa-exclamation-triangle"></i> 
-                            資料連線異常，顯示為系統預設資訊
+                            請聯繫系統管理員或稍後再試
                         </small>
                     </p>
                 </div>
@@ -5536,6 +5534,7 @@ async showGAISecretaryModal() {
         `;
     }
 }
+
 
 // 隱藏GAI數位秘書對話框
 hideGAISecretaryModal() {
