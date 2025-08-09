@@ -5701,9 +5701,14 @@ async showGAISecretaryModal() {
 /**
  * 關閉 GAI 數位秘書對話氣泡
  */
+/**
+ * 關閉 GAI 數位秘書對話氣泡
+ */
 function closeGAISpeechBubble() {
     const bubble = document.getElementById('gaiSpeechBubble');
-    bubble.classList.remove('show');
+    if (bubble) {
+        bubble.classList.remove('show');
+    }
 }
 
 /**
@@ -5715,7 +5720,13 @@ function navigateToRouteOptimization() {
     // window.location.href = '#route-optimization';
     // 或者調用相應的頁面切換函數
     console.log('導航到 GAI-精準智慧物流路徑規劃');
+    
+    // 如果有 app 實例，可以調用頁面切換
+    if (typeof app !== 'undefined' && app.switchPage) {
+        app.switchPage('route-optimization');
+    }
 }
+
 
 
 
