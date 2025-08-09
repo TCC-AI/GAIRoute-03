@@ -4635,7 +4635,7 @@ formatTaiwanDateTime(raw) {
     let displayHour = hour % 12;
     if (displayHour === 0) displayHour = 12;
     return `${parseInt(Y)}/${parseInt(Mo)}/${parseInt(D)} ${period} ${displayHour}:${Mi}:${S}`;
-},
+}
 
 /**
  * 顯示對話框
@@ -4657,7 +4657,7 @@ showLatestOrderDialog(formattedTime, client) {
         dlg.classList.add('show');
         dlg.classList.remove('hidden');
     });
-},
+}
 
 /**
  * 關閉對話框
