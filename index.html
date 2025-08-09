@@ -4693,19 +4693,10 @@ getDefaultOrderInfo() {
 
 
 /**
- * 將原始時間字串(yyyy-MM-dd HH:mm:ss) 轉為 "YYYY/M/D 上午/下午 h:mm:ss"
+ * 直接返回原始時間字串
  */
 formatTaiwanDateTime(raw) {
-    if (!raw) return '';
-    // raw 可能 "2025-08-08 22:28:58"
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})\s(\d{2}):(\d{2}):(\d{2})$/);
-    if (!m) return raw;
-    let [_, Y, Mo, D, H, Mi, S] = m;
-    let hour = parseInt(H, 10);
-    const period = hour >= 12 ? '下午' : '上午';
-    let displayHour = hour % 12;
-    if (displayHour === 0) displayHour = 12;
-    return `${parseInt(Y)}/${parseInt(Mo)}/${parseInt(D)} ${period} ${displayHour}:${Mi}:${S}`;
+    return raw || '';
 }
 
 /**
