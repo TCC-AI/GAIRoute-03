@@ -4662,7 +4662,7 @@ showLatestOrderDialog(formattedTime, client) {
 /**
  * 關閉對話框
  */
-closeLatestOrderDialog() 
+closeLatestOrderDialog() {  // ← 添加缺少的開始大括號
     const dlg = document.getElementById('latestOrderDialog');
     if (!dlg) return;
     dlg.classList.remove('show');
@@ -4670,6 +4670,7 @@ closeLatestOrderDialog()
         // 保留節點以便重複使用
     }, 300);
 }
+
 
 /**
  * 對外觸發：抓資料 -> 顯示
