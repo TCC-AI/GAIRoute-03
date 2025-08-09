@@ -4693,10 +4693,15 @@ getDefaultOrderInfo() {
 
 
 /**
- * 直接返回原始時間字串
+ * 返回原始時間字串，保留格式驗證
  */
 formatTaiwanDateTime(raw) {
-    return raw || '';
+    if (!raw) return '';
+    
+    // 驗證是否符合 yyyy-MM-dd HH:mm:ss 格式
+    const isValidFormat = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/.test(raw);
+    
+    return isValidFormat ? raw : '';
 }
 
 /**
