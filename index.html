@@ -2521,6 +2521,199 @@ justify-content:flex-end; / 右靠齊 */
   .lod-title { font-size:1.1rem; }
   .lod-message { font-size:.85rem; }
 }
+/* GAI 數位秘書對話氣泡樣式 */
+.gai-speech-bubble {
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    width: 320px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(14, 165, 233, 0.15), 
+                0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0f2fe;
+    padding: 0;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    pointer-events: none;
+}
+
+.gai-speech-bubble.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* 對話氣泡的小尾巴 */
+.gai-speech-bubble::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: -12px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 12px 12px 12px 0;
+    border-color: transparent #e0f2fe transparent transparent;
+}
+
+.gai-speech-bubble::after {
+    content: '';
+    position: absolute;
+    top: 22px;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 10px 10px 10px 0;
+    border-color: transparent #ffffff transparent transparent;
+}
+
+/* 氣泡標題區域 */
+.gai-bubble-header {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 18px 18px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.gai-bubble-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.gai-bubble-title i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.gai-bubble-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.gai-bubble-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 氣泡內容區域 */
+.gai-bubble-content {
+    padding: 20px;
+}
+
+.gai-bubble-message {
+    color: #374151;
+    line-height: 1.6;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.gai-bubble-info {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.gai-bubble-info strong {
+    color: #0ea5e9;
+}
+
+.gai-bubble-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.gai-bubble-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gai-bubble-btn.primary {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: white;
+}
+
+.gai-bubble-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.gai-bubble-btn.secondary {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.gai-bubble-btn.secondary:hover {
+    background: #e2e8f0;
+}
+
+/* 載入動畫 */
+.gai-bubble-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    color: #64748b;
+}
+
+.gai-bubble-loading i {
+    margin-right: 8px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 錯誤狀態 */
+.gai-bubble-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 16px;
+    color: #dc2626;
+}
+
+.gai-bubble-error i {
+    margin-right: 8px;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .gai-speech-bubble {
+        left: 10px;
+        right: 10px;
+        width: auto;
+        top: 70px;
+    }
+}
 
     </style>
 <body>
@@ -3234,24 +3427,22 @@ justify-content:flex-end; / 右靠齊 */
     <!-- 通知容器 -->
     <div id="notificationContainer"></div>
     <!-- 通知容器 -->    
-    <!-- GAI數位秘書對話框 -->
-    <div id="gaiSecretaryModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3 style="color: #0ea5e9;">
-                    <i class="fas fa-robot" style="margin-right: 0.5rem;"></i>
-                    GAI數位秘書
-                </h3>
-                <span class="modal-close" id="gaiModalClose">&times;</span>
-            </div>
-            <div class="modal-body" id="gaiModalBody">
-                <!-- 動態內容 -->
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="gaiModalConfirm">確認</button>
-            </div>
+ <!-- GAI 數位秘書對話氣泡 -->
+<div id="gaiSpeechBubble" class="gai-speech-bubble">
+    <div class="gai-bubble-header">
+        <div class="gai-bubble-title">
+            <i class="fas fa-robot"></i>
+            GAI 數位秘書
         </div>
+        <button class="gai-bubble-close" onclick="closeGAISpeechBubble()">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
+    <div class="gai-bubble-content" id="gaiBubbleContent">
+        <!-- 動態內容將在這裡顯示 -->
+    </div>
+</div>
+
 
 <!-- 連線狀態指示器 -->
 
@@ -5417,123 +5608,127 @@ formatTimeDisplay(timeString) {
 }
 
 /**
- * 修正版：根據真實資料狀態顯示不同內容
+/**
+ * 顯示 GAI 數位秘書對話氣泡 - 新版本
  */
 async showGAISecretaryModal() {
-    const modal = document.getElementById('gaiSecretaryModal');
-    const modalBody = document.getElementById('gaiModalBody');
+    // 添加logo點擊動畫
+    const logoImg = document.querySelector('.sidebar-logo-image');
+    if (logoImg) {
+        logoImg.classList.add('clicked');
+        setTimeout(() => logoImg.classList.remove('clicked'), 600);
+    }
+    
+    const bubble = document.getElementById('gaiSpeechBubble');
+    const bubbleContent = document.getElementById('gaiBubbleContent');
     
     // 顯示載入狀態
-    modalBody.innerHTML = `
-        <div style="text-align: center; padding: 2rem;">
-            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #0ea5e9; margin-bottom: 1rem;"></i>
-            <p style="color: #64748b;">正在檢查最新訂單資訊...</p>
+    bubbleContent.innerHTML = `
+        <div class="gai-bubble-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            正在檢查最新訂單資訊...
         </div>
     `;
     
-    modal.style.display = 'flex';
+    // 顯示氣泡
+    bubble.classList.add('show');
     
     try {
         const result = await this.fetchLatestOrderInfo();
         
         if (result.error) {
-            // 🔥 API失敗時的誠實顯示
-            modalBody.innerHTML = `
-                <div style="text-align: center; padding: 1.5rem;">
-                    <div style="background: linear-gradient(135deg, #ef4444, #dc2626); 
-                                width: 80px; height: 80px; border-radius: 50%; 
-                                display: flex; align-items: center; justify-content: center; 
-                                margin: 0 auto 1.5rem auto;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: white;"></i>
-                    </div>
-                    
-                    <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
-                        您好，我是GAI數位秘書
-                    </h4>
-                    
-                    <div style="background: #fef2f2; padding: 1.5rem; border-radius: 12px; 
-                                border-left: 4px solid #ef4444; text-align: left;">
-                        <p style="margin: 0; color: #374151; line-height: 1.6;">
-                            <i class="fas fa-wifi" style="color: #ef4444; margin-right: 0.5rem;"></i>
-                            抱歉，目前無法連線至訂單資料庫。
-                            <br><br>
-                            <strong style="color: #dc2626;">可能原因：</strong>
-                            <br>• 網路連線異常
-                            <br>• 資料庫暫時維護中
-                            <br>• API服務暫時不可用
-                            <br><br>
-                            <small style="color: #64748b;">
-                                請稍後再試，或直接前往【GAI-精準智慧物流路徑規劃】頁面查看
-                            </small>
-                        </p>
-                    </div>
+            // 錯誤狀態
+            bubbleContent.innerHTML = `
+                <div class="gai-bubble-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    ${result.message}
+                </div>
+                <div class="gai-bubble-actions" style="margin-top: 16px;">
+                    <button class="gai-bubble-btn secondary" onclick="closeGAISpeechBubble()">
+                        知道了
+                    </button>
                 </div>
             `;
         } else {
-            // 🔥 有真實資料時的正常顯示
+            // 成功狀態
             const formattedTime = this.formatTaiwanDateTime(result.time);
             
-            modalBody.innerHTML = `
-                <div style="text-align: center; padding: 1.5rem;">
-                    <div style="background: linear-gradient(135deg, #0ea5e9, #0284c7); 
-                                width: 80px; height: 80px; border-radius: 50%; 
-                                display: flex; align-items: center; justify-content: center; 
-                                margin: 0 auto 1.5rem auto; box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);">
-                        <i class="fas fa-robot" style="font-size: 2rem; color: white;"></i>
+            bubbleContent.innerHTML = `
+                <div class="gai-bubble-message">
+                    您好！我是您的 GAI 數位秘書 🤖
+                </div>
+                
+                <div class="gai-bubble-info">
+                    <div style="margin-bottom: 8px;">
+                        <i class="fas fa-check-circle" style="color: #059669; margin-right: 6px;"></i>
+                        <strong>最新訂單通知</strong>
                     </div>
-                    
-                    <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
-                        您好，我是GAI數位秘書
-                    </h4>
-                    
-                    <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 12px; 
-                                border-left: 4px solid #0ea5e9; text-align: left;">
-                        <p style="margin: 0; color: #374151; line-height: 1.6;">
-                            <i class="fas fa-check-circle" style="color: #059669; margin-right: 0.5rem;"></i>
-                            剛剛 <strong style="color: #0ea5e9;">${formattedTime}</strong> 
-                            已收到來自客戶 <strong style="color: #059669;">${result.client}</strong> 的訂單，請檢視。
-                        </p>
+                    <div style="font-size: 13px; color: #6b7280;">
+                        時間：${formattedTime}<br>
+                        客戶：<strong style="color: #059669;">${result.client}</strong>
                     </div>
-                    
-                    <div style="font-size: 0.875rem; color: #64748b; margin-top: 1rem;">
-                        <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
-                        點擊確認後可前往【GAI-精準智慧物流路徑規劃】查看詳細資訊
-                    </div>
+                </div>
+                
+                <div class="gai-bubble-actions">
+                    <button class="gai-bubble-btn secondary" onclick="closeGAISpeechBubble()">
+                        知道了
+                    </button>
+                    <button class="gai-bubble-btn primary" onclick="navigateToRouteOptimization()">
+                        查看詳情
+                    </button>
                 </div>
             `;
         }
         
     } catch (error) {
-        console.error('[GAI秘書] 系統錯誤:', error);
-        // 🔥 系統錯誤的誠實顯示
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 1.5rem;">
-                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); 
-                            width: 80px; height: 80px; border-radius: 50%; 
-                            display: flex; align-items: center; justify-content: center; 
-                            margin: 0 auto 1.5rem auto;">
-                    <i class="fas fa-cog" style="font-size: 2rem; color: white;"></i>
-                </div>
-                
-                <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
-                    您好，我是GAI數位秘書
-                </h4>
-                
-                <div style="background: #fef3c7; padding: 1.5rem; border-radius: 12px; 
-                            border-left: 4px solid #f59e0b; text-align: left;">
-                    <p style="margin: 0; color: #374151; line-height: 1.6;">
-                        <i class="fas fa-tools" style="color: #f59e0b; margin-right: 0.5rem;"></i>
-                        系統發生未預期的錯誤，無法取得訂單資訊。
-                        <br><br>
-                        <small style="color: #92400e;">
-                            請聯繫系統管理員或稍後再試
-                        </small>
-                    </p>
-                </div>
+        console.error('GAI 秘書錯誤:', error);
+        bubbleContent.innerHTML = `
+            <div class="gai-bubble-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                系統暫時無法連線，請稍後再試
+            </div>
+            <div class="gai-bubble-actions" style="margin-top: 16px;">
+                <button class="gai-bubble-btn secondary" onclick="closeGAISpeechBubble()">
+                    知道了
+                </button>
             </div>
         `;
     }
 }
+
+/**
+ * 關閉 GAI 數位秘書對話氣泡
+ */
+function closeGAISpeechBubble() {
+    const bubble = document.getElementById('gaiSpeechBubble');
+    bubble.classList.remove('show');
+}
+
+/**
+ * 導航到路線優化頁面
+ */
+function navigateToRouteOptimization() {
+    closeGAISpeechBubble();
+    // 這裡添加導航邏輯，例如：
+    // window.location.href = '#route-optimization';
+    // 或者調用相應的頁面切換函數
+    console.log('導航到 GAI-精準智慧物流路徑規劃頁面');
+}
+
+/**
+ * 點擊外部區域關閉氣泡
+ */
+document.addEventListener('click', function(event) {
+    const bubble = document.getElementById('gaiSpeechBubble');
+    const logoImg = document.querySelector('.sidebar-logo-image');
+    
+    if (bubble.classList.contains('show') && 
+        !bubble.contains(event.target) && 
+        !logoImg.contains(event.target)) {
+        closeGAISpeechBubble();
+    }
+});
+
 
 
 // 隱藏GAI數位秘書對話框
