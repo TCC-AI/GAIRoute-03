@@ -227,6 +227,44 @@
         transform: translate(-50%, -50%) scale(1.1);
     }
 }
+/* GAI數位秘書對話框特殊樣式 */
+#gaiSecretaryModal .modal-content {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #0ea5e9;
+    box-shadow: 0 20px 60px rgba(14, 165, 233, 0.3);
+}
+
+#gaiSecretaryModal .modal-header {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: white;
+    border-radius: 22px 22px 0 0;
+}
+
+#gaiSecretaryModal .modal-header h3 {
+    color: white;
+    margin: 0;
+}
+
+#gaiSecretaryModal .modal-close {
+    color: white;
+}
+
+#gaiSecretaryModal .modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Logo點擊動畫 */
+.sidebar-logo-image.clicked {
+    animation: logoClick 0.6s ease-out;
+}
+
+@keyframes logoClick {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1) rotate(5deg); }
+    100% { transform: scale(1); }
+}
+
+
 
 /* 響應式調整 */
 @media (max-width: 768px) {
@@ -2313,6 +2351,176 @@ justify-content:flex-end; / 右靠齊 */
   from { opacity:0; transform:translateY(6px); }
   to { opacity:1; transform:translateY(0); }
 }
+/* === 最新訂單通知對話框樣式 (類似附圖2玻璃+柔光卡片) === */
+.latest-order-dialog {
+  position: fixed;
+  top: 110px; /* 與 navbar 距離 */
+  left: 290px; /* 貼近側邊欄右側（sidebar 260 + padding 微調）*/
+  z-index: 11000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-8px) scale(.97);
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+}
+@media (max-width:1024px){
+  .latest-order-dialog { left: 20px; right:20px; }
+}
+.latest-order-dialog.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.latest-order-dialog.hidden { display:block; } /* 以 hidden class 控制透明度，不直接 display:none 以利動畫 */
+
+.lod-inner {
+  width: 420px;
+  max-width: calc(100vw - 40px);
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(22px) saturate(1.2);
+  border-radius: 24px;
+  padding: 1.5rem 1.4rem 1.3rem;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow:
+    0 10px 35px -10px rgba(15,23,42,.25),
+    0 2px 8px rgba(14,165,233,.15);
+  overflow: hidden;
+}
+
+.lod-inner::before, .lod-inner::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+}
+.lod-inner::before {
+  background: radial-gradient(circle at 85% 15%, rgba(14,165,233,0.18), transparent 60%),
+              linear-gradient(135deg, rgba(14,165,233,0.08), rgba(20,184,166,0.05));
+  mix-blend-mode: overlay;
+  opacity:.9;
+}
+.lod-inner::after {
+  border: 1px solid rgba(255,255,255,0.6);
+  mix-blend-mode: soft-light;
+  opacity:.35;
+}
+
+.lod-close {
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:34px;
+  height:34px;
+  border:none;
+  background:rgba(255,255,255,0.65);
+  backdrop-filter: blur(8px);
+  border-radius:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#475569;
+  transition:.25s;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+.lod-close:hover {
+  background:#fee2e2;
+  color:#dc2626;
+}
+
+.lod-avatar {
+  width:70px;
+  height:70px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#0ea5e9,#14b8a6);
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 8px 24px -6px rgba(14,165,233,.45);
+  margin:-2.8rem 0 .5rem .25rem;
+}
+.lod-avatar img {
+  width:56px;
+  height:56px;
+  object-fit:contain;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,0.25));
+}
+.lod-pulse {
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:radial-gradient(circle, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 70%);
+  animation: lodPulse 2.8s ease-in-out infinite;
+  mix-blend-mode:overlay;
+  pointer-events:none;
+}
+@keyframes lodPulse {
+  0%,100% { transform:scale(1); opacity:.9;}
+  50% { transform:scale(1.15); opacity:.3;}
+}
+
+.lod-title {
+  margin:0.2rem 0 0.75rem 0;
+  font-size:1.25rem;
+  font-weight:700;
+  background:linear-gradient(90deg,#0ea5e9,#14b8a6);
+  -webkit-background-clip:text;
+  color:transparent;
+  letter-spacing:.5px;
+}
+
+.lod-message {
+  font-size:.95rem;
+  line-height:1.55;
+  color:#334155;
+  background:rgba(255,255,255,0.55);
+  border:1px solid rgba(255,255,255,0.7);
+  padding:.9rem 1rem;
+  border-radius:14px;
+  box-shadow:inset 0 1px 2px rgba(14,165,233,0.15);
+  position:relative;
+}
+
+.lod-message::before {
+  content:'';
+  position:absolute;
+  left:14px;
+  top:-10px;
+  width:22px;
+  height:22px;
+  background:inherit;
+  border:inherit;
+  transform:rotate(45deg);
+  border-right:none;
+  border-bottom:none;
+  border-radius:4px 0 0 0;
+}
+
+.lod-actions {
+  display:flex;
+  justify-content:flex-end;
+  gap:.6rem;
+  margin-top:1rem;
+}
+
+.latest-order-dialog.appear .lod-inner {
+  animation: lodSlide .6s cubic-bezier(.4,0,.2,1);
+}
+@keyframes lodSlide {
+  0% { transform:translateY(18px) scale(.96); opacity:0; }
+  100% { transform:translateY(0) scale(1); opacity:1; }
+}
+
+/* 小螢幕調整 */
+@media (max-width:480px){
+  .lod-inner { padding:1.25rem 1rem 1rem; }
+  .lod-avatar { width:60px; height:60px; margin-top:-2.5rem; }
+  .lod-avatar img { width:48px; height:48px; }
+  .lod-title { font-size:1.1rem; }
+  .lod-message { font-size:.85rem; }
+}
 
     </style>
 <body>
@@ -3025,6 +3233,28 @@ justify-content:flex-end; / 右靠齊 */
 
     <!-- 通知容器 -->
     <div id="notificationContainer"></div>
+    <!-- 通知容器 -->    
+    <!-- GAI數位秘書對話框 -->
+    <div id="gaiSecretaryModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 style="color: #0ea5e9;">
+                    <i class="fas fa-robot" style="margin-right: 0.5rem;"></i>
+                    GAI數位秘書
+                </h3>
+                <span class="modal-close" id="gaiModalClose">&times;</span>
+            </div>
+            <div class="modal-body" id="gaiModalBody">
+                <!-- 動態內容 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="gaiModalConfirm">確認</button>
+            </div>
+        </div>
+    </div>
+
+<!-- 連線狀態指示器 -->
+
 
     <!-- 連線狀態指示器 -->
     <div id="connectionStatus" class="connection-status online">
@@ -3089,7 +3319,7 @@ justify-content:flex-end; / 右靠齊 */
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbxrCZ8gq8vdxcjMtPfh5s76j9XwqmG-_1JxL-2sSuPyxyd2cCqVJkkmEnSCKgFgV8I2/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbyLK5SMpg2iw2PTaVUWZeL8THO__5wggg1rideQ_pvTwgDW4-z4_6rJ3Ivx7g69F-lM/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4124,6 +4354,25 @@ document.getElementById('ai-preplan-btn-b')?.addEventListener('click', async () 
 document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', async () => {
     await this.fetchDeliveryPoints();
 });
+// 派車收送點查詢按鈕
+document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', async () => {
+    await this.fetchDeliveryPoints();
+});
+
+// Logo點擊事件
+document.querySelector('.sidebar-logo-image')?.addEventListener('click', () => {
+    this.showGAISecretaryModal();
+});
+
+// GAI秘書對話框事件
+document.getElementById('gaiModalClose')?.addEventListener('click', () => {
+    this.hideGAISecretaryModal();
+});
+
+document.getElementById('gaiModalConfirm')?.addEventListener('click', () => {
+    this.hideGAISecretaryModal();
+});
+
                 // ⭐ 在這裡添加調試功能 ⭐
 document.getElementById('debugRouteData')?.addEventListener('click', async () => {
     try {
@@ -4318,6 +4567,127 @@ document.getElementById('debugRouteData')?.addEventListener('click', async () =>
                     return { success: false, message: '驗證失敗' };
                 }
             }
+            // === 新增：訂單通知相關 ===
+/**
+ * 嘗試呼叫後端精簡 API 取得最新訂單 (建議新增 GAS action: getLatestOrderInfo)
+ * 若失敗則 fallback 走 getFilteredDeliveryReport
+ */
+async fetchLatestOrderInfo() {
+    const targetSpreadsheetId = '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc';
+    // 先試精簡 action
+    try {
+        const info = await this.apiCall('getLatestOrderInfo', { targetSpreadsheetId });
+        if (info && info.time && info.client) {
+            return info; // {time:'2025-08-08 22:28:58', client:'鑫三崧'}
+        }
+        throw new Error('getLatestOrderInfo 回傳格式不符合預期');
+    } catch (e) {
+        console.warn('[最新訂單] 精簡端點失敗，啟用 fallback:', e.message);
+    }
+
+    // Fallback：抓全部 (既有 action: getFilteredDeliveryReport) 再在前端挑最新
+    try {
+        const rows = await this.apiCall('getFilteredDeliveryReport', { targetSpreadsheetId });
+        if (!rows || !rows.length) throw new Error('無資料');
+
+        // 嘗試判斷欄位結構：
+        // 可能為物件陣列：找出含時間字串欄位 (格式 yyyy-MM-dd HH:mm:ss) 的最大者
+        // 常見可能 keys: ['託運單號','訂單時間',...,'客戶','配送日期',...]
+        let latestObj = null;
+        let latestTs = -1;
+        const timeRegex = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/;
+
+        rows.forEach(r => {
+            // 嘗試所有欄位尋找符合 timeRegex
+            for (const k in r) {
+                const val = (r[k] || '').toString().trim();
+                if (timeRegex.test(val)) {
+                    const t = new Date(val.replace(/-/g,'/')).getTime(); // Safari 兼容
+                    if (!isNaN(t) && t > latestTs) {
+                        latestTs = t;
+                        // 推測「客戶」欄位 (E欄) 可能叫「客戶」或「客戶簡稱」
+                        const client = r['客戶'] || r['客戶簡稱'] || r['客戶名稱'] || '';
+                        latestObj = { time: val, client };
+                    }
+                }
+            }
+        });
+
+        if (latestObj) return latestObj;
+        throw new Error('找不到符合時間格式的資料列');
+    } catch (fallbackErr) {
+        console.error('[最新訂單] fallback 失敗：', fallbackErr);
+        return null;
+    }
+},
+
+/**
+ * 將原始時間字串(yyyy-MM-dd HH:mm:ss) 轉為 "YYYY/M/D 上午/下午 h:mm:ss"
+ */
+formatTaiwanDateTime(raw) {
+    if (!raw) return '';
+    // raw 可能 "2025-08-08 22:28:58"
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})\s(\d{2}):(\d{2}):(\d{2})$/);
+    if (!m) return raw;
+    let [_, Y, Mo, D, H, Mi, S] = m;
+    let hour = parseInt(H, 10);
+    const period = hour >= 12 ? '下午' : '上午';
+    let displayHour = hour % 12;
+    if (displayHour === 0) displayHour = 12;
+    return `${parseInt(Y)}/${parseInt(Mo)}/${parseInt(D)} ${period} ${displayHour}:${Mi}:${S}`;
+},
+
+/**
+ * 顯示對話框
+ */
+showLatestOrderDialog(formattedTime, client) {
+    const dlg = document.getElementById('latestOrderDialog');
+    const msg = document.getElementById('latestOrderMessage');
+    if (!dlg || !msg) return;
+
+    msg.innerHTML = `
+      <div style="white-space:pre-line;">
+【您好，我是GAI數位秘書：
+剛剛【${formattedTime}】已收到來自客戶【${client || '未知客戶'}】的訂單，請檢視。】</div>
+    `;
+
+    dlg.classList.add('appear');
+    // 稍等一幀再加 show 觸發過渡
+    requestAnimationFrame(()=> {
+        dlg.classList.add('show');
+        dlg.classList.remove('hidden');
+    });
+},
+
+/**
+ * 關閉對話框
+ */
+closeLatestOrderDialog() 
+    const dlg = document.getElementById('latestOrderDialog');
+    if (!dlg) return;
+    dlg.classList.remove('show');
+    setTimeout(()=> {
+        // 保留節點以便重複使用
+    }, 300);
+},
+
+/**
+ * 對外觸發：抓資料 -> 顯示
+ */
+async triggerLatestOrderNotice() {
+    try {
+        const info = await this.fetchLatestOrderInfo();
+        if (!info || !info.time) {
+            console.warn('[最新訂單] 無可顯示資料');
+            return;
+        }
+        const formatted = this.formatTaiwanDateTime(info.time);
+        this.showLatestOrderDialog(formatted, info.client || '');
+    } catch (e) {
+        console.error('[最新訂單] 顯示失敗:', e);
+    }
+}
+
 // 修改 fetchDeliveryPoints 函數
 async fetchDeliveryPoints() {
     const dateInput = document.getElementById('deliveryDatePicker').value;
@@ -4934,6 +5304,155 @@ exportRouteTableB() {
 refreshRouteTableB() {
     this.handleAIPreplanBMode();
 }
+// 重新整理派車表(B)
+refreshRouteTableB() {
+    this.handleAIPreplanBMode();
+}
+
+// 獲取最新的託收託運回報資料
+async getLatestDeliveryReport() {
+    try {
+        const result = await this.apiCall('getLatestDeliveryReport', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        return result;
+    } catch (error) {
+        console.error('獲取最新託收託運回報失敗:', error);
+        return null;
+    }
+}
+
+// 格式化時間顯示
+formatTimeDisplay(timeString) {
+    if (!timeString) return '';
+    
+    try {
+        const date = new Date(timeString);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const seconds = date.getSeconds();
+        
+        const period = hours >= 12 ? '下午' : '上午';
+        const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+        
+        return `${year}/${month}/${day} ${period} ${displayHours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    } catch (error) {
+        return timeString;
+    }
+}
+
+// 顯示GAI數位秘書對話框
+async showGAISecretaryModal() {
+    // 添加logo點擊動畫
+    const logoImg = document.querySelector('.sidebar-logo-image');
+    if (logoImg) {
+        logoImg.classList.add('clicked');
+        setTimeout(() => logoImg.classList.remove('clicked'), 600);
+    }
+    
+    const modal = document.getElementById('gaiSecretaryModal');
+    const modalBody = document.getElementById('gaiModalBody');
+    
+    // 顯示載入狀態
+    modalBody.innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #0ea5e9; margin-bottom: 1rem;"></i>
+            <p style="color: #64748b;">正在檢查最新訂單資訊...</p>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    
+    try {
+        // 獲取最新資料
+        const latestData = await this.getLatestDeliveryReport();
+        
+        if (latestData && latestData.time && latestData.client) {
+            const formattedTime = this.formatTimeDisplay(latestData.time);
+            
+            modalBody.innerHTML = `
+                <div style="text-align: center; padding: 1.5rem;">
+                    <div style="background: linear-gradient(135deg, #0ea5e9, #0284c7); 
+                                width: 80px; height: 80px; border-radius: 50%; 
+                                display: flex; align-items: center; justify-content: center; 
+                                margin: 0 auto 1.5rem auto; box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);">
+                        <i class="fas fa-robot" style="font-size: 2rem; color: white;"></i>
+                    </div>
+                    
+                    <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
+                        您好，我是GAI數位秘書
+                    </h4>
+                    
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; 
+                                border-left: 4px solid #0ea5e9; text-align: left; margin-bottom: 1rem;">
+                        <p style="margin: 0; color: #374151; line-height: 1.6;">
+                            剛剛 <strong style="color: #0ea5e9;">${formattedTime}</strong> 
+                            已收到來自客戶 <strong style="color: #059669;">${latestData.client}</strong> 的訂單，請檢視。
+                        </p>
+                    </div>
+                    
+                    <div style="font-size: 0.875rem; color: #64748b; margin-top: 1rem;">
+                        <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                        點擊確認後可前往【GAI-精準智慧物流路徑規劃】查看詳細資訊
+                    </div>
+                </div>
+            `;
+        } else {
+            modalBody.innerHTML = `
+                <div style="text-align: center; padding: 1.5rem;">
+                    <div style="background: linear-gradient(135deg, #64748b, #475569); 
+                                width: 80px; height: 80px; border-radius: 50%; 
+                                display: flex; align-items: center; justify-content: center; 
+                                margin: 0 auto 1.5rem auto;">
+                        <i class="fas fa-robot" style="font-size: 2rem; color: white;"></i>
+                    </div>
+                    
+                    <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
+                        您好，我是GAI數位秘書
+                    </h4>
+                    
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; 
+                                border-left: 4px solid #64748b; text-align: left;">
+                        <p style="margin: 0; color: #374151; line-height: 1.6;">
+                            目前暫無新的訂單資訊。
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        modalBody.innerHTML = `
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="background: #dc2626; width: 80px; height: 80px; border-radius: 50%; 
+                            display: flex; align-items: center; justify-content: center; 
+                            margin: 0 auto 1.5rem auto;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: white;"></i>
+                </div>
+                
+                <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
+                    GAI數位秘書
+                </h4>
+                
+                <div style="background: #fef2f2; padding: 1.5rem; border-radius: 12px; 
+                            border-left: 4px solid #dc2626; text-align: left;">
+                    <p style="margin: 0; color: #374151; line-height: 1.6;">
+                        抱歉，無法獲取最新訂單資訊。請稍後再試或聯絡系統管理員。
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// 隱藏GAI數位秘書對話框
+hideGAISecretaryModal() {
+    const modal = document.getElementById('gaiSecretaryModal');
+    modal.style.display = 'none';
+}
+
 
 // 工具方法
 formatDateForSheet(dateStr) {
@@ -5809,7 +6328,15 @@ async showRouteAddresses(routeName) {
 
                 // 載入頁面特定資料
                 this.loadPageData(pageName);
-            }
+                
+                // 如果切換到主控台頁面，自動顯示GAI秘書對話框
+                if (pageName === 'dashboard') {
+                    // 延遲1秒顯示，讓頁面切換動畫完成
+                    setTimeout(() => {
+                        this.showGAISecretaryModal();
+                    }, 1000);
+                }
+
 
             // 顯示存取被拒絕
             showAccessDenied(pageName) {
@@ -7994,6 +8521,32 @@ function collapseAllRoutes() {
         <span id="tpCurrentLabel">初始化...</span>
         <span id="tpPercent">0%</span>
       </div>
+    </div>
+  </div>
+</div>
+<!-- 最新訂單通知對話框 -->
+<div id="latestOrderDialog" class="latest-order-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="latestOrderTitle">
+  <div class="lod-inner">
+    <button class="lod-close" id="latestOrderClose" aria-label="關閉">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="lod-avatar">
+      <img src="R1.png" alt="GAI Logo">
+      <span class="lod-pulse"></span>
+    </div>
+    <h3 id="latestOrderTitle" class="lod-title">
+      <i class="fas fa-robot" style="margin-right:6px;"></i>GAI數位秘書
+    </h3>
+    <div id="latestOrderMessage" class="lod-message">
+      <!-- 動態填入 -->
+    </div>
+    <div class="lod-actions">
+      <button id="latestOrderViewBtn" class="btn btn-primary btn-sm">
+        <i class="fas fa-eye"></i> 查看訂單
+      </button>
+      <button id="latestOrderDismissBtn" class="btn btn-secondary btn-sm">
+        <i class="fas fa-check"></i> 我知道了
+      </button>
     </div>
   </div>
 </div>
