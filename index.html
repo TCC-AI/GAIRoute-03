@@ -2521,6 +2521,495 @@ justify-content:flex-end; / 右靠齊 */
   .lod-title { font-size:1.1rem; }
   .lod-message { font-size:.85rem; }
 }
+/* 各配送點細節頁面樣式 */
+.delivery-modes-section {
+    margin-bottom: 2rem;
+}
+
+.delivery-modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.mode-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 2px solid transparent;
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.mode-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.02) 0%, rgba(20, 184, 166, 0.01) 100%);
+    z-index: -1;
+}
+
+.mode-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+}
+
+/* 經驗模態樣式 */
+.experienced-mode {
+    border-image: linear-gradient(135deg, #3b82f6, #1d4ed8) 1;
+}
+
+.experienced-mode .mode-icon {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.experienced-mode:hover {
+    box-shadow: 0 16px 48px rgba(59, 130, 246, 0.25);
+}
+
+/* 高裝載模態樣式 */
+.high-load-mode {
+    border-image: linear-gradient(135deg, #10b981, #059669) 1;
+}
+
+.high-load-mode .mode-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.high-load-mode:hover {
+    box-shadow: 0 16px 48px rgba(16, 185, 129, 0.25);
+}
+
+/* 低碳排模態樣式 */
+.eco-mode {
+    border-image: linear-gradient(135deg, #ef4444, #dc2626) 1;
+}
+
+.eco-mode .mode-icon {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.eco-mode:hover {
+    box-shadow: 0 16px 48px rgba(239, 68, 68, 0.25);
+}
+
+.mode-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.mode-content h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 1rem;
+}
+
+.mode-content p {
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.mode-features {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+    text-align: left;
+}
+
+.mode-features li {
+    padding: 0.5rem 0;
+    color: var(--gray-600);
+    font-size: 0.9rem;
+}
+
+.mode-features li i {
+    color: var(--success-color);
+    margin-right: 0.5rem;
+    width: 16px;
+}
+
+.mode-btn {
+    margin-top: 1.5rem;
+    min-width: 140px;
+    position: relative;
+    overflow: hidden;
+}
+
+.mode-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.mode-btn:hover::before {
+    left: 100%;
+}
+
+/* 配送點詳細資訊區域 */
+.delivery-details-content {
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delivery-details-header {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%);
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.delivery-details-header h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.delivery-details-header p {
+    color: var(--gray-600);
+    font-size: 1.1rem;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .delivery-modes-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .mode-card {
+        padding: 1.5rem;
+    }
+    
+    .mode-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .mode-content h4 {
+        font-size: 1.25rem;
+    }
+}
+/* 配送點網格和卡片樣式 */
+.delivery-points-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.delivery-point-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.delivery-point-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+}
+
+.point-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.point-id {
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+.point-priority {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+.priority-高 {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.priority-中 {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.priority-低 {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.point-content h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 0.5rem;
+}
+
+.point-address {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.point-address i {
+    margin-top: 0.2rem;
+    color: var(--primary-blue);
+}
+
+.point-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(14, 165, 233, 0.05);
+    border-radius: 12px;
+    flex: 1;
+}
+
+.stat-item i {
+    color: var(--primary-blue);
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+}
+
+.special-requirements {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    border-left: 3px solid #f59e0b;
+}
+
+.special-requirements i {
+    margin-right: 0.5rem;
+}
+
+.mode-specific-info {
+    background: rgba(248, 250, 252, 0.8);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.mode-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mode-info-item:last-child {
+    border-bottom: none;
+}
+
+.mode-info-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.mode-info-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.point-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.point-actions .btn {
+    flex: 1;
+}
+
+/* 配送摘要區域 */
+.delivery-summary {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(20, 184, 166, 0.03) 100%);
+    padding: 2rem;
+    border-radius: 16px;
+    margin-top: 2rem;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.summary-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.summary-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.summary-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .delivery-points-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .point-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .stat-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem;
+    }
+    
+    .stat-item i {
+        margin-bottom: 0;
+        margin-right: 0.5rem;
+    }
+    
+    .summary-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .summary-actions {
+        flex-direction: column;
+    }
+    
+    .summary-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .delivery-point-card {
+        padding: 1rem;
+    }
+    
+    .point-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .mode-info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .summary-stats {
+        grid-template-columns: 1fr;
+    }
+}
 
     </style>
 <body>
@@ -2588,6 +3077,11 @@ justify-content:flex-end; / 右靠齊 */
                 <li class="menu-item" data-page="route-management" data-permission="route-management">
                     <i class="fas fa-route"></i>
                     <span>路線管理</span>
+                </li>
+                                <!-- 新增：各配送點細節 -->
+                <li class="menu-item" data-page="delivery-point-details" data-permission="route-management">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>各配送點細節</span>
                 </li>
                 <li class="menu-item" data-page="seasonal-routes" data-permission="seasonal-routes">
                     <i class="fas fa-calendar-alt"></i>
@@ -3113,6 +3607,95 @@ justify-content:flex-end; / 右靠齊 */
                     </div>
                 </div>
             </div>
+
+            <!-- 各配送點細節頁面 -->
+<div id="delivery-point-details" class="page">
+    <div class="page-header">
+        <h2><i class="fas fa-map-marked-alt"></i> 各配送點細節</h2>
+        <div class="header-actions">
+            <button class="btn btn-info" id="refreshDeliveryDetails">
+                <i class="fas fa-sync-alt"></i> 重新整理
+            </button>
+        </div>
+    </div>
+
+    <!-- 模態選擇區域 -->
+    <div class="delivery-modes-section">
+        <div class="card">
+            <div class="card-header">
+                <h3>選擇配送模態</h3>
+                <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.875rem;">
+                    請選擇適合的配送模態來查看各配送點的詳細資訊
+                </p>
+            </div>
+            <div class="card-body">
+                <div class="delivery-modes-grid">
+                    <!-- 經驗(老師傅)模態 -->
+                    <div class="mode-card experienced-mode">
+                        <div class="mode-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="mode-content">
+                            <h4>經驗(老師傅)模態</h4>
+                            <p>基於資深司機經驗的傳統路線規劃，注重實際道路狀況和客戶偏好</p>
+                            <ul class="mode-features">
+                                <li><i class="fas fa-check"></i> 經驗導向路線</li>
+                                <li><i class="fas fa-check"></i> 客戶關係優先</li>
+                                <li><i class="fas fa-check"></i> 彈性調整能力</li>
+                            </ul>
+                        </div>
+                        <button class="btn btn-primary mode-btn" onclick="loadDeliveryMode('experienced')">
+                            <i class="fas fa-play"></i> 啟用模態
+                        </button>
+                    </div>
+
+                    <!-- 高裝載模態 -->
+                    <div class="mode-card high-load-mode">
+                        <div class="mode-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <div class="mode-content">
+                            <h4>高裝載模態</h4>
+                            <p>最大化車輛裝載效率，減少車次數量，適合大批量配送需求</p>
+                            <ul class="mode-features">
+                                <li><i class="fas fa-check"></i> 最大裝載容量</li>
+                                <li><i class="fas fa-check"></i> 減少車次成本</li>
+                                <li><i class="fas fa-check"></i> 批量配送優化</li>
+                            </ul>
+                        </div>
+                        <button class="btn btn-success mode-btn" onclick="loadDeliveryMode('highLoad')">
+                            <i class="fas fa-play"></i> 啟用模態
+                        </button>
+                    </div>
+
+                    <!-- 低碳排模態 -->
+                    <div class="mode-card eco-mode">
+                        <div class="mode-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div class="mode-content">
+                            <h4>低碳排模態</h4>
+                            <p>環保優先的綠色配送方案，最小化碳足跡和環境影響</p>
+                            <ul class="mode-features">
+                                <li><i class="fas fa-check"></i> 最短距離路線</li>
+                                <li><i class="fas fa-check"></i> 減少碳排放量</li>
+                                <li><i class="fas fa-check"></i> 環保配送優化</li>
+                            </ul>
+                        </div>
+                        <button class="btn btn-danger mode-btn" onclick="loadDeliveryMode('ecoFriendly')">
+                            <i class="fas fa-play"></i> 啟用模態
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 配送點詳細資訊顯示區域 -->
+    <div id="delivery-details-content" class="delivery-details-content" style="display: none;">
+        <!-- 動態載入的內容將顯示在這裡 -->
+    </div>
+</div>
 
             <!-- 季節性路線頁面 -->
             <div id="seasonal-routes" class="page">
@@ -3968,6 +4551,9 @@ async getRoutePalletNonZeroCountWithCache() {
                         this.switchSidebarTab(tabName);
                     });
                 });
+                document.getElementById('refreshDeliveryDetails')?.addEventListener('click', () => {
+                this.refreshDeliveryDetails();
+                });
 
                 // 地點搜尋
                 document.getElementById('placesSearch')?.addEventListener('input', (e) => {
@@ -4021,6 +4607,10 @@ async getRoutePalletNonZeroCountWithCache() {
 
                 document.getElementById('searchRoutes')?.addEventListener('click', () => {
                     this.searchRoutes();
+                });
+                                // 各配送點細節相關事件
+                document.getElementById('refreshDeliveryDetails')?.addEventListener('click', () => {
+                    this.refreshDeliveryDetails();
                 });
                 /* ================== 任務步驟管理器 ================== */
 class TaskProgressManager {
@@ -4567,6 +5157,332 @@ document.getElementById('debugRouteData')?.addEventListener('click', async () =>
                     return { success: false, message: '驗證失敗' };
                 }
             }
+
+            // 載入配送點細節頁面
+async loadDeliveryPointDetails() {
+    console.log('載入各配送點細節頁面');
+    // 重置顯示狀態
+    document.getElementById('delivery-details-content').style.display = 'none';
+}
+
+// 載入特定配送模態
+async loadDeliveryMode(mode) {
+    const contentDiv = document.getElementById('delivery-details-content');
+    
+    // 顯示載入狀態
+    this.showPartialLoading('delivery-details-content', '正在載入配送點詳細資訊...');
+    contentDiv.style.display = 'block';
+    
+    try {
+        let modeTitle, modeDescription, modeColor;
+        
+        switch(mode) {
+            case 'experienced':
+                modeTitle = '經驗(老師傅)模態';
+                modeDescription = '基於資深司機經驗的配送點分析';
+                modeColor = '#3b82f6';
+                break;
+            case 'highLoad':
+                modeTitle = '高裝載模態';
+                modeDescription = '最大化裝載效率的配送點優化';
+                modeColor = '#10b981';
+                break;
+            case 'ecoFriendly':
+                modeTitle = '低碳排模態';
+                modeDescription = '環保優先的綠色配送方案';
+                modeColor = '#ef4444';
+                break;
+        }
+        
+        // 模擬API調用獲取配送點資料
+        const deliveryData = await this.getDeliveryPointsByMode(mode);
+        
+        // 渲染配送點詳細資訊
+        this.renderDeliveryPointDetails(modeTitle, modeDescription, modeColor, deliveryData);
+        
+        this.showNotification(`${modeTitle}載入完成`, 'success');
+        
+    } catch (error) {
+        console.error('載入配送模態失敗:', error);
+        this.showErrorState('delivery-details-content', error.message);
+        this.showNotification('載入配送點詳細資訊失敗', 'error');
+    }
+}
+
+// 根據模態獲取配送點資料
+async getDeliveryPointsByMode(mode) {
+    try {
+        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
+            // 返回模擬資料
+            return this.getMockDeliveryPointData(mode);
+        } else {
+            // 真實API調用
+            return await this.apiCall('getDeliveryPointsByMode', {
+                mode: mode,
+                targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+            });
+        }
+    } catch (error) {
+        console.error('獲取配送點資料失敗:', error);
+        throw new Error(`獲取${mode}模態資料失敗: ${error.message}`);
+    }
+}
+
+// 模擬配送點資料
+getMockDeliveryPointData(mode) {
+    const baseData = [
+        {
+            id: 'DP001',
+            name: '台北信義門市',
+            address: '台北市信義區信義路五段7號',
+            district: '信義區',
+            palletCount: 12,
+            priority: '高',
+            estimatedTime: '30分鐘',
+            specialRequirements: '需冷鏈運輸'
+        },
+        {
+            id: 'DP002', 
+            name: '板橋中山門市',
+            address: '新北市板橋區中山路一段152號',
+            district: '板橋區',
+            palletCount: 8,
+            priority: '中',
+            estimatedTime: '25分鐘',
+            specialRequirements: '營業時間限制'
+        },
+        {
+            id: 'DP003',
+            name: '桃園南崁門市',
+            address: '桃園市蘆竹區南崁路235號',
+            district: '蘆竹區',
+            palletCount: 15,
+            priority: '高',
+            estimatedTime: '45分鐘',
+            specialRequirements: '大型車輛限制'
+        }
+    ];
+    
+    // 根據不同模態調整資料
+    switch(mode) {
+        case 'experienced':
+            return baseData.map(item => ({
+                ...item,
+                modeSpecific: {
+                    driverPreference: '資深司機推薦路線',
+                    customerRelation: '長期合作客戶',
+                    flexibilityScore: 9
+                }
+            }));
+        case 'highLoad':
+            return baseData.map(item => ({
+                ...item,
+                modeSpecific: {
+                    loadEfficiency: '95%',
+                    consolidationOpportunity: '可合併配送',
+                    capacityUtilization: '最大化裝載'
+                }
+            }));
+        case 'ecoFriendly':
+            return baseData.map(item => ({
+                ...item,
+                modeSpecific: {
+                    carbonFootprint: '低碳排放',
+                    routeOptimization: '最短距離',
+                    ecoScore: 8.5
+                }
+            }));
+        default:
+            return baseData;
+    }
+}
+
+// 渲染配送點詳細資訊
+renderDeliveryPointDetails(modeTitle, modeDescription, modeColor, deliveryData) {
+    const contentDiv = document.getElementById('delivery-details-content');
+    
+    let html = `
+        <div class="delivery-details-header">
+            <h3 style="color: ${modeColor};">
+                <i class="fas fa-map-marked-alt"></i> ${modeTitle}
+            </h3>
+            <p>${modeDescription}</p>
+            <div style="margin-top: 1rem; font-size: 0.875rem; color: #64748b;">
+                資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${deliveryData.length} 個配送點
+            </div>
+        </div>
+        
+        <div class="delivery-points-grid">
+    `;
+    
+    deliveryData.forEach((point, index) => {
+        html += `
+            <div class="delivery-point-card" style="animation-delay: ${index * 0.1}s">
+                <div class="point-header">
+                    <div class="point-id" style="background-color: ${modeColor};">
+                        ${point.id}
+                    </div>
+                    <div class="point-priority priority-${point.priority.toLowerCase()}">
+                        ${point.priority}優先
+                    </div>
+                </div>
+                
+                <div class="point-content">
+                    <h4>${point.name}</h4>
+                    <p class="point-address">
+                        <i class="fas fa-map-marker-alt"></i> ${point.address}
+                    </p>
+                    
+                    <div class="point-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-boxes"></i>
+                            <span class="stat-value">${point.palletCount}</span>
+                            <span class="stat-label">板數</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="stat-value">${point.estimatedTime}</span>
+                            <span class="stat-label">預估時間</span>
+                        </div>
+                    </div>
+                    
+                    ${point.specialRequirements ? `
+                        <div class="special-requirements">
+                            <i class="fas fa-exclamation-circle"></i>
+                            ${point.specialRequirements}
+                        </div>
+                    ` : ''}
+                    
+                    ${point.modeSpecific ? this.renderModeSpecificInfo(point.modeSpecific, modeColor) : ''}
+                </div>
+                
+                <div class="point-actions">
+                    <button class="btn btn-sm btn-primary" onclick="app.viewPointDetails('${point.id}')">
+                        <i class="fas fa-eye"></i> 詳細
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="app.showPointOnMap('${point.id}')">
+                        <i class="fas fa-map"></i> 地圖
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+        </div>
+        
+        <div class="delivery-summary">
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <span class="summary-value">${deliveryData.length}</span>
+                    <span class="summary-label">配送點總數</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value">${deliveryData.reduce((sum, point) => sum + point.palletCount, 0)}</span>
+                    <span class="summary-label">總板數</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value">${deliveryData.filter(point => point.priority === '高').length}</span>
+                    <span class="summary-label">高優先級</span>
+                </div>
+            </div>
+            
+            <div class="summary-actions">
+                <button class="btn btn-primary" onclick="app.exportDeliveryPoints()">
+                    <i class="fas fa-download"></i> 匯出資料
+                </button>
+                <button class="btn btn-success" onclick="app.optimizeDeliveryRoute()">
+                    <i class="fas fa-route"></i> 路線優化
+                </button>
+            </div>
+        </div>
+    `;
+    
+    contentDiv.innerHTML = html;
+}
+
+// 渲染模態特定資訊
+renderModeSpecificInfo(modeSpecific, modeColor) {
+    let html = '<div class="mode-specific-info">';
+    
+    for (const [key, value] of Object.entries(modeSpecific)) {
+        html += `
+            <div class="mode-info-item">
+                <span class="mode-info-label">${this.translateModeKey(key)}:</span>
+                <span class="mode-info-value" style="color: ${modeColor};">${value}</span>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+// 翻譯模態特定欄位
+translateModeKey(key) {
+    const translations = {
+        driverPreference: '司機偏好',
+        customerRelation: '客戶關係',
+        flexibilityScore: '彈性評分',
+        loadEfficiency: '裝載效率',
+        consolidationOpportunity: '合併機會',
+        capacityUtilization: '容量利用',
+        carbonFootprint: '碳足跡',
+        routeOptimization: '路線優化',
+        ecoScore: '環保評分'
+    };
+    return translations[key] || key;
+}
+
+// 重新整理配送點詳細資訊
+refreshDeliveryDetails() {
+    const contentDiv = document.getElementById('delivery-details-content');
+    if (contentDiv.style.display === 'block') {
+        // 如果當前有顯示內容，重新載入
+        const activeMode = this.getCurrentActiveMode();
+        if (activeMode) {
+            this.loadDeliveryMode(activeMode);
+        }
+    } else {
+        this.showNotification('請先選擇一個配送模態', 'info');
+    }
+}
+
+// 獲取當前啟用的模態
+getCurrentActiveMode() {
+    // 這裡可以根據當前顯示的內容判斷模態
+    // 簡化實作，可以用全域變數記錄
+    return this.currentDeliveryMode || null;
+}
+
+// 查看配送點詳細資訊
+viewPointDetails(pointId) {
+    this.showModal('配送點詳細資訊', `
+        <div class="point-detail-modal">
+            <p>正在載入配送點 ${pointId} 的詳細資訊...</p>
+        </div>
+    `);
+}
+
+// 在地圖上顯示配送點
+showPointOnMap(pointId) {
+    this.showNotification('地圖功能開發中...', 'info');
+}
+
+// 匯出配送點資料
+exportDeliveryPoints() {
+    this.showNotification('匯出功能開發中...', 'info');
+}
+
+// 優化配送路線
+optimizeDeliveryRoute() {
+    this.showNotification('路線優化功能開發中...', 'info');
+}
+
+// 在 loadPageData 方法中添加新的 case
+case 'delivery-point-details':
+    await this.loadDeliveryPointDetails();
+    break;
             // === 新增：訂單通知相關 ===
 /**
  * 嘗試呼叫後端精簡 API 取得最新訂單 (建議新增 GAS action: getLatestOrderInfo)
@@ -8210,6 +9126,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.UserPreferences = UserPreferences;
         window.PerformanceMonitor = PerformanceMonitor;
         window.HealthCheck = HealthCheck;
+        window.loadDeliveryMode = function(mode) {
+    if (window.app) {
+        app.currentDeliveryMode = mode; // 記錄當前模態
+        app.loadDeliveryMode(mode);
+    }
+};
 
         // 系統初始化完成標記
         window.dispatchGAISystemReady = true;
