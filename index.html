@@ -4425,6 +4425,139 @@ justify-content:flex-end; / 右靠齊 */
             notificationContainer: document.getElementById('notificationContainer'),
             connectionStatus: document.getElementById('connectionStatus')
         };
+          /* ================== 任務步驟管理器 ================== */
+class TaskProgressManager {
+  constructor() {
+    this.overlay = document.getElementById('taskProgressOverlay');
+    this.stepsContainer = document.getElementById('tpSteps');
+    this.progressFill = document.getElementById('tpProgressFill');
+    this.percentEl = document.getElementById('tpPercent');
+    this.currentLabelEl = document.getElementById('tpCurrentLabel');
+    this.cancelBtn = document.getElementById('tpCancelBtn');
+    this.titleEl = document.getElementById('tpTitle');
+    this.currentTask = null;
+    this.listeners();
+  }
+  listeners() {
+    this.cancelBtn.addEventListener('click', ()=> {
+      if (this.currentTask && !this.currentTask.canceled) {
+        this.currentTask.canceled = true;
+        this.currentLabelEl.textContent = '已要求中斷，等待清理...';
+        this.overlay.classList.add('canceling');
+      } else {
+        this.hide();
+      }
+    });
+  }
+  start(taskId, title, stepLabels) {
+    this.currentTask = {
+      id: taskId,
+      steps: stepLabels.map((t,i)=>({index:i,label:t,status:'pending'})),
+      canceled:false
+    };
+    this.titleEl.innerHTML = `<i class="fas fa-cogs"></i> ${title}`;
+    this.renderSteps();
+    this.updateProgress(0,'初始化...');
+    this.show();
+    return this.currentTask;
+  }
+  renderSteps() {
+    this.stepsContainer.innerHTML = this.currentTask.steps.map(s=>`
+      <div class="tp-step tp-step-${s.index}" data-step="${s.index}">
+        <div class="tp-icon"><i class="fas fa-circle-notch"></i></div>
+        <div class="tp-label">${s.index+1}. ${s.label}</div>
+        <div class="tp-status">待處理</div>
+      </div>`).join('');
+  }
+  setStepRunning(i) {
+    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
+    if (!el) return;
+    el.classList.remove('done','error');
+    el.classList.add('running');
+    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    el.querySelector('.tp-status').textContent = '執行中';
+  }
+  setStepDone(i, text='完成') {
+    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
+    if (!el) return;
+    el.classList.remove('running','error');
+    el.classList.add('done');
+    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-check"></i>';
+    el.querySelector('.tp-status').textContent = text;
+  }
+  setStepError(i, msg='失敗') {
+    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
+    if (!el) return;
+    el.classList.remove('running','done');
+    el.classList.add('error');
+    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-times"></i>';
+    el.querySelector('.tp-status').textContent = msg;
+  }
+  updateProgress(pct, label) {
+    this.progressFill.style.width = `${pct}%`;
+    this.percentEl.textContent = `${Math.round(pct)}%`;
+    if (label) this.currentLabelEl.textContent = label;
+  }
+  complete(finalLabel='全部完成') {
+    this.updateProgress(100, finalLabel);
+    setTimeout(()=> this.hide(), 800);
+  }
+  show(){ this.overlay.style.display='flex'; }
+  hide(){
+    this.overlay.style.display='none';
+    this.currentTask=null;
+    this.stepsContainer.innerHTML='';
+    this.progressFill.style.width='0%';
+  }
+  isCanceled(){
+    return this.currentTask?.canceled;
+  }
+}
+
+const TaskProgress = new TaskProgressManager();
+/* ============== Dashboard 快取 + Timestamp ============== */
+const DashboardCache = {
+  key: 'dashboardAggCache_v1',
+  set(data){
+    localStorage.setItem(this.key, JSON.stringify({
+      ts: Date.now(),
+      data
+    }));
+  },
+  get(){
+    try {
+      const raw = localStorage.getItem(this.key);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    } catch(e){
+      return null;
+    }
+  }
+};
+
+function formatTime(ts){
+  const d = new Date(ts);
+  return d.toLocaleTimeString('zh-TW',{hour12:false});
+}
+
+function updateDashboardTimestamp(ts){
+  const timeEl = document.getElementById('dashboardTimestamp');
+  const badge = document.getElementById('dashboardFreshBadge');
+  if(!timeEl || !badge) return;
+  timeEl.textContent = '資料時間 ' + formatTime(ts);
+  const ageSec = (Date.now()-ts)/1000;
+  badge.classList.remove('stale','expired');
+  if (ageSec < 60){
+    badge.textContent='最新';
+  } else if (ageSec < 180){
+    badge.textContent='稍舊';
+    badge.classList.add('stale');
+  } else {
+    badge.textContent='過期';
+    badge.classList.add('expired');
+  }
+}
+
 
         // 應用程式類別
         class DispatchGAISystem {
@@ -4612,321 +4745,9 @@ async getRoutePalletNonZeroCountWithCache() {
                 document.getElementById('refreshDeliveryDetails')?.addEventListener('click', () => {
                     this.refreshDeliveryDetails();
                 });
-                /* ================== 任務步驟管理器 ================== */
-class TaskProgressManager {
-  constructor() {
-    this.overlay = document.getElementById('taskProgressOverlay');
-    this.stepsContainer = document.getElementById('tpSteps');
-    this.progressFill = document.getElementById('tpProgressFill');
-    this.percentEl = document.getElementById('tpPercent');
-    this.currentLabelEl = document.getElementById('tpCurrentLabel');
-    this.cancelBtn = document.getElementById('tpCancelBtn');
-    this.titleEl = document.getElementById('tpTitle');
-    this.currentTask = null;
-    this.listeners();
-  }
-  listeners() {
-    this.cancelBtn.addEventListener('click', ()=> {
-      if (this.currentTask && !this.currentTask.canceled) {
-        this.currentTask.canceled = true;
-        this.currentLabelEl.textContent = '已要求中斷，等待清理...';
-        this.overlay.classList.add('canceling');
-      } else {
-        this.hide();
-      }
-    });
-  }
-  start(taskId, title, stepLabels) {
-    this.currentTask = {
-      id: taskId,
-      steps: stepLabels.map((t,i)=>({index:i,label:t,status:'pending'})),
-      canceled:false
-    };
-    this.titleEl.innerHTML = `<i class="fas fa-cogs"></i> ${title}`;
-    this.renderSteps();
-    this.updateProgress(0,'初始化...');
-    this.show();
-    return this.currentTask;
-  }
-  renderSteps() {
-    this.stepsContainer.innerHTML = this.currentTask.steps.map(s=>`
-      <div class="tp-step tp-step-${s.index}" data-step="${s.index}">
-        <div class="tp-icon"><i class="fas fa-circle-notch"></i></div>
-        <div class="tp-label">${s.index+1}. ${s.label}</div>
-        <div class="tp-status">待處理</div>
-      </div>`).join('');
-  }
-  setStepRunning(i) {
-    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
-    if (!el) return;
-    el.classList.remove('done','error');
-    el.classList.add('running');
-    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    el.querySelector('.tp-status').textContent = '執行中';
-  }
-  setStepDone(i, text='完成') {
-    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
-    if (!el) return;
-    el.classList.remove('running','error');
-    el.classList.add('done');
-    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-check"></i>';
-    el.querySelector('.tp-status').textContent = text;
-  }
-  setStepError(i, msg='失敗') {
-    const el = this.stepsContainer.querySelector(`.tp-step-${i}`);
-    if (!el) return;
-    el.classList.remove('running','done');
-    el.classList.add('error');
-    el.querySelector('.tp-icon').innerHTML = '<i class="fas fa-times"></i>';
-    el.querySelector('.tp-status').textContent = msg;
-  }
-  updateProgress(pct, label) {
-    this.progressFill.style.width = `${pct}%`;
-    this.percentEl.textContent = `${Math.round(pct)}%`;
-    if (label) this.currentLabelEl.textContent = label;
-  }
-  complete(finalLabel='全部完成') {
-    this.updateProgress(100, finalLabel);
-    setTimeout(()=> this.hide(), 800);
-  }
-  show(){ this.overlay.style.display='flex'; }
-  hide(){
-    this.overlay.style.display='none';
-    this.currentTask=null;
-    this.stepsContainer.innerHTML='';
-    this.progressFill.style.width='0%';
-  }
-  isCanceled(){
-    return this.currentTask?.canceled;
-  }
-}
+              
 
-const TaskProgress = new TaskProgressManager();
 
-/* ============== Dashboard 快取 + Timestamp ============== */
-const DashboardCache = {
-  key: 'dashboardAggCache_v1',
-  set(data){
-    localStorage.setItem(this.key, JSON.stringify({
-      ts: Date.now(),
-      data
-    }));
-  },
-  get(){
-    try {
-      const raw = localStorage.getItem(this.key);
-      if(!raw) return null;
-      return JSON.parse(raw);
-    } catch(e){
-      return null;
-    }
-  }
-};
-
-function formatTime(ts){
-  const d = new Date(ts);
-  return d.toLocaleTimeString('zh-TW',{hour12:false});
-}
-
-function updateDashboardTimestamp(ts){
-  const timeEl = document.getElementById('dashboardTimestamp');
-  const badge = document.getElementById('dashboardFreshBadge');
-  if(!timeEl || !badge) return;
-  timeEl.textContent = '資料時間 ' + formatTime(ts);
-  const ageSec = (Date.now()-ts)/1000;
-  badge.classList.remove('stale','expired');
-  if (ageSec < 60){
-    badge.textContent='最新';
-  } else if (ageSec < 180){
-    badge.textContent='稍舊';
-    badge.classList.add('stale');
-  } else {
-    badge.textContent='過期';
-    badge.classList.add('expired');
-  }
-}
-
-/* ========= 儀表板顯示快取優先 → 再淡入更新 ========= */
-DispatchGAISystem.prototype.renderDashboardFast = function(cached){
-  if(!cached) return;
-  const d = cached.data;
-  // 先套數值：加上 fast-show 樣式
-  document.getElementById('todayDeliveries').textContent = d.pallets ?? d.todayDeliveries ?? '-';
-  document.getElementById('vehicleUsage').textContent = (d.nonZeroPct ?? d.vehicleUsage ?? '-') + '%';
-  document.getElementById('onTimeRate').textContent = d.lastB ?? d.onTimeRate ?? '-';
-  document.getElementById('alertCount').textContent = d.alert ?? d.alertCount ?? '-';
-  ['todayDeliveries','vehicleUsage','onTimeRate','alertCount'].forEach(id=>{
-    const el=document.getElementById(id);
-    el.classList.add('fast-show');
-  });
-  updateDashboardTimestamp(cached.ts);
-};
-
-DispatchGAISystem.prototype.applyDashboardUpdate = function(newData){
-  // 更新 + 淡入
-  const mapping = {
-    todayDeliveries: newData.pallets ?? newData.todayDeliveries,
-    vehicleUsage: (newData.nonZeroPct ?? newData.vehicleUsage) + '%',
-    onTimeRate: newData.lastB ?? newData.onTimeRate,
-    alertCount: newData.alert ?? newData.alertCount
-  };
-  Object.entries(mapping).forEach(([id,val])=>{
-    const el=document.getElementById(id);
-    if(!el) return;
-    el.textContent = val;
-    el.classList.add('updated');
-    el.classList.remove('fast-show');
-    el.classList.add('fade-in');
-    setTimeout(()=>{ el.classList.remove('fade-in'); },600);
-  });
-  updateDashboardTimestamp(Date.now());
-};
-
-/* ============== 改寫 loadDashboard，支援快取先行 ============== */
-const originalLoadDashboard = DispatchGAISystem.prototype.loadDashboard;
-DispatchGAISystem.prototype.loadDashboard = async function(){
-  try {
-    // 1. 快取先行
-    const cached = DashboardCache.get();
-    if (cached) {
-      this.renderDashboardFast(cached);
-    }
-    // 2. 真實載入（使用你原本的 loadDashboard 流程，但移除 showLoading 以降低遮罩感）
-    // 簡化：直接呼叫原本內容（clone）
-    await originalLoadDashboard.apply(this);
-    // 3. 把最新資料打包寫入快取
-    try {
-      const latest = {
-        pallets: parseFloat(document.getElementById('todayDeliveries').textContent) || 0,
-        nonZeroPct: parseFloat(document.getElementById('vehicleUsage').textContent) || 0,
-        lastB: document.getElementById('onTimeRate').textContent,
-        alert: document.getElementById('alertCount').textContent
-      };
-      DashboardCache.set(latest);
-      this.applyDashboardUpdate(latest);
-    } catch(e){}
-  } catch(e){
-    console.warn('載入儀表板失敗(含快取邏輯):',e);
-  } finally {
-    // 移除 fast-show 過渡
-    setTimeout(()=>{
-      ['todayDeliveries','vehicleUsage','onTimeRate','alertCount'].forEach(id=>{
-        const el=document.getElementById(id);
-        el && el.classList.remove('fast-show');
-      });
-    },800);
-  }
-};
-
-/* ============== 登入後背景預取 (常用地址 + 儀表板快取刷新) ============== */
-DispatchGAISystem.prototype.prefetchAfterLogin = async function(){
-  // 不阻塞 UI，只做 console 標記
-  console.log('[Prefetch] 開始背景預取');
-  const tasks = [];
-  // 預取路線 / 地址(常用 geocode) 示例：
-  tasks.push(
-    this.apiCall('getRouteTableFromExternalSheet',{
-      targetSpreadsheetId:'1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-    }).then(data=>{
-      // 做一個地址集合 (前 80 筆)
-      const addresses = [];
-      data.slice(0,80).forEach(row=>{
-        for(let i=1;i<=5;i++){
-          const a = row['地址'+i];
-            if(a && !addresses.includes(a)) addresses.push(a);
-        }
-      });
-      localStorage.setItem('prefetch_addresses_v1', JSON.stringify({ts:Date.now(),list:addresses}));
-      console.log('[Prefetch] 地址數量:', addresses.length);
-    }).catch(()=>{})
-  );
-  // 刷新儀表板再次寫入（補強快取）
-  tasks.push(this.loadDashboard().catch(()=>{}));
-  Promise.allSettled(tasks).then(()=>console.log('[Prefetch] 完成'));
-};
-
-/* ============== 長任務封裝示例：改造 fetchDeliveryPoints 使用步驟條 ============== */
-/* 下面是一個“範例改造版本”，不會破壞你原本的函數；你可以逐步替換 */
-
-DispatchGAISystem.prototype.fetchDeliveryPointsWithSteps = async function(){
-  const dateInput = document.getElementById('deliveryDatePicker').value;
-  if(!dateInput){ this.showNotification('請選擇日期','warning'); return; }
-
-  const steps = ['準備日期','觸發外部產生','等待產物','抓取資料並顯示'];
-  const task = TaskProgress.start('fetchDeliveryPoints','收送點資料同步',steps);
-
-  const update = (i, label, pctBase) => {
-    if(task.canceled) throw new Error('使用者已中斷');
-    TaskProgress.setStepRunning(i);
-    TaskProgress.updateProgress(pctBase,label);
-  };
-  const finishStep = (i, label, pct) => {
-    TaskProgress.setStepDone(i,label);
-    TaskProgress.updateProgress(pct,label);
-  };
-
-  try{
-    // Step 1
-    update(0,'設定日期...');
-    await this.apiCall('setSpecifiedDateToExternalSheet',{
-      date: this.formatDateForSheet(dateInput),
-      targetSpreadsheetId:'1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-    });
-    finishStep(0,'已設定', 15);
-
-    // Step 2
-    update(1,'呼叫外部流程...');
-    await this.executeExternalAutoCompleteProcess();
-    finishStep(1,'流程啟動', 35);
-
-    // Step 3
-    update(2,'等待資料生成...');
-    // 等待期間可做輪詢或固定延遲
-    for (let i=0;i<3;i++){
-      if(task.canceled) throw new Error('使用者已中斷');
-      await this.delay(1500);
-      TaskProgress.updateProgress(35 + (i+1)*8, `等待中 (${i+1}/3)...`);
-    }
-    finishStep(2,'生成完成', 65);
-
-    // Step 4
-    update(3,'抓取並過濾...');
-    const data = await this.getFilteredDeliveryReportWithRetryNoLoading(2,2500);
-    this.displayDeliveryReport(data);
-    finishStep(3,'顯示完成',100);
-    TaskProgress.complete('完成');
-    this.showNotification('收送點資料同步完成','success');
-  }catch(err){
-    console.error(err);
-    const current = task ? task.steps.findIndex(s=>s.status!=='done' && !s.error) : 0;
-    TaskProgress.setStepError(Math.max(current,0), '發生錯誤');
-    TaskProgress.updateProgress(100,'失敗');
-    this.showNotification(err.message || '同步失敗','error');
-    setTimeout(()=>TaskProgress.hide(), 1500);
-  }
-};
-
-/* 讓原本按鈕使用新的步驟版本（不移除原版，可平行測試） */
-document.addEventListener('DOMContentLoaded', ()=>{
-  const btn = document.getElementById('fetchDeliveryPointsBtn');
-  if(btn){
-    btn.addEventListener('contextmenu', e=>{
-      // 右鍵改成使用新版測試
-      e.preventDefault();
-      app.fetchDeliveryPointsWithSteps();
-    });
-  }
-});
-
-/* ============== 將登入流程後接上 prefetch ============== */
-const originalHandleLogin = DispatchGAISystem.prototype.handleLogin;
-DispatchGAISystem.prototype.handleLogin = async function(){
-  await originalHandleLogin.apply(this);
-  if(this.isLoggedIn){
-    // 背景預取（不阻塞）
-    this.prefetchAfterLogin();
-  }
-};
 
 
                 // AI優化事件
@@ -9140,6 +8961,188 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('版本: 1.0.0');
         console.log('作者: 昶青智慧冷鏈物流技術團隊');
         console.log('最後更新: 2025-06-27');
+
+        /* ========= 儀表板顯示快取優先 → 再淡入更新 ========= */
+DispatchGAISystem.prototype.renderDashboardFast = function(cached){
+  if(!cached) return;
+  const d = cached.data;
+  // 先套數值：加上 fast-show 樣式
+  document.getElementById('todayDeliveries').textContent = d.pallets ?? d.todayDeliveries ?? '-';
+  document.getElementById('vehicleUsage').textContent = (d.nonZeroPct ?? d.vehicleUsage ?? '-') + '%';
+  document.getElementById('onTimeRate').textContent = d.lastB ?? d.onTimeRate ?? '-';
+  document.getElementById('alertCount').textContent = d.alert ?? d.alertCount ?? '-';
+  ['todayDeliveries','vehicleUsage','onTimeRate','alertCount'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.add('fast-show');
+  });
+  updateDashboardTimestamp(cached.ts);
+};
+
+DispatchGAISystem.prototype.applyDashboardUpdate = function(newData){
+  // 更新 + 淡入
+  const mapping = {
+    todayDeliveries: newData.pallets ?? newData.todayDeliveries,
+    vehicleUsage: (newData.nonZeroPct ?? newData.vehicleUsage) + '%',
+    onTimeRate: newData.lastB ?? newData.onTimeRate,
+    alertCount: newData.alert ?? newData.alertCount
+  };
+  Object.entries(mapping).forEach(([id,val])=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.textContent = val;
+    el.classList.add('updated');
+    el.classList.remove('fast-show');
+    el.classList.add('fade-in');
+    setTimeout(()=>{ el.classList.remove('fade-in'); },600);
+  });
+  updateDashboardTimestamp(Date.now());
+};
+
+/* ============== 改寫 loadDashboard，支援快取先行 ============== */
+const originalLoadDashboard = DispatchGAISystem.prototype.loadDashboard;
+DispatchGAISystem.prototype.loadDashboard = async function(){
+  try {
+    // 1. 快取先行
+    const cached = DashboardCache.get();
+    if (cached) {
+      this.renderDashboardFast(cached);
+    }
+    // 2. 真實載入（使用你原本的 loadDashboard 流程，但移除 showLoading 以降低遮罩感）
+    // 簡化：直接呼叫原本內容（clone）
+    await originalLoadDashboard.apply(this);
+    // 3. 把最新資料打包寫入快取
+    try {
+      const latest = {
+        pallets: parseFloat(document.getElementById('todayDeliveries').textContent) || 0,
+        nonZeroPct: parseFloat(document.getElementById('vehicleUsage').textContent) || 0,
+        lastB: document.getElementById('onTimeRate').textContent,
+        alert: document.getElementById('alertCount').textContent
+      };
+      DashboardCache.set(latest);
+      this.applyDashboardUpdate(latest);
+    } catch(e){}
+  } catch(e){
+    console.warn('載入儀表板失敗(含快取邏輯):',e);
+  } finally {
+    // 移除 fast-show 過渡
+    setTimeout(()=>{
+      ['todayDeliveries','vehicleUsage','onTimeRate','alertCount'].forEach(id=>{
+        const el=document.getElementById(id);
+        el && el.classList.remove('fast-show');
+      });
+    },800);
+  }
+};
+
+/* ============== 登入後背景預取 (常用地址 + 儀表板快取刷新) ============== */
+DispatchGAISystem.prototype.prefetchAfterLogin = async function(){
+  // 不阻塞 UI，只做 console 標記
+  console.log('[Prefetch] 開始背景預取');
+  const tasks = [];
+  // 預取路線 / 地址(常用 geocode) 示例：
+  tasks.push(
+    this.apiCall('getRouteTableFromExternalSheet',{
+      targetSpreadsheetId:'1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+    }).then(data=>{
+      // 做一個地址集合 (前 80 筆)
+      const addresses = [];
+      data.slice(0,80).forEach(row=>{
+        for(let i=1;i<=5;i++){
+          const a = row['地址'+i];
+            if(a && !addresses.includes(a)) addresses.push(a);
+        }
+      });
+      localStorage.setItem('prefetch_addresses_v1', JSON.stringify({ts:Date.now(),list:addresses}));
+      console.log('[Prefetch] 地址數量:', addresses.length);
+    }).catch(()=>{})
+  );
+  // 刷新儀表板再次寫入（補強快取）
+  tasks.push(this.loadDashboard().catch(()=>{}));
+  Promise.allSettled(tasks).then(()=>console.log('[Prefetch] 完成'));
+};
+
+/* ============== 長任務封裝示例：改造 fetchDeliveryPoints 使用步驟條 ============== */
+/* 下面是一個“範例改造版本”，不會破壞你原本的函數；你可以逐步替換 */
+
+DispatchGAISystem.prototype.fetchDeliveryPointsWithSteps = async function(){
+  const dateInput = document.getElementById('deliveryDatePicker').value;
+  if(!dateInput){ this.showNotification('請選擇日期','warning'); return; }
+
+  const steps = ['準備日期','觸發外部產生','等待產物','抓取資料並顯示'];
+  const task = TaskProgress.start('fetchDeliveryPoints','收送點資料同步',steps);
+
+  const update = (i, label, pctBase) => {
+    if(task.canceled) throw new Error('使用者已中斷');
+    TaskProgress.setStepRunning(i);
+    TaskProgress.updateProgress(pctBase,label);
+  };
+  const finishStep = (i, label, pct) => {
+    TaskProgress.setStepDone(i,label);
+    TaskProgress.updateProgress(pct,label);
+  };
+
+  try{
+    // Step 1
+    update(0,'設定日期...');
+    await this.apiCall('setSpecifiedDateToExternalSheet',{
+      date: this.formatDateForSheet(dateInput),
+      targetSpreadsheetId:'1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+    });
+    finishStep(0,'已設定', 15);
+
+    // Step 2
+    update(1,'呼叫外部流程...');
+    await this.executeExternalAutoCompleteProcess();
+    finishStep(1,'流程啟動', 35);
+
+    // Step 3
+    update(2,'等待資料生成...');
+    // 等待期間可做輪詢或固定延遲
+    for (let i=0;i<3;i++){
+      if(task.canceled) throw new Error('使用者已中斷');
+      await this.delay(1500);
+      TaskProgress.updateProgress(35 + (i+1)*8, `等待中 (${i+1}/3)...`);
+    }
+    finishStep(2,'生成完成', 65);
+
+    // Step 4
+    update(3,'抓取並過濾...');
+    const data = await this.getFilteredDeliveryReportWithRetryNoLoading(2,2500);
+    this.displayDeliveryReport(data);
+    finishStep(3,'顯示完成',100);
+    TaskProgress.complete('完成');
+    this.showNotification('收送點資料同步完成','success');
+  }catch(err){
+    console.error(err);
+    const current = task ? task.steps.findIndex(s=>s.status!=='done' && !s.error) : 0;
+    TaskProgress.setStepError(Math.max(current,0), '發生錯誤');
+    TaskProgress.updateProgress(100,'失敗');
+    this.showNotification(err.message || '同步失敗','error');
+    setTimeout(()=>TaskProgress.hide(), 1500);
+  }
+};
+
+/* 讓原本按鈕使用新的步驟版本（不移除原版，可平行測試） */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('fetchDeliveryPointsBtn');
+  if(btn){
+    btn.addEventListener('contextmenu', e=>{
+      // 右鍵改成使用新版測試
+      e.preventDefault();
+      app.fetchDeliveryPointsWithSteps();
+    });
+  }
+});
+
+/* ============== 將登入流程後接上 prefetch ============== */
+const originalHandleLogin = DispatchGAISystem.prototype.handleLogin;
+DispatchGAISystem.prototype.handleLogin = async function(){
+  await originalHandleLogin.apply(this);
+  if(this.isLoggedIn){
+    // 背景預取（不阻塞）
+    this.prefetchAfterLogin();
+  }
+};
 
         // 工具：將 yyyy-mm-dd 轉 yyyy/MM/dd
 function formatDateForSheet(dateStr) {
