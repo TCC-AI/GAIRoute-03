@@ -3340,7 +3340,7 @@ justify-content:flex-end; / 右靠齊 */
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbyPXhuvKPzy2zWmH6KCnwZVBdjNuuZvUAeVoRomj4BsS5xSiM4WSOXKF8_Pg20YWxhR/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwHbqMrk4tbt-OScuPNmQEDcoU2CYdorqc8xTK5BG7mkp00hBzcUkfLWUhBkg4unmX9/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4535,7 +4535,7 @@ document.getElementById('debugRouteData')?.addEventListener('click', async () =>
                     elements.loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登入';
                 }
             }
-            // 獲取上次查詢資料（託收託運回報_篩選）
+// 獲取上次查詢資料（託收託運回報_篩選）- 修正版
 async fetchLastQueryData() {
     const container = document.getElementById('deliveryPointsTableContainer');
     
@@ -4545,8 +4545,8 @@ async fetchLastQueryData() {
     try {
         console.log('開始獲取託收託運回報_篩選資料...');
         
-        // 呼叫API獲取指定工作表的資料
-        const result = await this.apiCall('getFilteredDeliveryReport', {
+        // 🔥 修正：使用正確的 API 端點
+        const result = await this.apiCall('getLastQueryData', {
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
             sheetName: '託收託運回報_篩選' // 指定工作表名稱
         });
@@ -4575,6 +4575,7 @@ async fetchLastQueryData() {
         this.showNotification(`載入失敗: ${error.message}`, 'error');
     }
 }
+
 
 // 顯示上次查詢報告資料
 displayLastQueryReport(data) {
