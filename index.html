@@ -2521,6 +2521,23 @@ justify-content:flex-end; / 右靠齊 */
   .lod-title { font-size:1.1rem; }
   .lod-message { font-size:.85rem; }
 }
+        /* 在現有CSS中添加或修改 */
+.card-header > div:last-child {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#lastQueryBtn {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    border-color: #06b6d4;
+}
+
+#lastQueryBtn:hover {
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+    transform: translateY(-1px);
+}
+
 
     </style>
 <body>
@@ -2943,6 +2960,10 @@ justify-content:flex-end; / 右靠齊 */
                       <button class="btn btn-primary btn-sm" id="fetchDeliveryPointsBtn">
                         <i class="fas fa-search"></i> 查詢
                       </button>
+                                         <!-- 新增上次查詢按鈕 -->
+                        <button class="btn btn-info btn-sm" id="lastQueryBtn">
+                          <i class="fas fa-history"></i> 上次查詢
+                        </button>
                     </div>
                   </div>
                   <div class="card-body" style="padding: 1rem;">
@@ -3319,7 +3340,7 @@ justify-content:flex-end; / 右靠齊 */
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbxhsO81baJvmVeR64QUSeN_r03vUkujhSeIl3ysl9VrSN6PRFT2RxYn8exO9q0ulIwY/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzsgTcvWLRvedTsGMEgVJsW7KONxXxhxvJAvHkpWqLniJzMgE332JpkeVGqqkW_-w3M/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4354,6 +4375,10 @@ document.getElementById('ai-preplan-btn-b')?.addEventListener('click', async () 
 document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', async () => {
     await this.fetchDeliveryPoints();
 });
+                // 新增上次查詢按鈕事件
+document.getElementById('lastQueryBtn')?.addEventListener('click', async () => {
+    await this.fetchLastQueryData();
+});
 // 派車收送點查詢按鈕
 document.getElementById('fetchDeliveryPointsBtn')?.addEventListener('click', async () => {
     await this.fetchDeliveryPoints();
@@ -4510,6 +4535,135 @@ document.getElementById('debugRouteData')?.addEventListener('click', async () =>
                     elements.loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登入';
                 }
             }
+            // 獲取上次查詢資料（託收託運回報_篩選）
+async fetchLastQueryData() {
+    const container = document.getElementById('deliveryPointsTableContainer');
+    
+    // 顯示載入狀態
+    this.showPartialLoading('deliveryPointsTableContainer', '正在載入上次查詢資料...');
+    
+    try {
+        console.log('開始獲取託收託運回報_篩選資料...');
+        
+        // 呼叫API獲取指定工作表的資料
+        const result = await this.apiCall('getFilteredDeliveryReport', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '託收託運回報_篩選' // 指定工作表名稱
+        });
+        
+        console.log('API 返回結果:', result);
+        
+        if (result && result.length > 0) {
+            // 顯示資料
+            this.displayLastQueryReport(result);
+            this.showNotification(`成功載入上次查詢資料，共 ${result.length} 筆`, 'success');
+        } else {
+            // 無資料時的顯示
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #64748b;">
+                    <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>託收託運回報_篩選工作表暫無資料</p>
+                    <p><small>請先執行一般查詢以產生篩選資料</small></p>
+                </div>
+            `;
+            this.showNotification('暫無上次查詢資料', 'info');
+        }
+        
+    } catch (error) {
+        console.error('獲取上次查詢資料失敗:', error);
+        this.showErrorState('deliveryPointsTableContainer', error.message);
+        this.showNotification(`載入失敗: ${error.message}`, 'error');
+    }
+}
+
+// 顯示上次查詢報告資料
+displayLastQueryReport(data) {
+    const container = document.getElementById('deliveryPointsTableContainer');
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: #64748b;">
+                <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <p>託收託運回報_篩選工作表尚未生成或無資料</p>
+                <p><small>請先執行一般查詢</small></p>
+            </div>
+        `;
+        return;
+    }
+
+    // 生成表格
+    const headers = Object.keys(data[0]);
+    let tableHtml = `
+        <div style="margin-bottom: 1rem; padding: 1rem; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #06b6d4;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #06b6d4;">
+                <i class="fas fa-history"></i> 上次查詢資料 - 託收託運回報_篩選
+            </h4>
+            <p style="margin: 0; color: #64748b; font-size: 0.875rem;">
+                資料載入時間: ${new Date().toLocaleString('zh-TW')} | 共 ${data.length} 筆資料
+            </p>
+        </div>
+        <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc;">
+    `;
+    
+    headers.forEach(header => {
+        tableHtml += `<th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #374151;">${header}</th>`;
+    });
+    
+    tableHtml += `
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    data.forEach((row, index) => {
+        const bgColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+        tableHtml += `<tr style="background-color: ${bgColor};">`;
+        headers.forEach(header => {
+            let cellValue = row[header] || '';
+            // 如果是數字，右對齊
+            const isNumber = !isNaN(cellValue) && cellValue !== '';
+            const textAlign = isNumber ? 'right' : 'left';
+            tableHtml += `<td style="padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: ${textAlign};">${cellValue}</td>`;
+        });
+        tableHtml += '</tr>';
+    });
+    
+    tableHtml += `
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 1rem; text-align: right;">
+            <button class="btn btn-primary btn-sm" onclick="app.exportLastQueryReport()">
+                <i class="fas fa-download"></i> 匯出報告
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="app.refreshLastQueryReport()" style="margin-left: 0.5rem;">
+                <i class="fas fa-sync-alt"></i> 重新整理
+            </button>
+        </div>
+    `;
+    
+    container.innerHTML = tableHtml;
+    
+    // 隱藏展開按鈕
+    const toggleBtn = document.getElementById('toggleDeliveryPoints');
+    if (toggleBtn) {
+        toggleBtn.style.display = 'none';
+    }
+}
+
+// 匯出上次查詢報告
+exportLastQueryReport() {
+    this.showNotification('匯出功能開發中...', 'info');
+}
+
+// 重新整理上次查詢報告
+refreshLastQueryReport() {
+    this.fetchLastQueryData();
+}
+
 
             // 驗證使用者
             async authenticateUser(username, password) {
