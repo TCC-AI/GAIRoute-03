@@ -4307,7 +4307,7 @@ DispatchGAISystem.prototype.fetchDeliveryPointsWithSteps = async function(){
 
     // Step 2
     update(1,'呼叫外部流程...');
-    await this.executeExternalAutoCompleteProcess();
+    await this.executeExternalautoCompleteProcessPhase1();
     finishStep(1,'流程啟動', 35);
 
     // Step 3
@@ -4941,8 +4941,8 @@ async fetchDeliveryPoints() {
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
         });
         
-        // 2. 自動執行外部 GAS 的 autoCompleteProcess 程序
-        await this.executeExternalAutoCompleteProcess();
+        // 2. 自動執行外部 GAS 的 autoCompleteProcessPhase1 程序
+        await this.executeExternalautoCompleteProcessPhase1();
         
         if (loadingSpinner) {
             loadingSpinner.textContent = '正在等待工作表生成...';
@@ -5134,9 +5134,9 @@ refreshDeliveryReport() {
     }
 }
 
-// 執行外部 GAS 的 autoCompleteProcess 程序（修正 CORS 版本）
-async executeExternalAutoCompleteProcess() {
-    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbwyRPZYE4saHRxTzw0Ov90IKNtHcUbDSURFfTt-ZxHhH-H4rM7WjhtN1WIxguYTNTIooA/exec';
+// 執行外部 GAS 的 autoCompleteProcessPhase1 程序（修正 CORS 版本）
+async executeExternalautoCompleteProcessPhase1() {
+    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbxskzGszkDjPEipwV03jMs757z8PIxehlIYUMLl6KMYteYAqu1JxO2vYN0oVzXAsIJ1OQ/exec';
     
     try {
         // 先測試 GET 請求確認服務可用
@@ -5154,7 +5154,7 @@ async executeExternalAutoCompleteProcess() {
                 'Content-Type': 'text/plain', // 改用 text/plain 避免預檢請求
             },
             body: JSON.stringify({
-                action: 'autoCompleteProcess',
+                action: 'autoCompleteProcessPhase1',
                 data: {
                     timestamp: new Date().toISOString(),
                     source: '昶青智慧冷鏈物流派車系統'
@@ -5174,7 +5174,7 @@ async executeExternalAutoCompleteProcess() {
         };
         
     } catch (error) {
-        console.error('執行外部 autoCompleteProcess 失敗:', error);
+        console.error('執行外部 autoCompleteProcessPhase1 失敗:', error);
         
         // 提供更友善的錯誤訊息
         if (error.name === 'TypeError') {
