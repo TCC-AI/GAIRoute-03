@@ -3079,7 +3079,7 @@ justify-content:flex-end; / 右靠齊 */
                     <span>路線管理</span>
                 </li>
                                 <!-- 新增：各配送點細節 -->
-                <li class="menu-item" data-page="delivery-point-details" data-permission="route-management">
+                <li class="menu-item" data-page="delivery_point_details" data-permission="route-management">
                     <i class="fas fa-map-marked-alt"></i>
                     <span>各配送點細節</span>
                 </li>
@@ -3609,7 +3609,7 @@ justify-content:flex-end; / 右靠齊 */
             </div>
 
             <!-- 各配送點細節頁面 -->
-<div id="delivery-point-details" class="page">
+<div id="delivery_point_details" class="page">
     <div class="page-header">
         <h2><i class="fas fa-map-marked-alt"></i> 各配送點細節</h2>
         <div class="header-actions">
@@ -5480,7 +5480,7 @@ optimizeDeliveryRoute() {
 }
 
 // 在 loadPageData 方法中添加新的 case
-case 'delivery-point-details':
+case 'delivery_point_details':
     await this.loadDeliveryPointDetails();
     break;
             // === 新增：訂單通知相關 ===
