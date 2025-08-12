@@ -8,6 +8,32 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        @keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.data-source-indicator {
+    transition: all 0.3s ease;
+}
+
         /* 針對GAI秘書頭像的樣式調整 */
 .gai-secretary-avatar {
     width: 240px;
@@ -3893,6 +3919,238 @@ justify-content:flex-end; / 右靠齊 */
                     ttl: 300000 // 5分鐘快取
                 };
                         }
+            // 新增：主控台資料快取
+        this.dashboardCache = {
+            data: null,
+            timestamp: 0,
+            ttl: 60000 // 1分鐘快取時間
+        };
+        
+        // 新增：頁面切換記錄
+        this.lastPageSwitch = 0;
+        this.minRefreshInterval = 30000; // 最小重新整理間隔：30秒
+    }
+    
+    // 修改後的 loadDashboard 方法
+    async loadDashboard(forceRefresh = false) {
+        const now = Date.now();
+        
+        // 檢查是否需要重新載入
+        if (!forceRefresh && this.shouldUseCachedData(now)) {
+            console.log('使用快取資料，跳過重新載入');
+            this.renderCachedDashboard();
+            return;
+        }
+        
+        // 如果距離上次切換頁面時間很短，使用輕量級更新
+        if (!forceRefresh && (now - this.lastPageSwitch) < this.minRefreshInterval) {
+            console.log('使用輕量級更新');
+            await this.lightweightDashboardUpdate();
+            return;
+        }
+        
+        // 執行完整載入
+        await this.fullDashboardLoad();
+    }
+    
+    // 檢查是否應該使用快取資料
+    shouldUseCachedData(now) {
+        return this.dashboardCache.data && 
+               (now - this.dashboardCache.timestamp) < this.dashboardCache.ttl;
+    }
+    
+    // 渲染快取的主控台資料
+    renderCachedDashboard() {
+        if (!this.dashboardCache.data) return;
+        
+        const data = this.dashboardCache.data;
+        
+        // 快速更新數值（不顯示載入遮罩）
+        document.getElementById('todayDeliveries').textContent = data.todayDeliveries;
+        document.getElementById('vehicleUsage').textContent = data.vehicleUsage;
+        document.getElementById('onTimeRate').textContent = data.onTimeRate;
+        document.getElementById('alertCount').textContent = data.alertCount;
+        
+        // 顯示資料來源提示
+        this.showDataSourceIndicator('快取資料');
+    }
+    
+    // 輕量級主控台更新
+    async lightweightDashboardUpdate() {
+        try {
+            // 只顯示小型載入指示器
+            this.showMiniLoading();
+            
+            // 只更新關鍵數據，不重新載入所有內容
+            const criticalData = await this.getCriticalDashboardData();
+            
+            // 更新關鍵數值
+            this.updateCriticalValues(criticalData);
+            
+            // 更新快取
+            this.updateDashboardCache(criticalData);
+            
+            this.showDataSourceIndicator('部分更新');
+            
+        } catch (error) {
+            console.error('輕量級更新失敗:', error);
+            // 降級到完整載入
+            await this.fullDashboardLoad();
+        } finally {
+            this.hideMiniLoading();
+        }
+    }
+    
+    // 完整主控台載入
+    async fullDashboardLoad() {
+        this.showLoading('正在載入主控台資料...', true);
+        
+        try {
+            // 原有的完整載入邏輯
+            const dashboardData = await this.getFullDashboardData();
+            
+            // 更新所有數值
+            this.updateAllDashboardValues(dashboardData);
+            
+            // 更新快取
+            this.updateDashboardCache(dashboardData);
+            
+            this.showDataSourceIndicator('最新資料');
+            
+        } catch (error) {
+            console.error('載入主控台資料失敗:', error);
+            this.showNotification('載入主控台資料失敗', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    // 更新主控台快取
+    updateDashboardCache(data) {
+        this.dashboardCache = {
+            data: { ...data },
+            timestamp: Date.now(),
+            ttl: 60000
+        };
+    }
+    
+    // 顯示資料來源指示器
+    showDataSourceIndicator(source) {
+        const indicator = document.createElement('div');
+        indicator.className = 'data-source-indicator';
+        indicator.innerHTML = `
+            <i class="fas fa-info-circle"></i>
+            <span>${source} - ${new Date().toLocaleTimeString()}</span>
+        `;
+        indicator.style.cssText = `
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            background: rgba(14, 165, 233, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1001;
+            animation: slideInRight 0.3s ease;
+        `;
+        
+        document.body.appendChild(indicator);
+        
+        // 3秒後自動移除
+        setTimeout(() => {
+            if (indicator.parentNode) {
+                indicator.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    indicator.parentNode.removeChild(indicator);
+                }, 300);
+            }
+        }, 3000);
+    }
+    
+    // 小型載入指示器
+    showMiniLoading() {
+        const miniLoader = document.createElement('div');
+        miniLoader.id = 'miniLoader';
+        miniLoader.innerHTML = `
+            <i class="fas fa-sync-alt fa-spin"></i>
+            <span>更新中...</span>
+        `;
+        miniLoader.style.cssText = `
+            position: fixed;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.75rem 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1001;
+            font-size: 0.9rem;
+            color: #0ea5e9;
+        `;
+        
+        document.body.appendChild(miniLoader);
+    }
+    
+    // 隱藏小型載入指示器
+    hideMiniLoading() {
+        const miniLoader = document.getElementById('miniLoader');
+        if (miniLoader) {
+            miniLoader.parentNode.removeChild(miniLoader);
+        }
+    }
+    
+    // 修改頁面切換方法
+    switchPage(pageName) {
+        // 記錄頁面切換時間
+        this.lastPageSwitch = Date.now();
+        
+        // 原有的頁面切換邏輯...
+        if (!this.hasPermission(pageName)) {
+            this.showAccessDenied(pageName);
+            return;
+        }
+
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+        });
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        const targetPage = document.getElementById(pageName);
+        if (targetPage) {
+            targetPage.classList.add('active');
+        }
+
+        const targetMenuItem = document.querySelector(`[data-page="${pageName}"]`);
+        if (targetMenuItem) {
+            targetMenuItem.classList.add('active');
+        }
+
+        this.currentPage = pageName;
+
+        // 智能載入頁面資料
+        this.smartLoadPageData(pageName);
+    }
+    
+    // 智能載入頁面資料
+    async smartLoadPageData(pageName) {
+        if (!this.hasPermission(pageName)) {
+            this.showAccessDenied(pageName);
+            return;
+        }
+
+        switch (pageName) {
+            case 'dashboard':
+                // 使用智能載入，而不是強制重新載入
+                await this.loadDashboard(false); // false = 不強制重新整理
+                break;
+            case 'route-management':
+                await this.loadRouteManagement();
+                break;
 
             // 初始化系統
             init() {
@@ -3957,9 +4215,10 @@ async getRoutePalletNonZeroCountWithCache() {
                 });
 
                 // 主控台按鈕事件
-                document.getElementById('refreshDashboard')?.addEventListener('click', () => {
-                    this.loadDashboard();
-                });
+               // 修改重新整理按鈕事件
+document.getElementById('refreshDashboard')?.addEventListener('click', () => {
+    this.loadDashboard(true); // true = 強制重新整理
+});
 
                 // 地圖模式切換
                 document.getElementById('toggleMapView')?.addEventListener('click', () => {
