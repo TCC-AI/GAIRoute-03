@@ -3892,16 +3892,6 @@ justify-content:flex-end; / 右靠齊 */
                     timestamp: 0,
                     ttl: 300000 // 5分鐘快取
                 };
-                // 🔥 在這裡添加新的快取管理屬性
-        this.dashboardCache = {
-            data: null,
-            timestamp: 0,
-            ttl: 60000 // 1分鐘快取時間
-        };
-        
-        // 新增：頁面切換記錄
-        this.lastPageSwitch = 0;
-        this.minRefreshInterval = 30000; // 最小重新整理間隔：30秒
                         }
 
             // 初始化系統
@@ -6837,51 +6827,82 @@ async showRouteAddresses(routeName) {
                 return mockData[action] || {};
             }
 
-// 🔥 完整替換現有的 loadDashboard 方法
-async loadDashboard(forceRefresh = false) {
-    const now = Date.now();
-    
-    // 檢查是否需要重新載入
-    if (!forceRefresh && this.shouldUseCachedData(now)) {
-        console.log('使用快取資料，跳過重新載入');
-        this.renderCachedDashboard();
-        return;
+// 載入主控台資料 (修改版)
+async loadDashboard() {
+     this.showLoading('正在載入主控台資料...', true); // 允許互動
+    try {
+        let dashboardData;
+        let routePalletSum = 0;
+        let routePalletNonZeroPercentage = 0;
+        let routeTableLastBValue = 0;
+        let routeTableAlertValue = 0;
+        
+        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
+            dashboardData = this.getMockData('getDashboardData');
+            routePalletSum = 163; // 模擬資料
+            routePalletNonZeroPercentage = 10; // 模擬百分比
+            routeTableLastBValue = 7436.04; // 模擬路線表B欄位最後值
+            routeTableAlertValue = 2.01; // 模擬異常警示值 (7436.04 × 0.27 ÷ 1000)
+            if (!this.isOnline) {
+                this.showNotification('目前使用離線模式', 'warning');
+            }
+        } else {
+            // 獲取基本儀表板資料
+            dashboardData = await this.apiCall('getDashboardData');
+            
+            // 同時獲取各項數據
+            try {
+                const [palletSum, nonZeroPercentage, lastBValue, alertValue] = await Promise.all([
+                    this.apiCall('getRoutePalletSum', {
+                        targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+                    }),
+                    this.apiCall('getRoutePalletNonZeroPercentage', {
+                        targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+                    }),
+                    this.apiCall('getRouteTableLastBValue', {
+                        targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+                    }),
+                    this.apiCall('getRouteTableAlertValue', {
+                        targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+                    })
+                ]);
+                
+                routePalletSum = palletSum;
+                routePalletNonZeroPercentage = nonZeroPercentage;
+                routeTableLastBValue = lastBValue;
+                routeTableAlertValue = alertValue;
+                
+            } catch (error) {
+                console.error('獲取外部資料失敗:', error);
+                routePalletSum = 0;
+                routePalletNonZeroPercentage = 0;
+                routeTableLastBValue = 0;
+                routeTableAlertValue = 0;
+            }
+        }
+        
+        // 更新統計數據
+        document.getElementById('todayDeliveries').textContent = routePalletSum;
+        document.getElementById('vehicleUsage').textContent = `${routePalletNonZeroPercentage}%`;
+        document.getElementById('onTimeRate').textContent = routeTableLastBValue;
+        document.getElementById('alertCount').textContent = routeTableAlertValue; // 顯示計算後的異常警示值
+
+        // 根據異常警示值更新樣式
+        const alertElement = document.getElementById('alertCount');
+        if (routeTableAlertValue > 2) { // 可以根據需要調整閾值
+            alertElement.classList.add('alert');
+        } else {
+            alertElement.classList.remove('alert');
+        }
+
+    } catch (error) {
+        console.error('載入主控台資料失敗:', error);
+        this.showNotification('載入主控台資料失敗', 'error');
+    } finally {
+        this.hideLoading();
     }
-    
-    // 如果距離上次切換頁面時間很短，使用輕量級更新
-    if (!forceRefresh && (now - this.lastPageSwitch) < this.minRefreshInterval) {
-        console.log('使用輕量級更新');
-        await this.lightweightDashboardUpdate();
-        return;
-    }
-    
-    // 執行完整載入
-    await this.fullDashboardLoad();
 }
 
-// 🔥 從這裡開始插入所有新代碼 ↓↓↓
-
-// 檢查是否應該使用快取資料
-shouldUseCachedData(now) {
-    return this.dashboardCache.data && 
-           (now - this.dashboardCache.timestamp) < this.dashboardCache.ttl;
-}
-
-// 渲染快取的主控台資料
-renderCachedDashboard() {
-    if (!this.dashboardCache.data) return;
-    
-    const data = this.dashboardCache.data;
-    
-    // 快速更新數值（不顯示載入遮罩）
-    document.getElementById('todayDeliveries').textContent = data.todayDeliveries || data.routePalletSum || '0';
-    document.getElementById('vehicleUsage').textContent = (data.vehicleUsage || data.routePalletNonZeroPercentage || '0') + '%';
-    document.getElementById('onTimeRate').textContent = data.onTimeRate || data.routeTableLastBValue || '0';
-    document.getElementById('alertCount').textContent = data.alertCount || data.routeTableAlertValue || '0';
-    
-    // 顯示資料來源提示
-    this.showDataSourceIndicator('快取資料');
-}
 
 
 
