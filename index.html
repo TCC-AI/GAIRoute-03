@@ -4045,122 +4045,73 @@ showOrderAnalysisModal(time, content) {
     }, 50);
 }
 
-/**
- * 動態創建訂單分析模態視窗
- */
-createOrderAnalysisModal() {
-    const modalHtml = `
-        <div id="orderAnalysisModal" class="modal" style="display: none;">
-            <div class="modal-content" style="
-                max-width: 800px;
-                transform: scale(0.9);
-                opacity: 0;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            ">
-                <div class="modal-header" style="
-                    background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
-                    color: white;
-                    border-radius: 24px 24px 0 0;
-                    padding: 2rem;
-                ">
-                    <h3 style="
-                        color: white;
-                        margin: 0;
-                        font-size: 1.5rem;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.75rem;
-                    ">
-                        <i class="fas fa-chart-line"></i>
-                        GAI每日訂單分析 - 最新資訊
-                    </h3>
-                    <span class="modal-close" id="orderAnalysisClose" style="
-                        color: white;
-                        font-size: 1.5rem;
-                        cursor: pointer;
-                        padding: 0.5rem;
-                        border-radius: 8px;
-                        transition: all 0.2s ease;
-                    ">&times;</span>
-                </div>
-                <div class="modal-body" style="padding: 2.5rem;">
-                    <div style="
-                        background: linear-gradient(135deg, #f0f9ff 0%, #f0fdfa 100%);
-                        border-radius: 16px;
-                        padding: 2rem;
-                        border-left: 4px solid #0ea5e9;
-                        margin-bottom: 2rem;
-                    ">
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            gap: 0.75rem;
-                            margin-bottom: 1rem;
-                        ">
-                            <i class="fas fa-clock" style="color: #0ea5e9; font-size: 1.25rem;"></i>
-                            <h4 style="margin: 0; color: #1e293b;">更新時間</h4>
-                        </div>
-                        <p id="orderAnalysisTime" style="
-                            font-size: 1.1rem;
-                            font-weight: 600;
-                            color: #0ea5e9;
-                            margin: 0;
-                            font-family: 'Courier New', monospace;
-                        ">載入中...</p>
-                    </div>
-                    
-                    <div style="
-                        background: white;
-                        border-radius: 16px;
-                        padding: 2rem;
-                        border: 1px solid #e2e8f0;
-                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                    ">
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            gap: 0.75rem;
-                            margin-bottom: 1.5rem;
-                        ">
-                            <i class="fas fa-file-alt" style="color: #14b8a6; font-size: 1.25rem;"></i>
-                            <h4 style="margin: 0; color: #1e293b;">分析內容</h4>
-                        </div>
-                        <div id="orderAnalysisContent" style="
-                            font-size: 1rem;
-                            line-height: 1.6;
-                            color: #374151;
-                            white-space: pre-wrap;
-                            background: #f8fafc;
-                            padding: 1.5rem;
-                            border-radius: 12px;
-                            border: 1px solid #e2e8f0;
-                            min-height: 120px;
-                        ">載入中...</div>
-                    </div>
-                </div>
-                <div class="modal-footer" style="
-                    padding: 1.5rem 2.5rem 2.5rem;
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 1rem;
-                ">
-                    <button class="btn btn-secondary" id="orderAnalysisRefresh">
-                        <i class="fas fa-sync-alt"></i> 重新整理
-                    </button>
-                    <button class="btn btn-primary" id="orderAnalysisConfirm">
-                        <i class="fas fa-check"></i> 我知道了
-                    </button>
-                </div>
-            </div>
+<div class="modal-body" style="padding: 2.5rem;">
+    <div style="
+        background: linear-gradient(135deg, #f0f9ff 0%, #f0fdfa 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        border-left: 4px solid #0ea5e9;
+        margin-bottom: 2rem;
+    ">
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        ">
+            <i class="fas fa-clock" style="color: #0ea5e9; font-size: 1.25rem;"></i>
+            <h4 style="margin: 0; color: #1e293b;">更新時間</h4>
         </div>
-    `;
+        <p id="orderAnalysisTime" style="
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0ea5e9;
+            margin: 0;
+            font-family: 'Courier New', monospace;
+        ">載入中...</p>
+    </div>
     
-    // 添加到頁面
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // 綁定事件
-    this.bindOrderAnalysisModalEvents();
-}
+    <div style="
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    ">
+        <!-- 新增 GAI 秘書圖片區域 -->
+        <div style="
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), rgba(20, 184, 166, 0.05));
+            border-radius: 12px;
+        ">
+            <img src="R2.png" alt="GAI數位秘書" style="
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                object-fit: cover;
+                box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
+                border: 3px solid #0ea5e9;
+                margin-bottom: 0.5rem;
+            ">
+            <p style="
+                margin: 0;
+                color: #64748b;
+                font-size: 0.875rem;
+                font-weight: 500;
+            ">GAI派車數位秘書</p>
+        </div>
+        
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        ">
+            <i class="fas fa-file-alt" style="color: #14b8a6; font-size: 1.25rem;"></i>
+            <h4 style="margin: 0; color: #1e293b;">分析內容</h4>
+        </div>
 
 /**
  * 綁定訂單分析模態視窗事件
