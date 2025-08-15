@@ -4075,6 +4075,108 @@ async getRoutePalletNonZeroCountWithCache() {
         return this.routePalletNonZeroCountCache.value || 0;
     }
 }
+            // 在 DispatchGAISystem 類別中添加這個方法
+async showLatestOrderNotification() {
+    try {
+        const response = await this.apiCall('getLatestOrderAnalysis', { 
+            sheetName: 'GAI每日訂單分析',
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        
+        if (!response || response.length === 0) {
+            console.log('沒有最新的訂單分析資料');
+            return;
+        }
+
+        // 取得最新的一筆資料
+        const latestData = response[response.length - 1];
+        const updateTime = latestData.A || latestData['A'] || '';
+        const content = latestData.B || latestData['B'] || '';
+
+        if (!updateTime || !content) {
+            console.log('資料不完整，跳過通知');
+            return;
+        }
+
+        // 顯示通知對話框
+        this.showLatestOrderDialog(updateTime, content);
+
+    } catch (error) {
+        console.error('顯示最新訂單通知失敗:', error);
+        // 不顯示錯誤給用戶，只在控制台記錄
+    }
+}
+
+// 顯示最新訂單對話框
+showLatestOrderDialog(time, content) {
+    const dialog = document.getElementById('latestOrderDialog');
+    const messageEl = document.getElementById('latestOrderMessage');
+    
+    if (!dialog || !messageEl) {
+        console.warn('找不到對話框元素');
+        return;
+    }
+    
+    // 設置訊息內容
+    messageEl.innerHTML = `
+        <div style="white-space: pre-line;">
+            您好，我是GAI派車數位秘書：
+            剛剛 <span style="color: #0ea5e9; font-weight: 600;">${time}</span> 
+            已收到最新訂單資訊，請檢視。
+            
+            ${content}
+        </div>
+    `;
+    
+    // 顯示對話框
+    dialog.classList.remove('hidden');
+    dialog.classList.add('show', 'appear');
+    
+    // 綁定關閉事件
+    this.bindLatestOrderDialogEvents();
+}
+
+// 綁定對話框事件
+bindLatestOrderDialogEvents() {
+    const dialog = document.getElementById('latestOrderDialog');
+    const closeBtn = document.getElementById('latestOrderClose');
+    const dismissBtn = document.getElementById('latestOrderDismissBtn');
+    const viewBtn = document.getElementById('latestOrderViewBtn');
+    
+    // 關閉按鈕
+    closeBtn?.addEventListener('click', () => {
+        this.hideLatestOrderDialog();
+    });
+    
+    // 我知道了按鈕
+    dismissBtn?.addEventListener('click', () => {
+        this.hideLatestOrderDialog();
+    });
+    
+    // 查看訂單按鈕
+    viewBtn?.addEventListener('click', () => {
+        this.hideLatestOrderDialog();
+        // 切換到路線優化頁面
+        this.switchPage('route-optimization');
+    });
+    
+    // 點擊外部關閉
+    dialog?.addEventListener('click', (e) => {
+        if (e.target === dialog) {
+            this.hideLatestOrderDialog();
+        }
+    });
+}
+
+// 隱藏對話框
+hideLatestOrderDialog() {
+    const dialog = document.getElementById('latestOrderDialog');
+    if (dialog) {
+        dialog.classList.remove('show', 'appear');
+        dialog.classList.add('hidden');
+    }
+}
+
 async getLatestOrderAnalysis() {
     try {
         const result = await this.apiCall('getLatestOrderAnalysis', {
@@ -6363,17 +6465,21 @@ refreshDispatchTable() {
                 this.updateMenuPermissions();
             }
 
-            // 初始化主系統
-            async initializeMainSystem() {
-                this.checkConnection();
-                this.loadDashboard();
-                this.initializeSheets();
-                this.loadWeatherData();
-                // 🔥 新增：顯示最新訂單通知
-                setTimeout(() => {
-                    this.showLatestOrderNotification();
-                }, 2000); // 延遲2秒顯示，讓其他初始化完成
-            }
+// 修正初始化主系統方法
+async initializeMainSystem() {
+    this.checkConnection();
+    this.loadDashboard();
+    this.initializeSheets();
+    this.loadWeatherData();
+    
+    // 🔥 修正：延遲顯示最新訂單通知
+    setTimeout(() => {
+        if (this.showLatestOrderNotification) {
+            this.showLatestOrderNotification();
+        }
+    }, 3000); // 延遲3秒顯示
+}
+
 
             // 載入天氣資料
             async loadWeatherData() {
@@ -8961,24 +9067,7 @@ function removeLeadingZero(dateStr) {
   return dateStr.replace(/\/0(\d)/g, '/$1');
 }
 
-// 篩選符合日期的資料列（比較下單日期）
-const filteredData = allData.slice(1).filter(row => {
-    const rowDate = row[orderDateColumnIndex];
-    let formattedRowDate = '';
-    if (rowDate instanceof Date) {
-        formattedRowDate = Utilities.formatDate(rowDate, 'GMT+8', 'yyyy/M/d');
-    } else if (typeof rowDate === 'string') {
-        try {
-            const parsedDate = new Date(rowDate);
-            formattedRowDate = Utilities.formatDate(parsedDate, 'GMT+8', 'yyyy/M/d');
-        } catch (e) {
-            formattedRowDate = rowDate.split(' ')[0];
-        }
-    }
-    // 這裡兩邊都去前導零
-    const isMatch = removeLeadingZero(formattedRowDate) === removeLeadingZero(date);
-    return isMatch;
-});
+
         
 function renderDeliveryPointsTable(data) {
   const container = document.getElementById('deliveryPointsTableContainer');
