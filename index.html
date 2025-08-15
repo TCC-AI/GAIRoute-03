@@ -8,152 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* 🔥 新增虛擬人物頭像樣式 */
-.virtual-avatar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 15px;
-    padding: 10px;
-}
-
-.avatar-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 3px solid #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.avatar-image:hover {
-    transform: scale(1.05);
-}
-
-/* 調整現有的通知樣式 */
-.order-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 400px;
-    max-width: 90vw;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    z-index: 10000;
-    transform: translateX(450px);
-    opacity: 0;
-    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    color: white;
-}
-
-.order-notification.show {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.notification-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.notification-title {
-    font-size: 16px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.notification-close {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    transition: background-color 0.2s;
-}
-
-.notification-close:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-.notification-content {
-    padding: 20px;
-}
-
-.update-info {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 12px 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border-left: 4px solid #00d4ff;
-}
-
-.update-time-label {
-    font-size: 12px;
-    opacity: 0.8;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.update-time {
-    font-size: 14px;
-    font-weight: 600;
-    color: #00d4ff;
-}
-
-.analysis-content {
-    background: rgba(255, 255, 255, 0.95);
-    color: #333;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #4CAF50;
-}
-
-.content-label {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: 600;
-}
-
-.content-text {
-    font-size: 13px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    color: #444;
-}
-
-/* 響應式設計 */
-@media (max-width: 480px) {
-    .order-notification {
-        width: 95vw;
-        right: 2.5vw;
-        transform: translateX(100vw);
-    }
-    
-    .avatar-image {
-        width: 50px;
-        height: 50px;
-    }
-    
-    .notification-content {
-        padding: 15px;
-    }
-}
-
         /* 針對GAI秘書頭像的樣式調整 */
 .gai-secretary-avatar {
     width: 240px;
@@ -4075,108 +3929,6 @@ async getRoutePalletNonZeroCountWithCache() {
         return this.routePalletNonZeroCountCache.value || 0;
     }
 }
-            // 在 DispatchGAISystem 類別中添加這個方法
-async showLatestOrderNotification() {
-    try {
-        const response = await this.apiCall('getLatestOrderAnalysis', { 
-            sheetName: 'GAI每日訂單分析',
-            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
-        });
-        
-        if (!response || response.length === 0) {
-            console.log('沒有最新的訂單分析資料');
-            return;
-        }
-
-        // 取得最新的一筆資料
-        const latestData = response[response.length - 1];
-        const updateTime = latestData.A || latestData['A'] || '';
-        const content = latestData.B || latestData['B'] || '';
-
-        if (!updateTime || !content) {
-            console.log('資料不完整，跳過通知');
-            return;
-        }
-
-        // 顯示通知對話框
-        this.showLatestOrderDialog(updateTime, content);
-
-    } catch (error) {
-        console.error('顯示最新訂單通知失敗:', error);
-        // 不顯示錯誤給用戶，只在控制台記錄
-    }
-}
-
-// 顯示最新訂單對話框
-showLatestOrderDialog(time, content) {
-    const dialog = document.getElementById('latestOrderDialog');
-    const messageEl = document.getElementById('latestOrderMessage');
-    
-    if (!dialog || !messageEl) {
-        console.warn('找不到對話框元素');
-        return;
-    }
-    
-    // 設置訊息內容
-    messageEl.innerHTML = `
-        <div style="white-space: pre-line;">
-            您好，我是GAI派車數位秘書：
-            剛剛 <span style="color: #0ea5e9; font-weight: 600;">${time}</span> 
-            已收到最新訂單資訊，請檢視。
-            
-            ${content}
-        </div>
-    `;
-    
-    // 顯示對話框
-    dialog.classList.remove('hidden');
-    dialog.classList.add('show', 'appear');
-    
-    // 綁定關閉事件
-    this.bindLatestOrderDialogEvents();
-}
-
-// 綁定對話框事件
-bindLatestOrderDialogEvents() {
-    const dialog = document.getElementById('latestOrderDialog');
-    const closeBtn = document.getElementById('latestOrderClose');
-    const dismissBtn = document.getElementById('latestOrderDismissBtn');
-    const viewBtn = document.getElementById('latestOrderViewBtn');
-    
-    // 關閉按鈕
-    closeBtn?.addEventListener('click', () => {
-        this.hideLatestOrderDialog();
-    });
-    
-    // 我知道了按鈕
-    dismissBtn?.addEventListener('click', () => {
-        this.hideLatestOrderDialog();
-    });
-    
-    // 查看訂單按鈕
-    viewBtn?.addEventListener('click', () => {
-        this.hideLatestOrderDialog();
-        // 切換到路線優化頁面
-        this.switchPage('route-optimization');
-    });
-    
-    // 點擊外部關閉
-    dialog?.addEventListener('click', (e) => {
-        if (e.target === dialog) {
-            this.hideLatestOrderDialog();
-        }
-    });
-}
-
-// 隱藏對話框
-hideLatestOrderDialog() {
-    const dialog = document.getElementById('latestOrderDialog');
-    if (dialog) {
-        dialog.classList.remove('show', 'appear');
-        dialog.classList.add('hidden');
-    }
-}
-
 async getLatestOrderAnalysis() {
     try {
         const result = await this.apiCall('getLatestOrderAnalysis', {
@@ -4202,87 +3954,27 @@ async getLatestOrderAnalysis() {
 
 
 /**
+ * 顯示最新訂單通知
+ */
 async showLatestOrderNotification() {
     try {
-        const response = await this.apiCall('getLatestOrderAnalysis', { sheetName: 'GAI每日訂單分析' });
+        const latestOrder = await this.getLatestOrderAnalysis();
         
-        if (!response.success || !response.data || response.data.length === 0) {
-            console.log('沒有最新的訂單分析資料');
+        if (!latestOrder || !latestOrder.time || !latestOrder.content) {
+            console.log('暫無最新訂單分析資料');
             return;
         }
-
-        // 取得最新的一筆資料
-        const latestData = response.data[response.data.length - 1];
-        const updateTime = latestData.A; // A欄：時間
-        const content = latestData.B;    // B欄：內容
-
-        if (!updateTime || !content) {
-            console.log('資料不完整，跳過通知');
-            return;
-        }
-
-        // 創建通知彈窗
-        const notification = document.createElement('div');
-        notification.className = 'order-notification';
-        notification.innerHTML = `
-            <div class="notification-header">
-                <div class="notification-title">
-                    <i class="fas fa-chart-line"></i>
-                    GAI每日訂單分析 - 最新資訊
-                </div>
-                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="notification-content">
-                <!-- 🔥 新增虛擬人物頭像區域 -->
-                <div class="virtual-avatar">
-                    <img src="R2.png" alt="虛擬助理" class="avatar-image">
-                </div>
-                
-                <div class="update-info">
-                    <div class="update-time-label">
-                        <i class="fas fa-clock"></i>
-                        更新時間
-                    </div>
-                    <div class="update-time">${updateTime}</div>
-                </div>
-                
-                <div class="analysis-content">
-                    <div class="content-label">
-                        <i class="fas fa-file-alt"></i>
-                        分析內容
-                    </div>
-                    <div class="content-text">${content.replace(/\n/g, '<br>')}</div>
-                </div>
-            </div>
-        `;
-
-        // 加入到頁面
-        document.body.appendChild(notification);
-
-        // 顯示動畫
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 100);
-
-        // 5秒後自動消失
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    if (notification.parentElement) {
-                        notification.remove();
-                    }
-                }, 300);
-            }
-        }, 8000);
-
+        
+        // 格式化時間顯示
+        const formattedTime = this.formatOrderTime(latestOrder.time);
+        
+        // 顯示大視窗
+        this.showOrderAnalysisModal(formattedTime, latestOrder.content);
+        
     } catch (error) {
         console.error('顯示最新訂單通知失敗:', error);
     }
 }
-
 
 /**
  * 格式化訂單時間顯示
@@ -6465,21 +6157,17 @@ refreshDispatchTable() {
                 this.updateMenuPermissions();
             }
 
-// 修正初始化主系統方法
-async initializeMainSystem() {
-    this.checkConnection();
-    this.loadDashboard();
-    this.initializeSheets();
-    this.loadWeatherData();
-    
-    // 🔥 修正：延遲顯示最新訂單通知
-    setTimeout(() => {
-        if (this.showLatestOrderNotification) {
-            this.showLatestOrderNotification();
-        }
-    }, 3000); // 延遲3秒顯示
-}
-
+            // 初始化主系統
+            async initializeMainSystem() {
+                this.checkConnection();
+                this.loadDashboard();
+                this.initializeSheets();
+                this.loadWeatherData();
+                // 🔥 新增：顯示最新訂單通知
+                setTimeout(() => {
+                    this.showLatestOrderNotification();
+                }, 2000); // 延遲2秒顯示，讓其他初始化完成
+            }
 
             // 載入天氣資料
             async loadWeatherData() {
@@ -9067,7 +8755,24 @@ function removeLeadingZero(dateStr) {
   return dateStr.replace(/\/0(\d)/g, '/$1');
 }
 
-
+// 篩選符合日期的資料列（比較下單日期）
+const filteredData = allData.slice(1).filter(row => {
+    const rowDate = row[orderDateColumnIndex];
+    let formattedRowDate = '';
+    if (rowDate instanceof Date) {
+        formattedRowDate = Utilities.formatDate(rowDate, 'GMT+8', 'yyyy/M/d');
+    } else if (typeof rowDate === 'string') {
+        try {
+            const parsedDate = new Date(rowDate);
+            formattedRowDate = Utilities.formatDate(parsedDate, 'GMT+8', 'yyyy/M/d');
+        } catch (e) {
+            formattedRowDate = rowDate.split(' ')[0];
+        }
+    }
+    // 這裡兩邊都去前導零
+    const isMatch = removeLeadingZero(formattedRowDate) === removeLeadingZero(date);
+    return isMatch;
+});
         
 function renderDeliveryPointsTable(data) {
   const container = document.getElementById('deliveryPointsTableContainer');
