@@ -3929,13 +3929,10 @@ async getRoutePalletNonZeroCountWithCache() {
         return this.routePalletNonZeroCountCache.value || 0;
     }
 }
-/**
- * 獲取GAI每日訂單分析工作表的最新資料
- */
 async getLatestOrderAnalysis() {
     try {
         const result = await this.apiCall('getLatestOrderAnalysis', {
-            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 🔥 使用第二個檔案ID
+            targetSpreadsheetId: CONFIG.EXTERNAL_SPREADSHEET_ID, // 🔥 使用外部檔案ID
             sheetName: 'GAI每日訂單分析'
         });
         
