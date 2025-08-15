@@ -3348,7 +3348,8 @@ justify-content:flex-end; / 右靠齊 */
         // 全域變數
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwT3a2EM1mQgZ5MDj96gdw2bFuzEDKHCeJbAyMFSiWyMSFqNzFJxlkxgW57OBy92V8S/exec',
+            EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwqj6ZAFTJXC1cy-xXVVmDTEZ5d4yPfYHADgCq1UGeue5wf8fYUqEBsyo1jBxHiljpJ/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -3928,6 +3929,318 @@ async getRoutePalletNonZeroCountWithCache() {
         return this.routePalletNonZeroCountCache.value || 0;
     }
 }
+/**
+ * 獲取GAI每日訂單分析工作表的最新資料
+ */
+async getLatestOrderAnalysis() {
+    try {
+        const result = await this.apiCall('getLatestOrderAnalysis', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 🔥 使用第二個檔案ID
+            sheetName: 'GAI每日訂單分析'
+        });
+        
+        if (result && result.length > 0) {
+            // 獲取最後一列資料
+            const latestRow = result[result.length - 1];
+            return {
+                time: latestRow['A'] || latestRow[0] || '', // A欄位：時間
+                content: latestRow['B'] || latestRow[1] || '' // B欄位：文字內容
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('獲取最新訂單分析失敗:', error);
+        return null;
+    }
+}
+
+
+/**
+ * 顯示最新訂單通知
+ */
+async showLatestOrderNotification() {
+    try {
+        const latestOrder = await this.getLatestOrderAnalysis();
+        
+        if (!latestOrder || !latestOrder.time || !latestOrder.content) {
+            console.log('暫無最新訂單分析資料');
+            return;
+        }
+        
+        // 格式化時間顯示
+        const formattedTime = this.formatOrderTime(latestOrder.time);
+        
+        // 顯示大視窗
+        this.showOrderAnalysisModal(formattedTime, latestOrder.content);
+        
+    } catch (error) {
+        console.error('顯示最新訂單通知失敗:', error);
+    }
+}
+
+/**
+ * 格式化訂單時間顯示
+ */
+formatOrderTime(timeValue) {
+    if (!timeValue) return '';
+    
+    try {
+        // 嘗試解析時間
+        let date;
+        if (timeValue instanceof Date) {
+            date = timeValue;
+        } else if (typeof timeValue === 'string') {
+            date = new Date(timeValue);
+        } else {
+            return timeValue.toString();
+        }
+        
+        if (isNaN(date.getTime())) {
+            return timeValue.toString();
+        }
+        
+        // 格式化為台灣時間
+        return date.toLocaleString('zh-TW', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Asia/Taipei'
+        });
+    } catch (error) {
+        console.error('時間格式化失敗:', error);
+        return timeValue.toString();
+    }
+}
+
+/**
+ * 顯示訂單分析模態視窗
+ */
+showOrderAnalysisModal(time, content) {
+    const modal = document.getElementById('orderAnalysisModal');
+    const timeElement = document.getElementById('orderAnalysisTime');
+    const contentElement = document.getElementById('orderAnalysisContent');
+    
+    if (!modal) {
+        // 如果模態視窗不存在，動態創建
+        this.createOrderAnalysisModal();
+        return this.showOrderAnalysisModal(time, content);
+    }
+    
+    // 設置內容
+    if (timeElement) timeElement.textContent = time;
+    if (contentElement) contentElement.textContent = content;
+    
+    // 顯示模態視窗
+    modal.style.display = 'flex';
+    modal.classList.add('show');
+    
+    // 添加動畫效果
+    setTimeout(() => {
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.transform = 'scale(1)';
+            modalContent.style.opacity = '1';
+        }
+    }, 50);
+}
+
+/**
+ * 動態創建訂單分析模態視窗
+ */
+createOrderAnalysisModal() {
+    const modalHtml = `
+        <div id="orderAnalysisModal" class="modal" style="display: none;">
+            <div class="modal-content" style="
+                max-width: 800px;
+                transform: scale(0.9);
+                opacity: 0;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            ">
+                <div class="modal-header" style="
+                    background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+                    color: white;
+                    border-radius: 24px 24px 0 0;
+                    padding: 2rem;
+                ">
+                    <h3 style="
+                        color: white;
+                        margin: 0;
+                        font-size: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                    ">
+                        <i class="fas fa-chart-line"></i>
+                        GAI每日訂單分析 - 最新資訊
+                    </h3>
+                    <span class="modal-close" id="orderAnalysisClose" style="
+                        color: white;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        padding: 0.5rem;
+                        border-radius: 8px;
+                        transition: all 0.2s ease;
+                    ">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 2.5rem;">
+                    <div style="
+                        background: linear-gradient(135deg, #f0f9ff 0%, #f0fdfa 100%);
+                        border-radius: 16px;
+                        padding: 2rem;
+                        border-left: 4px solid #0ea5e9;
+                        margin-bottom: 2rem;
+                    ">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                            margin-bottom: 1rem;
+                        ">
+                            <i class="fas fa-clock" style="color: #0ea5e9; font-size: 1.25rem;"></i>
+                            <h4 style="margin: 0; color: #1e293b;">更新時間</h4>
+                        </div>
+                        <p id="orderAnalysisTime" style="
+                            font-size: 1.1rem;
+                            font-weight: 600;
+                            color: #0ea5e9;
+                            margin: 0;
+                            font-family: 'Courier New', monospace;
+                        ">載入中...</p>
+                    </div>
+                    
+                    <div style="
+                        background: white;
+                        border-radius: 16px;
+                        padding: 2rem;
+                        border: 1px solid #e2e8f0;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    ">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                            margin-bottom: 1.5rem;
+                        ">
+                            <i class="fas fa-file-alt" style="color: #14b8a6; font-size: 1.25rem;"></i>
+                            <h4 style="margin: 0; color: #1e293b;">分析內容</h4>
+                        </div>
+                        <div id="orderAnalysisContent" style="
+                            font-size: 1rem;
+                            line-height: 1.6;
+                            color: #374151;
+                            white-space: pre-wrap;
+                            background: #f8fafc;
+                            padding: 1.5rem;
+                            border-radius: 12px;
+                            border: 1px solid #e2e8f0;
+                            min-height: 120px;
+                        ">載入中...</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="
+                    padding: 1.5rem 2.5rem 2.5rem;
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 1rem;
+                ">
+                    <button class="btn btn-secondary" id="orderAnalysisRefresh">
+                        <i class="fas fa-sync-alt"></i> 重新整理
+                    </button>
+                    <button class="btn btn-primary" id="orderAnalysisConfirm">
+                        <i class="fas fa-check"></i> 我知道了
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 添加到頁面
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // 綁定事件
+    this.bindOrderAnalysisModalEvents();
+}
+
+/**
+ * 綁定訂單分析模態視窗事件
+ */
+bindOrderAnalysisModalEvents() {
+    const modal = document.getElementById('orderAnalysisModal');
+    const closeBtn = document.getElementById('orderAnalysisClose');
+    const confirmBtn = document.getElementById('orderAnalysisConfirm');
+    const refreshBtn = document.getElementById('orderAnalysisRefresh');
+    
+    // 關閉按鈕
+    closeBtn?.addEventListener('click', () => {
+        this.hideOrderAnalysisModal();
+    });
+    
+    // 確認按鈕
+    confirmBtn?.addEventListener('click', () => {
+        this.hideOrderAnalysisModal();
+    });
+    
+    // 重新整理按鈕
+    refreshBtn?.addEventListener('click', async () => {
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 重新整理中...';
+        refreshBtn.disabled = true;
+        
+        try {
+            const latestOrder = await this.getLatestOrderAnalysis();
+            if (latestOrder && latestOrder.time && latestOrder.content) {
+                const formattedTime = this.formatOrderTime(latestOrder.time);
+                document.getElementById('orderAnalysisTime').textContent = formattedTime;
+                document.getElementById('orderAnalysisContent').textContent = latestOrder.content;
+                this.showNotification('資料已更新', 'success');
+            } else {
+                this.showNotification('暫無最新資料', 'info');
+            }
+        } catch (error) {
+            console.error('重新整理失敗:', error);
+            this.showNotification('重新整理失敗', 'error');
+        } finally {
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 重新整理';
+            refreshBtn.disabled = false;
+        }
+    });
+    
+    // 點擊模態視窗外部關閉
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            this.hideOrderAnalysisModal();
+        }
+    });
+    
+    // ESC 鍵關閉
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal?.classList.contains('show')) {
+            this.hideOrderAnalysisModal();
+        }
+    });
+}
+
+/**
+ * 隱藏訂單分析模態視窗
+ */
+hideOrderAnalysisModal() {
+    const modal = document.getElementById('orderAnalysisModal');
+    if (!modal) return;
+    
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.style.transform = 'scale(0.9)';
+        modalContent.style.opacity = '0';
+    }
+    
+    setTimeout(() => {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+    }, 300);
+}
 
             // 綁定事件
             bindEvents() {
@@ -4051,6 +4364,8 @@ async getRoutePalletNonZeroCountWithCache() {
                 document.getElementById('searchRoutes')?.addEventListener('click', () => {
                     this.searchRoutes();
                 });
+                
+                
                 /* ================== 任務步驟管理器 ================== */
 class TaskProgressManager {
   constructor() {
@@ -5851,6 +6166,10 @@ refreshDispatchTable() {
                 this.loadDashboard();
                 this.initializeSheets();
                 this.loadWeatherData();
+                // 🔥 新增：顯示最新訂單通知
+                setTimeout(() => {
+                    this.showLatestOrderNotification();
+                }, 2000); // 延遲2秒顯示，讓其他初始化完成
             }
 
             // 載入天氣資料
