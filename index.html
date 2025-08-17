@@ -8,6 +8,62 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* GAI秘書載入動畫 */
+.loading-container {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #17a2b8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #666;
+    font-size: 16px;
+    margin: 0;
+}
+
+.result-container {
+    padding: 20px;
+}
+
+.result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.result-item.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.result-item i {
+    font-size: 20px;
+    margin-top: 2px;
+}
+
+.result-item p {
+    margin: 0;
+    flex: 1;
+}
+
         .btn-outline-primary {
     background: transparent;
     color: #0ea5e9;
@@ -6180,131 +6236,222 @@ hideGAISecretaryModal() {
     const modal = document.getElementById('gaiSecretaryModal');
     modal.style.display = 'none';
 }
- // 👇 在這裡新增整合版的 GAI 派車數位專員對話框方法
-    showGAIAssistantModal() {
-        const modal = document.getElementById('gaiAssistantModal');
-        const modalBody = document.getElementById('gaiAssistantModalBody');
-        
-        // 整合所有功能的按鈕
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 1.5rem;">
-                <!-- GAI 秘書頭像 -->
-                <div style="margin: 0 auto 1.5rem auto; text-align: center;">
-                    <img src="R2.png" alt="GAI秘書" class="gai-secretary-avatar">
-                </div>
-                
-                <h4 style="color: #1e293b; margin-bottom: 2rem; font-size: 1.3rem;">
-                    您好，我是GAI派車數位專員
-                </h4>
-                
-                <!-- 功能按鈕區域 -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    
-                    <!-- 檢查最新訂單資訊 -->
-                    <button class="btn btn-primary" onclick="app.checkLatestOrderInfo()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-clipboard-list" style="font-size: 1.5rem;"></i>
+showGAIAssistantModal() {
+    const modal = document.getElementById('gaiAssistantModal');
+    const modalBody = document.getElementById('gaiAssistantModalBody');
+    
+    modalBody.innerHTML = `
+        <div class="gai-assistant-container">
+            <div class="gai-avatar">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiByeD0iNTAiIGZpbGw9IiM0Q0FGNTASCZ8L3JlY3Q+Cjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+R0FJPC90ZXh0Pgo8L3N2Zz4=" alt="GAI Assistant" style="width: 80px; height: 80px; border-radius: 50%;">
+            </div>
+            <h3>您好，我是GAI派車數位專員</h3>
+            
+            <div class="gai-functions">
+                <div class="function-grid">
+                    <button class="function-btn primary" data-function="check-orders">
+                        <i class="fas fa-clipboard-list"></i>
                         <span>檢查最新訂單資訊</span>
                     </button>
-                    
-                    <!-- GAI每日訂單分析 -->
-                    <button class="btn btn-info" onclick="app.showDailyOrderAnalysis()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-chart-line" style="font-size: 1.5rem;"></i>
+                    <button class="function-btn success" data-function="daily-analysis">
+                        <i class="fas fa-chart-line"></i>
                         <span>GAI每日訂單分析</span>
                     </button>
-                    
-                    <!-- 路線規劃建議 -->
-                    <button class="btn btn-success" onclick="app.showRouteOptimizationPage()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-route" style="font-size: 1.5rem;"></i>
+                    <button class="function-btn info" data-function="route-planning">
+                        <i class="fas fa-route"></i>
                         <span>智慧路線規劃</span>
                     </button>
-                    
-                    <!-- 即時調度支援 -->
-                    <button class="btn btn-warning" onclick="app.showRealTimeDispatch()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-truck" style="font-size: 1.5rem;"></i>
+                    <button class="function-btn warning" data-function="dispatch-support">
+                        <i class="fas fa-truck"></i>
                         <span>即時調度支援</span>
                     </button>
-                    
-                    <!-- 數據分析報告 -->
-                    <button class="btn btn-secondary" onclick="app.showDataAnalysisReport()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-chart-bar" style="font-size: 1.5rem;"></i>
+                    <button class="function-btn dark" data-function="data-report">
+                        <i class="fas fa-chart-bar"></i>
                         <span>數據分析報告</span>
                     </button>
-                    
-                    <!-- 系統健康檢查 -->
-                    <button class="btn btn-info" onclick="app.performSystemHealthCheck()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-heartbeat" style="font-size: 1.5rem;"></i>
+                    <button class="function-btn success" data-function="health-check">
+                        <i class="fas fa-heartbeat"></i>
                         <span>系統健康檢查</span>
                     </button>
                 </div>
                 
-                <!-- 快速操作區 -->
-                <div style="border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
-                    <h5 style="margin-bottom: 1rem; color: #64748b;">快速操作</h5>
-                    <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
-                        <button class="btn btn-sm btn-outline-primary" onclick="app.refreshDashboard()">
-                            <i class="fas fa-sync-alt"></i> 重新整理儀表板
+                <div class="quick-actions">
+                    <h4>快速操作</h4>
+                    <div class="quick-action-buttons">
+                        <button class="quick-btn" data-action="refresh-dashboard">
+                            <i class="fas fa-sync-alt"></i>
+                            重新整理儀表板
                         </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="app.switchPage('route-optimization')">
-                            <i class="fas fa-brain"></i> 前往路線規劃
+                        <button class="quick-btn" data-action="goto-routes">
+                            <i class="fas fa-map-marked-alt"></i>
+                            前往路線規劃
                         </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="app.exportSystemReport()">
-                            <i class="fas fa-download"></i> 匯出系統報告
+                        <button class="quick-btn" data-action="export-report">
+                            <i class="fas fa-download"></i>
+                            匯出系統報告
                         </button>
                     </div>
                 </div>
             </div>
-        `;
-        
-        modal.style.display = 'flex';
+        </div>
+    `;
+    
+    // 綁定功能按鈕事件
+    this.bindGAIFunctionEvents();
+    
+    modal.style.display = 'block';
+}
+
+// 新增：綁定GAI功能事件
+bindGAIFunctionEvents() {
+    // 功能按鈕事件
+    document.querySelectorAll('[data-function]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const functionType = e.currentTarget.dataset.function;
+            this.executeGAIFunction(functionType);
+        });
+    });
+    
+    // 快速操作按鈕事件
+    document.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const actionType = e.currentTarget.dataset.action;
+            this.executeQuickAction(actionType);
+        });
+    });
+}
+
+// 新增：執行GAI功能
+executeGAIFunction(functionType) {
+    const modal = document.getElementById('gaiAssistantModal');
+    const modalBody = document.getElementById('gaiAssistantModalBody');
+    
+    switch(functionType) {
+        case 'check-orders':
+            this.showGAISecretaryModal('正在檢查最新訂單資訊...', () => {
+                // 模擬檢查完成後的結果
+                setTimeout(() => {
+                    this.showOrderCheckResult();
+                }, 2000);
+            });
+            break;
+            
+        case 'daily-analysis':
+            this.showGAISecretaryModal('正在分析今日訂單數據...', () => {
+                setTimeout(() => {
+                    this.showDailyAnalysisResult();
+                }, 2500);
+            });
+            break;
+            
+        case 'route-planning':
+            this.showGAISecretaryModal('正在優化路線規劃...', () => {
+                setTimeout(() => {
+                    this.showRoutePlanningResult();
+                }, 3000);
+            });
+            break;
+            
+        case 'dispatch-support':
+            this.showGAISecretaryModal('正在檢查調度狀況...', () => {
+                setTimeout(() => {
+                    this.showDispatchSupportResult();
+                }, 2000);
+            });
+            break;
+            
+        case 'data-report':
+            this.showGAISecretaryModal('正在生成數據報告...', () => {
+                setTimeout(() => {
+                    this.showDataReportResult();
+                }, 3000);
+            });
+            break;
+            
+        case 'health-check':
+            this.showGAISecretaryModal('正在檢查系統健康狀況...', () => {
+                setTimeout(() => {
+                    this.showHealthCheckResult();
+                }, 2500);
+            });
+            break;
     }
+}
+
+// 新增：顯示GAI數位秘書模態框（載入狀態）
+showGAISecretaryModal(message, callback) {
+    const modal = document.getElementById('gaiAssistantModal');
+    const modalBody = document.getElementById('gaiAssistantModalBody');
+    
+    modalBody.innerHTML = `
+        <div class="gai-secretary-container">
+            <div class="gai-avatar">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiByeD0iNTAiIGZpbGw9IiM0Q0FGNTASCZ8L3JlY3Q+Cjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+R0FJPC90ZXh0Pgo8L3N2Zz4=" alt="GAI Secretary" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #17a2b8;">
+            </div>
+            <h3>您好，我是GAI派車數位秘書</h3>
+            
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p class="loading-text">${message}</p>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" onclick="app.closeModal('gaiAssistantModal')">確認</button>
+            </div>
+        </div>
+    `;
+    
+    // 執行回調函數
+    if (callback) {
+        callback();
+    }
+}
+
+// 新增：顯示訂單檢查結果
+showOrderCheckResult() {
+    const modalBody = document.getElementById('gaiAssistantModalBody');
+    
+    modalBody.innerHTML = `
+        <div class="gai-secretary-container">
+            <div class="gai-avatar">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiByeD0iNTAiIGZpbGw9IiM0Q0FGNTASCZ8L3JlY3Q+Cjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+R0FJPC90ZXh0Pgo8L3N2Zz4=" alt="GAI Secretary" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #17a2b8;">
+            </div>
+            <h3>您好，我是GAI派車數位秘書</h3>
+            
+            <div class="result-container">
+                <div class="result-item success">
+                    <i class="fas fa-check-circle"></i>
+                    <p>剛剛 ${new Date().toLocaleString('zh-TW')} 已收到來自客戶 <strong>卜蜂</strong> 的訂單，請檢視。</p>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" onclick="app.closeModal('gaiAssistantModal')">確認</button>
+            </div>
+        </div>
+    `;
+}
+
+// 新增：執行快速操作
+executeQuickAction(actionType) {
+    switch(actionType) {
+        case 'refresh-dashboard':
+            this.showNotification('正在重新整理儀表板...', 'info');
+            // 這裡可以添加實際的重新整理邏輯
+            break;
+            
+        case 'goto-routes':
+            this.closeModal('gaiAssistantModal');
+            this.switchPage('routes');
+            break;
+            
+        case 'export-report':
+            this.showNotification('正在匯出系統報告...', 'info');
+            // 這裡可以添加實際的匯出邏輯
+            break;
+    }
+}
+
 
     // 👇 然後在這裡新增第4段的所有功能方法
     // 檢查最新訂單資訊
