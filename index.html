@@ -8672,8 +8672,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 Logger.info('頁面顯示');
                 // 恢復更新並重新載入資料
-                if (app && app.isLoggedIn) {
-                    app.loadDashboard();
+               // if (app && app.isLoggedIn) {
+                //     app.loadDashboard(); // 👈 註解掉這行
                 }
             }
         });
