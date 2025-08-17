@@ -2641,7 +2641,7 @@ justify-content:flex-end; / 右靠齊 */
                     <span>主控台</span>
                 </li>
                 <!-- 👇 新增 GAI派車數位專員 選單項目 -->
-                <li class="menu-item" data-action="gai-assistant" data-permission="dashboard">
+                <li class="menu-item" data-action="gai-assistant" data-permission="basic">
                     <i class="fas fa-robot"></i>
                     <span>GAI派車數位專員</span>
                 </li>
@@ -4408,6 +4408,11 @@ hideOrderAnalysisModal() {
                         const page = e.currentTarget.dataset.page;
                         const action = e.currentTarget.dataset.action; // 新增 action 處理
                         const permission = e.currentTarget.dataset.permission;
+                        // GAI派車數位專員 - 所有用戶都可以使用
+                        if (action === 'gai-assistant') {
+                            this.showGAIAssistantModal();
+                            return;
+                        }
                         
                         if (this.hasPermission(permission)) {
                             this.switchPage(page);
