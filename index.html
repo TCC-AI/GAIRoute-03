@@ -3388,7 +3388,7 @@ justify-content:flex-end; / 右靠齊 */
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwZPCFPMClZj3-17Hg7DUf0d7mjqnGTw29J_nOyWL7qjAO0pJQj6fL3hmqcdcRwwOI/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbxPk5nt8PlG-DEkDoz5Csppzs3445IuMoBIVA_EaDj3uJu9YGEKVO5BmHqml_SYzAys/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4010,6 +4010,99 @@ async checkLatestOrderInfo() {
 async showDailyOrderAnalysis() {
     this.hideGAIAssistantModal();
     await this.showLatestOrderNotification();
+}
+// 發送聊天訊息
+async sendChatMessage() {
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendChatBtn');
+    const chatHistory = document.getElementById('chatHistory');
+    
+    const userMessage = chatInput.value.trim();
+    if (!userMessage) return;
+    
+    // 清空輸入框並禁用按鈕
+    chatInput.value = '';
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    // 添加用戶訊息到對話歷史
+    this.addChatMessage('user', userMessage);
+    
+    try {
+        // 呼叫後端API處理ChatGPT對話
+        const response = await this.apiCall('processChatGPTQuery', {
+            userMessage: userMessage,
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '託收託運回報'
+        });
+        
+        // 添加AI回覆到對話歷史
+        this.addChatMessage('assistant', response.reply);
+        
+    } catch (error) {
+        console.error('ChatGPT查詢失敗:', error);
+        this.addChatMessage('system', '抱歉，查詢時發生錯誤，請稍後再試。');
+    } finally {
+        // 恢復按鈕狀態
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        chatInput.focus();
+    }
+}
+
+// 添加聊天訊息到歷史記錄
+addChatMessage(type, message) {
+    const chatHistory = document.getElementById('chatHistory');
+    if (!chatHistory) return;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${type}-message`;
+    
+    let bgColor, textColor, icon, label;
+    switch (type) {
+        case 'user':
+            bgColor = '#dbeafe';
+            textColor = '#1e40af';
+            icon = 'fas fa-user';
+            label = '您';
+            break;
+        case 'assistant':
+            bgColor = '#dcfce7';
+            textColor = '#166534';
+            icon = 'fas fa-robot';
+            label = 'GAI助手';
+            break;
+        case 'system':
+            bgColor = '#fef3c7';
+            textColor = '#92400e';
+            icon = 'fas fa-info-circle';
+            label = '系統';
+            break;
+    }
+    
+    messageDiv.style.cssText = `
+        background: ${bgColor}; 
+        padding: 0.75rem; 
+        border-radius: 8px; 
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        color: ${textColor};
+    `;
+    
+    messageDiv.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+            <i class="${icon}" style="margin-top: 0.125rem; flex-shrink: 0;"></i>
+            <div style="flex: 1;">
+                <strong>${label}：</strong>
+                <span style="white-space: pre-wrap;">${message}</span>
+            </div>
+        </div>
+    `;
+    
+    chatHistory.appendChild(messageDiv);
+    
+    // 滾動到最新訊息
+    chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
 // 前往路線規劃頁面
@@ -6196,7 +6289,58 @@ hideGAISecretaryModal() {
                 <h4 style="color: #1e293b; margin-bottom: 2rem; font-size: 1.3rem;">
                     您好，我是GAI派車數位專員
                 </h4>
+                <!-- 🔥 新增：ChatGPT 對話區域 -->
+            <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
+                <h5 style="margin-bottom: 1rem; color: #0ea5e9; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-comments"></i>
+                    智能問答助手
+                </h5>
                 
+                <!-- 對話歷史區域 -->
+                <div id="chatHistory" style="
+                    max-height: 300px; 
+                    overflow-y: auto; 
+                    background: white; 
+                    border-radius: 8px; 
+                    padding: 1rem; 
+                    margin-bottom: 1rem;
+                    border: 1px solid #e2e8f0;
+                ">
+                    <div class="chat-message system-message" style="
+                        background: #e0f2fe; 
+                        padding: 0.75rem; 
+                        border-radius: 8px; 
+                        margin-bottom: 0.5rem;
+                        font-size: 0.875rem;
+                    ">
+                        <strong>系統：</strong>您好！我可以根據託收託運回報的資料回答您的問題。請輸入您想了解的內容。
+                    </div>
+                </div>
+                
+                <!-- 輸入區域 -->
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="chatInput" placeholder="請輸入您的問題..." style="
+                        flex: 1; 
+                        padding: 0.75rem; 
+                        border: 1px solid #d1d5db; 
+                        border-radius: 8px; 
+                        font-size: 0.875rem;
+                    " onkeypress="if(event.key==='Enter') app.sendChatMessage()">
+                    
+                    <button onclick="app.sendChatMessage()" style="
+                        background: linear-gradient(135deg, #0ea5e9, #14b8a6); 
+                        color: white; 
+                        border: none; 
+                        padding: 0.75rem 1rem; 
+                        border-radius: 8px; 
+                        cursor: pointer;
+                        font-size: 0.875rem;
+                        min-width: 60px;
+                    " id="sendChatBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
                 <!-- 功能按鈕區域 -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
                     
