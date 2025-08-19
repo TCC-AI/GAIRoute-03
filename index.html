@@ -3388,7 +3388,7 @@ justify-content:flex-end; / 右靠齊 */
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwZPCFPMClZj3-17Hg7DUf0d7mjqnGTw29J_nOyWL7qjAO0pJQj6fL3hmqcdcRwwOI/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbyVtlGqQs08cpHarmJvXhnUleVwCISfcKadMeRrEXoOObCHdlpN62rUSIImvA_5PJIn/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4310,6 +4310,87 @@ createOrderAnalysisModal() {
     
     // 綁定事件
     this.bindOrderAnalysisModalEvents();
+}
+/**
+ * 發送聊天訊息
+ */
+async sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) {
+        this.showNotification('請輸入問題', 'warning');
+        return;
+    }
+    
+    // 清空輸入框並顯示載入狀態
+    input.value = '';
+    this.showChatLoading(true);
+    
+    // 添加用戶訊息到聊天歷史
+    this.addChatMessage('user', message);
+    
+    try {
+        // 呼叫後端API獲取ChatGPT回應
+        const response = await this.apiCall('chatWithGPT', {
+            message: message,
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        
+        // 添加助手回應到聊天歷史
+        this.addChatMessage('assistant', response.reply);
+        
+    } catch (error) {
+        console.error('ChatGPT對話失敗:', error);
+        this.addChatMessage('assistant', '抱歉，我暫時無法回答您的問題。請稍後再試。');
+        this.showNotification('對話失敗，請稍後再試', 'error');
+    } finally {
+        this.showChatLoading(false);
+    }
+}
+
+/**
+ * 添加聊天訊息到歷史記錄
+ */
+addChatMessage(sender, message) {
+    const chatHistory = document.getElementById('chatHistory');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}`;
+    messageDiv.style.marginBottom = '0.5rem';
+    
+    const senderName = sender === 'user' ? '您' : 'GAI助手';
+    const bgColor = sender === 'user' ? '#dbeafe' : '#e0f2fe';
+    const textColor = '#374151';
+    
+    messageDiv.innerHTML = `
+        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">${senderName}</div>
+        <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 8px; color: ${textColor}; white-space: pre-wrap;">
+            ${message}
+        </div>
+    `;
+    
+    chatHistory.appendChild(messageDiv);
+    
+    // 滾動到最新訊息
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+/**
+ * 顯示/隱藏聊天載入狀態
+ */
+showChatLoading(show) {
+    const loadingDiv = document.getElementById('chatLoading');
+    const sendBtn = document.getElementById('sendChatBtn');
+    
+    if (show) {
+        loadingDiv.style.display = 'block';
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    } else {
+        loadingDiv.style.display = 'none';
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    }
 }
 
 /**
@@ -6196,7 +6277,57 @@ hideGAISecretaryModal() {
                 <h4 style="color: #1e293b; margin-bottom: 2rem; font-size: 1.3rem;">
                     您好，我是GAI派車數位專員
                 </h4>
+                            <!-- 🔥 新增：ChatGPT對話區域 -->
+            <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <h5 style="margin-bottom: 1rem; color: #374151; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-comments" style="color: #10b981;"></i>
+                    智能對話助手
+                </h5>
                 
+                <!-- 對話歷史區域 -->
+                <div id="chatHistory" style="
+                    max-height: 300px; 
+                    overflow-y: auto; 
+                    margin-bottom: 1rem; 
+                    padding: 1rem; 
+                    background: white; 
+                    border-radius: 8px; 
+                    border: 1px solid #d1d5db;
+                    min-height: 120px;
+                ">
+                    <div class="chat-message assistant" style="margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">GAI助手</div>
+                        <div style="background: #e0f2fe; padding: 0.75rem; border-radius: 8px; color: #374151;">
+                            您好！我可以根據託收託運回報資料回答您的問題。請輸入您想了解的內容。
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 輸入區域 -->
+                <div style="display: flex; gap: 0.5rem;">
+                    <input 
+                        type="text" 
+                        id="chatInput" 
+                        placeholder="請輸入您的問題..." 
+                        class="form-input" 
+                        style="flex: 1; padding: 0.75rem;"
+                        onkeypress="if(event.key==='Enter') app.sendChatMessage()"
+                    >
+                    <button 
+                        class="btn btn-primary" 
+                        onclick="app.sendChatMessage()"
+                        id="sendChatBtn"
+                        style="padding: 0.75rem 1rem;"
+                    >
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                
+                <!-- 載入指示器 -->
+                <div id="chatLoading" style="display: none; margin-top: 0.5rem; color: #6b7280; font-size: 0.875rem;">
+                    <i class="fas fa-spinner fa-spin"></i> 正在思考中...
+                </div>
+            </div>
                 <!-- 功能按鈕區域 -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
                     
