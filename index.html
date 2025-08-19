@@ -6543,7 +6543,11 @@ refreshDispatchTable() {
                 this.loadDashboard();
                 this.initializeSheets();
                 this.loadWeatherData();
-                
+                // 🔥 新增：顯示最新訂單通知
+                setTimeout(() => {
+                    this.showLatestOrderNotification();
+                }, 2000); // 延遲2秒顯示，讓其他初始化完成
+            }
 
             // 載入天氣資料
             async loadWeatherData() {
