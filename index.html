@@ -5875,7 +5875,7 @@ generateRouteDetails(routeData) {
     routeData.forEach((item, index) => {
         const pallets = item['板位'] || '0';
         const status = item['起點/迄點'] || '待確認';
-        const customer = item['客戶簡稱'] || '未知客戶';
+        const customer = item['配送點簡稱'] || '未知配送點';
         const address = item['地址'] || '地址待確認';
         const product = item['商品簡稱'] || '商品資訊待確認';
         const notes = item['配送備註'] || '';
