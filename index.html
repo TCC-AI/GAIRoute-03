@@ -8,6 +8,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* 美化滾動條 */
+.gai-modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.gai-modal-content::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.gai-modal-content::-webkit-scrollbar-thumb {
+    background: #0ea5e9;
+    border-radius: 3px;
+}
+
+.gai-modal-content::-webkit-scrollbar-thumb:hover {
+    background: #0284c7;
+}
+
+        /* 在 CSS 中添加 */
+.gai-modal-header {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    z-index: 10;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 24px 24px 0 0;
+}
+
+.gai-secretary-avatar {
+    width: 80px;      /* 👈 縮小頭像 */
+    height: 80px;     /* 👈 縮小頭像 */
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-bottom: 0.5rem;
+}
+
         .btn-outline-primary {
     background: transparent;
     color: #0ea5e9;
@@ -6305,23 +6345,45 @@ hideGAISecretaryModal() {
     const modal = document.getElementById('gaiSecretaryModal');
     modal.style.display = 'none';
 }
- // 👇 在這裡新增整合版的 GAI 派車數位專員對話框方法
-    showGAIAssistantModal() {
-        const modal = document.getElementById('gaiAssistantModal');
-        const modalBody = document.getElementById('gaiAssistantModalBody');
+showGAIAssistantModal() {
+    const modal = document.getElementById('gaiAssistantModal');
+    const modalBody = document.getElementById('gaiAssistantModalBody');
+    
+    // 整合所有功能的按鈕
+    modalBody.innerHTML = `
+        <!-- 🔥 固定頭部區域 -->
+        <div class="gai-modal-header" style="
+            position: sticky;
+            top: 0;
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            z-index: 10;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 24px 24px 0 0;
+            margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        ">
+            <img src="R2.png" alt="GAI秘書" class="gai-secretary-avatar" style="
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 3px solid rgba(255, 255, 255, 0.9);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                margin-bottom: 0.5rem;
+            ">
+            <h4 style="color: white; margin: 0; font-size: 1.1rem; font-weight: 500;">
+                您好，我是TCC-GAI派車數位專員
+            </h4>
+        </div>
         
-        // 整合所有功能的按鈕
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 1.5rem;">
-                <!-- GAI 秘書頭像 -->
-                <div style="margin: 0 auto 1.5rem auto; text-align: center;">
-                    <img src="R2.png" alt="GAI秘書" class="gai-secretary-avatar">
-                </div>
-                
-                <h4 style="color: #1e293b; margin-bottom: 2rem; font-size: 1.3rem;">
-                    您好，我是TCC-GAI派車數位專員
-                </h4>
-                <!-- 🔥 新增：ChatGPT 對話區域 -->
+        <!-- 🔥 可滾動內容區域 -->
+        <div class="gai-modal-content" style="
+            max-height: calc(85vh - 120px);
+            overflow-y: auto;
+            padding: 0 0.5rem;
+        ">
+            <!-- 🔥 新增：ChatGPT 對話區域 -->
             <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
                 <h5 style="margin-bottom: 1rem; color: #0ea5e9; display: flex; align-items: center; gap: 0.5rem;">
                     <i class="fas fa-comments"></i>
@@ -6373,114 +6435,116 @@ hideGAISecretaryModal() {
                     </button>
                 </div>
             </div>
-                <!-- 功能按鈕區域 -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    
-                    <!-- 檢查最新訂單資訊 -->
-                    <button class="btn btn-primary" onclick="app.checkLatestOrderInfo()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-clipboard-list" style="font-size: 1.5rem;"></i>
-                        <span>檢查最新訂單資訊</span>
-                    </button>
-                    
-                    <!-- GAI每日訂單分析 -->
-                    <button class="btn btn-info" onclick="app.showDailyOrderAnalysis()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-chart-line" style="font-size: 1.5rem;"></i>
-                        <span>GAI每日訂單分析</span>
-                    </button>
-                    
-                    <!-- 路線規劃建議 -->
-                    <button class="btn btn-success" onclick="app.showRouteOptimizationPage()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-route" style="font-size: 1.5rem;"></i>
-                        <span>智慧路線規劃</span>
-                    </button>
-                    
-                    <!-- 即時調度支援 -->
-                    <button class="btn btn-warning" onclick="app.showRealTimeDispatch()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-truck" style="font-size: 1.5rem;"></i>
-                        <span>即時調度支援</span>
-                    </button>
-                    
-                    <!-- 數據分析報告 -->
-                    <button class="btn btn-secondary" onclick="app.showDataAnalysisReport()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-chart-bar" style="font-size: 1.5rem;"></i>
-                        <span>數據分析報告</span>
-                    </button>
-                    
-                    <!-- 系統健康檢查 -->
-                    <button class="btn btn-info" onclick="app.performSystemHealthCheck()" style="
-                        padding: 1rem;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        gap: 0.5rem;
-                        height: auto;
-                        min-height: 80px;
-                    ">
-                        <i class="fas fa-heartbeat" style="font-size: 1.5rem;"></i>
-                        <span>系統健康檢查</span>
-                    </button>
-                </div>
+            
+            <!-- 功能按鈕區域 -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
                 
-                <!-- 快速操作區 -->
-                <div style="border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
-                    <h5 style="margin-bottom: 1rem; color: #64748b;">快速操作</h5>
-                    <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
-                        <button class="btn btn-sm btn-outline-primary" onclick="app.refreshDashboard()">
-                            <i class="fas fa-sync-alt"></i> 重新整理儀表板
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="app.switchPage('route-optimization')">
-                            <i class="fas fa-brain"></i> 前往路線規劃
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="app.exportSystemReport()">
-                            <i class="fas fa-download"></i> 匯出系統報告
-                        </button>
-                    </div>
+                <!-- 檢查最新訂單資訊 -->
+                <button class="btn btn-primary" onclick="app.checkLatestOrderInfo()" style="
+                    padding: 1rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                    height: auto;
+                    min-height: 80px;
+                ">
+                    <i class="fas fa-clipboard-list" style="font-size: 1.5rem;"></i>
+                    <span>檢查最新訂單資訊</span>
+                </button>
+                
+                <!-- GAI每日訂單分析 -->
+                <button class="btn btn-info" onclick="app.showDailyOrderAnalysis()" style="
+                    padding: 1rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                    height: auto;
+                    min-height: 80px;
+                ">
+                    <i class="fas fa-chart-line" style="font-size: 1.5rem;"></i>
+                    <span>GAI每日訂單分析</span>
+                </button>
+                
+                <!-- 路線規劃建議 -->
+                <button class="btn btn-success" onclick="app.showRouteOptimizationPage()" style="
+                    padding: 1rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                    height: auto;
+                    min-height: 80px;
+                ">
+                    <i class="fas fa-route" style="font-size: 1.5rem;"></i>
+                    <span>智慧路線規劃</span>
+                </button>
+                
+                <!-- 即時調度支援 -->
+                <button class="btn btn-warning" onclick="app.showRealTimeDispatch()" style="
+                    padding: 1rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                    height: auto;
+                    min-height: 80px;
+                ">
+                    <i class="fas fa-truck" style="font-size: 1.5rem;"></i>
+                    <span>即時調度支援</span>
+                </button>
+                
+                <!-- 數據分析報告 -->
+                <button class="btn btn-secondary" onclick="app.showDataAnalysisReport()" style="
+                    padding: 1rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                    height: auto;
+                    min-height: 80px;
+                ">
+                    <i class="fas fa-chart-bar" style="font-size: 1.5rem;"></i>
+                    <span>數據分析報告</span>
+                </button>
+                
+                <!-- 系統健康檢查 -->
+                <button class="btn btn-info" onclick="app.performSystemHealthCheck()" style="
+                    padding: 1rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                    height: auto;
+                    min-height: 80px;
+                ">
+                    <i class="fas fa-heartbeat" style="font-size: 1.5rem;"></i>
+                    <span>系統健康檢查</span>
+                </button>
+            </div>
+            
+            <!-- 快速操作區 -->
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+                <h5 style="margin-bottom: 1rem; color: #64748b;">快速操作</h5>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-sm btn-outline-primary" onclick="app.refreshDashboard()">
+                        <i class="fas fa-sync-alt"></i> 重新整理儀表板
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="app.switchPage('route-optimization')">
+                        <i class="fas fa-brain"></i> 前往路線規劃
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="app.exportSystemReport()">
+                        <i class="fas fa-download"></i> 匯出系統報告
+                    </button>
                 </div>
             </div>
-        `;
-        
-        modal.style.display = 'flex';
-    }
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+}
+
 
     // 👇 然後在這裡新增第4段的所有功能方法
     // 檢查最新訂單資訊
