@@ -4492,6 +4492,7 @@ async showDailyOrderAnalysis() {
     await this.showLatestOrderNotification();
 }
 // 發送聊天訊息
+// 🔥 修改後的發送聊天訊息函數 - 整合快問快答
 async sendChatMessage() {
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendChatBtn');
@@ -4509,21 +4510,19 @@ async sendChatMessage() {
     this.addChatMessage('user', userMessage);
     
     try {
-       // 🔥 修改：調用新的 ChatGPT API 處理函數
+        // 🔥 調用後端 ChatGPT API（已包含快問快答邏輯）
         const response = await this.apiCall('processChatGPTQuery', {
             userMessage: userMessage,
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
             sheetName: '託收託運回報'
         });
-        // 🔥 修改：處理新的回應格式
+        
+        // 🔥 處理回應並顯示模式標識
         if (response && response.reply) {
-            this.addChatMessage('assistant', response.reply);
+            this.addChatMessage('assistant', response.reply, response.mode);
         } else {
             throw new Error('API 回應格式錯誤');
         }
-        
-        // 添加AI回覆到對話歷史
-        this.addChatMessage('assistant', response.reply);
         
     } catch (error) {
         console.error('ChatGPT查詢失敗:', error);
@@ -4536,30 +4535,58 @@ async sendChatMessage() {
     }
 }
 
-// 添加聊天訊息到歷史記錄
-addChatMessage(type, message) {
+
+// 🔥 增強版聊天訊息添加函數 - 支持快問快答模式顯示
+addChatMessage(type, message, mode = null) {
     const chatHistory = document.getElementById('chatHistory');
     if (!chatHistory) return;
     
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${type}-message`;
     
-    let bgColor, textColor, icon, label;
+    let bgColor, textColor, icon, label, modeInfo = '';
+    
     switch (type) {
         case 'user':
-            bgColor = '#dbeafe';
+            bgColor = 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)';
             textColor = '#1e40af';
             icon = 'fas fa-user';
             label = '您';
             break;
         case 'assistant':
-            bgColor = '#dcfce7';
+            bgColor = 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)';
             textColor = '#166534';
             icon = 'fas fa-robot';
             label = 'GAI助手';
+            
+            // 🔥 根據模式添加標識
+            if (mode) {
+                const modeMap = {
+                    'quick_answer': { icon: '⚡', label: '快速回答', color: '#f59e0b' },
+                    'ai_analysis': { icon: '🤖', label: 'AI分析', color: '#0ea5e9' },
+                    'fallback': { icon: '💡', label: '備用回應', color: '#64748b' }
+                };
+                const modeData = modeMap[mode] || { icon: '🔍', label: '一般回應', color: '#64748b' };
+                modeInfo = `
+                    <span style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                        font-size: 0.75rem;
+                        color: ${modeData.color};
+                        background: rgba(255,255,255,0.7);
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 12px;
+                        margin-left: 0.5rem;
+                        font-weight: 600;
+                    ">
+                        ${modeData.icon} ${modeData.label}
+                    </span>
+                `;
+            }
             break;
         case 'system':
-            bgColor = '#fef3c7';
+            bgColor = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
             textColor = '#92400e';
             icon = 'fas fa-info-circle';
             label = '系統';
@@ -4569,18 +4596,28 @@ addChatMessage(type, message) {
     messageDiv.style.cssText = `
         background: ${bgColor}; 
         padding: 0.75rem; 
-        border-radius: 8px; 
-        margin-bottom: 0.5rem;
+        border-radius: 12px; 
+        margin-bottom: 0.75rem;
         font-size: 0.875rem;
         color: ${textColor};
+        animation: messageSlideIn 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     `;
     
     messageDiv.innerHTML = `
         <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
-            <i class="${icon}" style="margin-top: 0.125rem; flex-shrink: 0;"></i>
+            <i class="${icon}" style="margin-top: 0.125rem; flex-shrink: 0; font-size: 1rem;"></i>
             <div style="flex: 1;">
-                <strong>${label}：</strong>
-                <span style="white-space: pre-wrap;">${message}</span>
+                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                    <strong>${label}</strong>
+                    ${modeInfo}
+                    <span style="margin-left: auto; font-size: 0.7rem; opacity: 0.7;">
+                        ${new Date().toLocaleTimeString('zh-TW')}
+                    </span>
+                </div>
+                <div style="white-space: pre-wrap; line-height: 1.5;">
+                    ${this.formatChatMessage(message)}
+                </div>
             </div>
         </div>
     `;
@@ -4590,6 +4627,27 @@ addChatMessage(type, message) {
     // 滾動到最新訊息
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
+// 🔥 格式化聊天訊息 - 支持 Markdown 基本語法
+formatChatMessage(message) {
+    if (!message) return '';
+    
+    // 基本 Markdown 支持
+    let formatted = message
+        // 粗體
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // 斜體
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // 代碼
+        .replace(/`(.*?)`/g, '<code style="background: rgba(0,0,0,0.1); padding: 0.125rem 0.25rem; border-radius: 4px; font-family: monospace;">$1</code>')
+        // 項目符號
+        .replace(/^• (.+)$/gm, '<div style="margin: 0.25rem 0; padding-left: 1rem;">• $1</div>')
+        .replace(/^✅ (.+)$/gm, '<div style="margin: 0.25rem 0; padding-left: 1rem; color: #059669;">✅ $1</div>')
+        .replace(/^❌ (.+)$/gm, '<div style="margin: 0.25rem 0; padding-left: 1rem; color: #dc2626;">❌ $1</div>')
+        .replace(/^🔥 (.+)$/gm, '<div style="margin: 0.25rem 0; padding-left: 1rem; color: #f59e0b;">🔥 $1</div>');
+    
+    return formatted;
+}
+
 
 // 前往路線規劃頁面
 showRouteOptimizationPage() {
