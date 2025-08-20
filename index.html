@@ -3388,7 +3388,7 @@ justify-content:flex-end; / 右靠齊 */
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwzbmXOwK2fJs-z1EOyykXy2ETMXNGP-bZcuWth8QQ-gcvoMJmR9W2H-3hTcoHuNYgT/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwA27n1o_Nxe1s2I4QyqRpzgcUhEa0AAiSzkZrZv1l_to6DVNcFvomJhZnu1FxQwQqw/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4029,12 +4029,18 @@ async sendChatMessage() {
     this.addChatMessage('user', userMessage);
     
     try {
-        // 呼叫後端API處理ChatGPT對話
+       // 🔥 修改：調用新的 ChatGPT API 處理函數
         const response = await this.apiCall('processChatGPTQuery', {
             userMessage: userMessage,
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
             sheetName: '託收託運回報'
         });
+        // 🔥 修改：處理新的回應格式
+        if (response && response.reply) {
+            this.addChatMessage('assistant', response.reply);
+        } else {
+            throw new Error('API 回應格式錯誤');
+        }
         
         // 添加AI回覆到對話歷史
         this.addChatMessage('assistant', response.reply);
@@ -4939,6 +4945,32 @@ DispatchGAISystem.prototype.handleLogin = async function(){
     this.prefetchAfterLogin();
   }
 };
+// 🔥 在 bindEvents() 函數中添加測試按鈕事件
+// 測試 ChatGPT 功能
+document.getElementById('testChatGPT')?.addEventListener('click', async () => {
+    try {
+        this.showLoading('測試 ChatGPT 連線...');
+        
+        const testResponse = await this.apiCall('processChatGPTQuery', {
+            userMessage: '你好，請簡單介紹一下你的功能',
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '託收託運回報'
+        });
+        
+        if (testResponse && testResponse.reply) {
+            this.showNotification('ChatGPT 連線測試成功！', 'success');
+            console.log('ChatGPT 測試回應:', testResponse.reply);
+        } else {
+            throw new Error('回應格式錯誤');
+        }
+        
+    } catch (error) {
+        console.error('ChatGPT 測試失敗:', error);
+        this.showNotification(`ChatGPT 測試失敗: ${error.message}`, 'error');
+    } finally {
+        this.hideLoading();
+    }
+});
 
 
                 // AI優化事件
@@ -7576,6 +7608,17 @@ async showRouteAddresses(routeName) {
                     
                 } catch (error) {
                     console.error('API 呼叫失敗:', error);
+                     // 🔥 新增：ChatGPT 特定錯誤處理
+        if (action === 'processChatGPTQuery') {
+            // ChatGPT API 的特殊錯誤處理
+            if (error.message.includes('API key') || error.message.includes('401')) {
+                throw new Error('AI 服務認證失敗，請聯繫系統管理員');
+            } else if (error.message.includes('quota') || error.message.includes('429')) {
+                throw new Error('AI 服務使用額度已達上限，請稍後再試');
+            } else if (error.message.includes('timeout')) {
+                throw new Error('AI 服務回應超時，請稍後再試');
+            }
+        }
                     
                     // 如果是網路錯誤，切換到離線模式
                     if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -7602,6 +7645,16 @@ async showRouteAddresses(routeName) {
                             level: 's4'
                         }
                     },
+                    processChatGPTQuery: {
+            reply: "您好！我是GAI派車數位專員助手。我可以根據託收託運回報資料為您提供以下服務：\n\n" +
+                  "✅ 路線規劃建議\n" +
+                  "✅ 配送狀態查詢\n" +
+                  "✅ 車輛調度分析\n" +
+                  "✅ 異常情況處理建議\n\n" +
+                  "請告訴我您需要什麼協助？",
+            timestamp: new Date().toISOString(),
+            success: true
+        },
                     getDashboardData: {
                         todayDeliveries: 156,
                         vehicleUsage: 78,
