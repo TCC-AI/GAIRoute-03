@@ -6570,9 +6570,19 @@ hideGAISecretaryModal() {
         }
     }
 
-// 工具方法
+// 🔥 修改為去除前導零的版本
 formatDateForSheet(dateStr) {
     if (!dateStr) return '';
+    
+    // 將 yyyy-mm-dd 轉換為 yyyy/m/d (去除前導零)
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        const year = parts[0];
+        const month = parseInt(parts[1], 10); // 去除前導零
+        const day = parseInt(parts[2], 10);   // 去除前導零
+        return `${year}/${month}/${day}`;
+    }
+    
     return dateStr.replace(/-/g, '/');
 }
 
