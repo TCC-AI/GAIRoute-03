@@ -2640,10 +2640,10 @@ justify-content:flex-end; / 右靠齊 */
                     <i class="fas fa-tachometer-alt"></i>
                     <span>主控台</span>
                 </li>
-                <!-- 👇 新增 GAI派車數位專員 選單項目 -->
+                <!-- 👇 新增 TCC-GAI派車數位專員 選單項目 -->
                 <li class="menu-item" data-action="gai-assistant" data-permission="basic">
                     <i class="fas fa-robot"></i>
-                    <span>GAI派車數位專員</span>
+                    <span>TCC-GAI派車數位專員</span>
                 </li>
                 <li class="menu-item" data-page="route-optimization" data-permission="route-optimization">
                     <i class="fas fa-brain"></i>
@@ -4507,7 +4507,7 @@ hideOrderAnalysisModal() {
                         const page = e.currentTarget.dataset.page;
                         const action = e.currentTarget.dataset.action; // 新增 action 處理
                         const permission = e.currentTarget.dataset.permission;
-                        // GAI派車數位專員 - 所有用戶都可以使用
+                        // TCC-GAI派車數位專員 - 所有用戶都可以使用
                         if (action === 'gai-assistant') {
                             this.showGAIAssistantModal();
                             return;
@@ -6319,7 +6319,7 @@ hideGAISecretaryModal() {
                 </div>
                 
                 <h4 style="color: #1e293b; margin-bottom: 2rem; font-size: 1.3rem;">
-                    您好，我是GAI派車數位專員
+                    您好，我是TCC-GAI派車數位專員
                 </h4>
                 <!-- 🔥 新增：ChatGPT 對話區域 -->
             <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
@@ -7646,7 +7646,7 @@ async showRouteAddresses(routeName) {
                         }
                     },
                     processChatGPTQuery: {
-            reply: "您好！我是GAI派車數位專員助手。我可以根據託收託運回報資料為您提供以下服務：\n\n" +
+            reply: "您好！我是TCC-GAI派車數位專員助手。我可以根據託收託運回報資料為您提供以下服務：\n\n" +
                   "✅ 路線規劃建議\n" +
                   "✅ 配送狀態查詢\n" +
                   "✅ 車輛調度分析\n" +
@@ -9691,7 +9691,7 @@ function collapseAllRoutes() {
     </div>
   </div>
 </div>
-<!-- GAI派車數位專員整合對話框 -->
+<!-- TCC-GAI派車數位專員整合對話框 -->
 <div id="gaiAssistantModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 800px;">
         <div class="modal-header" style="
@@ -9701,7 +9701,7 @@ function collapseAllRoutes() {
         ">
             <h3 style="color: white; margin: 0;">
                 <i class="fas fa-robot" style="margin-right: 0.5rem;"></i>
-                GAI派車數位專員 - 功能中心
+                TCC-GAI派車數位專員 - 功能中心
             </h3>
             <span class="modal-close" id="gaiAssistantModalClose" style="color: white;">&times;</span>
         </div>
