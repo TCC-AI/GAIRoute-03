@@ -8,6 +8,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* GAI助手對話框專用樣式 */
+.gai-assistant-header {
+    min-height: 60px !important;
+    padding: 30px 24px !important;
+    background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%) !important;
+    color: white !important;
+    border-radius: 24px 24px 0 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+}
+
+.gai-assistant-header h4 {
+    color: white !important;
+    margin: 0 !important;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+}
+
+.gai-assistant-header .modal-close {
+    color: white !important;
+    font-size: 2rem !important;
+    cursor: pointer !important;
+    padding: 0.5rem !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    line-height: 1 !important;
+}
+
+.gai-assistant-header .modal-close:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
         /* 美化滾動條 */
 .gai-modal-content::-webkit-scrollbar {
     width: 6px;
@@ -9778,7 +9813,7 @@ function collapseAllRoutes() {
                 <i class="fas fa-robot" style="margin-right: 0.5rem;"></i>
                 TCC-GAI派車數位專員 - 功能中心
             </h4>
-            <span class="modal-close" id="gaiAssistantModalClose" style="color: white;">&times;</span>
+           <span class="modal-close" id="gaiAssistantModalClose">&times;</span>
         </div>
         <div class="modal-body" id="gaiAssistantModalBody">
             <!-- 動態內容 -->
