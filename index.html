@@ -3868,7 +3868,7 @@ justify-content:flex-end; / 右靠齊 */
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycby4OvLaFQZ07r0cdq7j42CkiGIEmjkiIxdxIrGKS-VIvS75AXIt2-vBdM-mvPoZykK5/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbyQo2U4Cw2kHQ7QMRXxqMlsdgo1u0-4C8zlN0tXO6aIv79vOV629_9nDyyx1Kks0jMN/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4215,6 +4215,82 @@ justify-content:flex-end; / 右靠齊 */
                     this.map.setZoom(12);
                 }
             }
+            // 處理低碳排模態
+async handleAIPreplanCMode() {
+    const resultDiv = document.getElementById('gai-route-result');
+    this.showPartialLoading('gai-route-result', '正在佈建AI當日各路線預排表(低碳排模態)...');
+
+    try {
+        console.log('開始獲取當日各路線表(C)...');
+        
+        const result = await this.apiCall('getCurrentDayRouteTableC', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        
+        console.log('API 返回結果:', result);
+        
+        if (result && result.length > 0) {
+            const cardsHtml = this.convertToRouteCards(result);
+            resultDiv.innerHTML = `
+                <div style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <h4 style="margin: 0; color: #dc2626; font-size: 1.5rem; font-weight: 700;">
+                                <i class="fas fa-leaf" style="margin-right: 0.5rem; color: #16a34a;"></i>
+                                當日各路線表(C) - 低碳排模態
+                            </h4>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">
+                                資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${getUniqueRouteCount(result)} 條路線
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-secondary btn-sm" onclick="expandAllRoutes()" title="展開所有路線">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="collapseAllRoutes()" title="收折所有路線">
+                                <i class="fas fa-compress-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${cardsHtml}
+                    <div style="margin-top: 2rem; text-align: center; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                        <button class="btn btn-success btn-sm" onclick="app.exportRouteTableC()" style="margin-right: 0.5rem;">
+                            <i class="fas fa-download"></i> 匯出路線表(C)
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.refreshRouteTableC()">
+                            <i class="fas fa-sync-alt"></i> 重新整理
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            this.showNotification('當日各路線表(C)計算完成', 'success');
+        } else {
+            throw new Error('無法取得路線表(C)資料或資料為空');
+        }
+    } catch (e) {
+        console.error('載入路線表(C)失敗:', e);
+        resultDiv.innerHTML = `
+            <div style="color: #dc2626; padding: 2rem; border: 2px dashed #fecaca; border-radius: 12px; background: #fef2f2; text-align: center;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <h4 style="margin-bottom: 0.5rem;">載入失敗</h4>
+                <p style="margin-bottom: 1rem;">${e.message}</p>
+                <small style="color: #991b1b;">請檢查網路連線或聯絡系統管理員</small>
+            </div>
+        `;
+    }
+}
+
+// 匯出路線表(C)功能
+exportRouteTableC() {
+    this.showNotification('匯出功能開發中...', 'info');
+}
+
+// 重新整理路線表(C)
+refreshRouteTableC() {
+    this.handleAIPreplanCMode();
+}
+
 
             // 優化路線順序
             async optimizeRouteOrder(waypoints, optimizationType = 'distance') {
@@ -5509,6 +5585,11 @@ document.getElementById('testChatGPT')?.addEventListener('click', async () => {
         this.hideLoading();
     }
 });
+                // 在 bindEvents() 函數中添加低碳排模態按鈕事件
+document.getElementById('ai-preplan-btn-c')?.addEventListener('click', async () => {
+    await this.handleAIPreplanCMode();
+});
+
 
 
                 // AI優化事件
@@ -6287,7 +6368,7 @@ refreshDeliveryReport() {
 
 // 執行外部 GAS 的 executeThreePhaseProcess 程序（修正 CORS 版本）
 async executeThreePhaseProcess() {
-    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbxNG022EybrJx51v1E6WjnUTeWGO0rcLk-wBGpOzGgnGdpN1H362ZKdM44Dju1JatchaQ/exec';
+    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbwZaJK7L59_UUD5p0EZGV9KtW40UErieIQkwpCp3P2zAKH88kQJviBGDBROIIGQmC5_fg/exec';
     
     try {
         // 先測試 GET 請求確認服務可用
