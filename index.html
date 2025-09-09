@@ -3120,10 +3120,10 @@ justify-content:flex-end; / 右靠齊 */
                     <i class="fas fa-tachometer-alt"></i>
                     <span>主控台</span>
                 </li>
-                <!-- 👇 新增 TCC-GAI派車數位秘書 選單項目 -->
+                <!-- 👇 新增 TCC-GAI派車中心數位主任 選單項目 -->
                 <li class="menu-item" data-action="gai-assistant" data-permission="basic">
                     <i class="fas fa-robot"></i>
-                    <span>TCC-GAI派車數位秘書</span>
+                    <span>TCC-GAI派車中心數位主任</span>
                 </li>
                 <li class="menu-item" data-page="route-optimization" data-permission="route-optimization">
                     <i class="fas fa-brain"></i>
@@ -3788,7 +3788,7 @@ justify-content:flex-end; / 右靠齊 */
             <div class="modal-header">
                 <h3 style="color: #fafcfc;">
                     <i class="fas fa-robot" style="margin-right: 0.5rem;"></i>
-                    TCC-GAI派車數位秘書
+                    TCC-GAI派車中心數位主任
                 </h3>
                 <span class="modal-close" id="gaiModalClose">&times;</span>
             </div>
@@ -5054,7 +5054,7 @@ createOrderAnalysisModal() {
                 color: #64748b;
                 font-size: 0.875rem;
                 font-weight: 500;
-            ">TCC-GAI派車數位秘書</p>
+            ">TCC-GAI派車中心數位主任</p>
         </div>
         
         <div style="
@@ -5199,7 +5199,7 @@ hideOrderAnalysisModal() {
                         const page = e.currentTarget.dataset.page;
                         const action = e.currentTarget.dataset.action; // 新增 action 處理
                         const permission = e.currentTarget.dataset.permission;
-                        // TCC-GAI派車數位秘書 - 所有用戶都可以使用
+                        // TCC-GAI派車中心數位主任 - 所有用戶都可以使用
                         if (action === 'gai-assistant') {
                             this.showGAIAssistantModal();
                             return;
@@ -6183,7 +6183,7 @@ showLatestOrderDialog(formattedTime, client) {
 
     msg.innerHTML = `
       <div style="white-space:pre-line;">
-【您好，我是TCC-GAI派車數位秘書：
+【您好，我是TCC-GAI派車中心數位主任：
 剛剛 <span class="highlight-time">${time}</span> 已收到來自客戶 
             <span class="highlight-client">${client}</span> 的訂單，請檢視。】</div>
     `;
@@ -6993,7 +6993,7 @@ async showGAISecretaryModal() {
                     </div>
                     
                     <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
-                        您好，我是TCC-GAI派車數位秘書
+                        您好，我是TCC-GAI派車中心數位主任
                     </h4>
                     
                     <div style="background: #fef2f2; padding: 1.5rem; border-radius: 12px; 
@@ -7029,7 +7029,7 @@ async showGAISecretaryModal() {
                     </div>
                     
                     <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
-                        您好，我是TCC-GAI派車數位秘書
+                        您好，我是TCC-GAI派車中心數位主任
                     </h4>
                     
                     <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 12px; 
@@ -7058,7 +7058,7 @@ async showGAISecretaryModal() {
                 </div>
                 
                 <h4 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem;">
-                    您好，我是TCC-GAI派車數位秘書
+                    您好，我是TCC-GAI派車中心數位主任
                 </h4>
                 
                 <div style="background: #fef3c7; padding: 1.5rem; border-radius: 12px; 
@@ -7078,7 +7078,7 @@ async showGAISecretaryModal() {
 }
 
 
-// 隱藏GAI派車數位秘書對話框
+// 隱藏GAI派車中心數位主任對話框
 hideGAISecretaryModal() {
     const modal = document.getElementById('gaiSecretaryModal');
     modal.style.display = 'none';
@@ -7111,7 +7111,7 @@ showGAIAssistantModal() {
                 margin-bottom: 0.5rem;
             ">
             <h4 style="color: black; margin: 0; font-size: 1.1rem; font-weight: 500;">
-                您好，我是TCC-GAI派車數位秘書
+                您好，我是TCC-GAI派車中心數位主任
             </h4>
         </div>
         
@@ -8458,7 +8458,7 @@ async showRouteAddresses(routeName) {
                         }
                     },
                     processChatGPTQuery: {
-            reply: "您好！我是TCC-GAI派車數位秘書。我可以根據託收託運回報資料為您提供以下服務：\n\n" +
+            reply: "您好！我是TCC-GAI派車中心數位主任。我可以根據託收託運回報資料為您提供以下服務：\n\n" +
                   "✅ 路線規劃建議\n" +
                   "✅ 配送狀態查詢\n" +
                   "✅ 車輛調度分析\n" +
@@ -10210,7 +10210,7 @@ DispatchGAISystem.prototype.showGAIAssistantModal = function() {
                                 <span>系統</span>
                             </div>
                             <div class="chat-message-content">
-                                您好！我是TCC-GAI派車數位秘書助手。我可以根據託收託運回報的資料回答您的問題。請輸入您想了解的內容。
+                                您好！我是TCC-GAI派車中心數位主任助手。我可以根據託收託運回報的資料回答您的問題。請輸入您想了解的內容。
                             </div>
                         </div>
                     </div>
@@ -10239,7 +10239,7 @@ DispatchGAISystem.prototype.showGAIAssistantModal = function() {
                         <img src="R2.png" alt="GAI秘書" class="gai-secretary-avatar">
                     </div>
                     <h5 style="margin: 0; color: #1e293b; font-weight: 600;">
-                        TCC-GAI派車數位秘書
+                        TCC-GAI派車中心數位主任
                     </h5>
                 </div>
                 
@@ -10753,7 +10753,7 @@ function collapseAllRoutes() {
       <span class="lod-pulse"></span>
     </div>
     <h3 id="latestOrderTitle" class="lod-title">
-      <i class="fas fa-robot" style="margin-right:6px;"></i>TCC-GAI派車數位秘書
+      <i class="fas fa-robot" style="margin-right:6px;"></i>TCC-GAI派車中心數位主任
     </h3>
     <div id="latestOrderMessage" class="lod-message">
       <!-- 動態填入 -->
@@ -10768,7 +10768,7 @@ function collapseAllRoutes() {
     </div>
   </div>
 </div>
-<!-- TCC-GAI派車數位秘書整合對話框 -->
+<!-- TCC-GAI派車中心數位主任整合對話框 -->
 <div id="gaiAssistantModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 1600px;">
         <div class="modal-header" style="
@@ -10779,7 +10779,7 @@ function collapseAllRoutes() {
         ">
             <h4 style="color: white; margin: 0;">
                 <i class="fas fa-robot" style="margin-right: 0.5rem;"></i>
-                TCC-GAI派車數位秘書 - 功能中心
+                TCC-GAI派車中心數位主任 - 功能中心
             </h4>
            <span class="modal-close" id="gaiAssistantModalClose">&times;</span>
         </div>
