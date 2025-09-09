@@ -3868,7 +3868,7 @@ justify-content:flex-end; / 右靠齊 */
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbxFxJxtdpsqTffWkJLcmQDGhNE35oat_3FS_qVUUESItbgYiLvwT7Hw4cbJnPluUe8/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwXRNAZqvPT8UilGFlq2TRirj_1sNl1uVyYzw8Ym2KNoAjaazBOMbyHOYD8yZbvQsso/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4744,13 +4744,14 @@ showDataAnalysisReport() {
     this.hideGAIAssistantModal();
     this.switchPage('reports');
 }
-// 在 DispatchGAISystem 類別中添加
 /**
- * 匯出當日各路線表為 Excel 檔案
+ * 匯出當日各路線表為 Excel 檔案 - 修正版
  */
 async exportCurrentDayRouteSheet() {
     try {
-        this.showLoading('正在準備匯出檔案...');
+        this.showLoading('正在準備匯出檔案...請稍候');
+        
+        console.log('開始匯出當日各路線表...');
         
         // 呼叫後端 API 匯出指定的 Google Sheet
         const result = await this.apiCall('exportRouteSheetAsExcel', {
@@ -4759,21 +4760,126 @@ async exportCurrentDayRouteSheet() {
             exportFormat: 'excel'
         });
         
-        if (result.success) {
-            // 創建下載連結
-            this.downloadFile(result.downloadUrl, result.filename);
-            this.showNotification('路線表匯出成功！', 'success');
+        console.log('API 返回結果:', result);
+        
+        if (result && result.success) {
+            // 直接使用返回的下載 URL
+            const link = document.createElement('a');
+            link.href = result.downloadUrl;
+            link.download = result.filename;
+            link.target = '_blank';
+            
+            // 觸發下載
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            this.showNotification('路線表匯出成功！檔案將自動下載', 'success');
+            
         } else {
-            throw new Error(result.message || '匯出失敗');
+            throw new Error(result?.message || '匯出失敗，請稍後再試');
         }
         
     } catch (error) {
         console.error('匯出路線表失敗:', error);
         this.showNotification(`匯出失敗: ${error.message}`, 'error');
+        
+        // 提供備用方案
+        this.showFallbackExportOptions();
+        
     } finally {
         this.hideLoading();
     }
 }
+
+/**
+ * 備用匯出方案
+ */
+showFallbackExportOptions() {
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '匯出選項';
+    modalBody.innerHTML = `
+        <div style="text-align: center; padding: 1rem;">
+            <h4 style="color: #0ea5e9; margin-bottom: 1.5rem;">
+                <i class="fas fa-download"></i> 選擇匯出方式
+            </h4>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto;">
+                <button class="btn btn-primary" onclick="app.directExportGoogleSheet()" style="padding: 1rem;">
+                    <i class="fas fa-external-link-alt"></i> 直接開啟 Google Sheet
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.25rem;">
+                        在新視窗中開啟原始工作表
+                    </div>
+                </button>
+                
+                <button class="btn btn-success" onclick="app.manualExportInstructions()" style="padding: 1rem;">
+                    <i class="fas fa-info-circle"></i> 手動匯出說明
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.25rem;">
+                        查看如何手動匯出 Excel 檔案
+                    </div>
+                </button>
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #f0f9ff; border-radius: 8px; font-size: 0.9rem; color: #0369a1;">
+                <i class="fas fa-info-circle"></i> 
+                系統正在修復自動匯出功能，請使用上述方式獲取資料
+            </div>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+}
+
+/**
+ * 直接開啟 Google Sheet
+ */
+directExportGoogleSheet() {
+    const url = 'https://docs.google.com/spreadsheets/d/1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc/edit#gid=0';
+    window.open(url, '_blank');
+    this.hideModal();
+    this.showNotification('已在新視窗中開啟 Google Sheet', 'info');
+}
+
+/**
+ * 顯示手動匯出說明
+ */
+manualExportInstructions() {
+    const modalBody = document.getElementById('modalBody');
+    modalBody.innerHTML = `
+        <div style="padding: 1rem;">
+            <h4 style="color: #0ea5e9; margin-bottom: 1rem;">
+                <i class="fas fa-download"></i> 手動匯出 Excel 步驟
+            </h4>
+            
+            <div style="text-align: left; line-height: 1.6;">
+                <div style="margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <strong>步驟 1：</strong> 點擊下方按鈕開啟 Google Sheet
+                </div>
+                
+                <div style="margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <strong>步驟 2：</strong> 在 Google Sheet 中點選「檔案」→「下載」→「Microsoft Excel (.xlsx)」
+                </div>
+                
+                <div style="margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <strong>步驟 3：</strong> 檔案會自動下載到您的電腦
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button class="btn btn-primary" onclick="app.directExportGoogleSheet()" style="margin-right: 0.5rem;">
+                    <i class="fas fa-external-link-alt"></i> 開啟 Google Sheet
+                </button>
+                <button class="btn btn-secondary" onclick="app.hideModal()">
+                    <i class="fas fa-times"></i> 關閉
+                </button>
+            </div>
+        </div>
+    `;
+}
+
 
 /**
  * 下載檔案的輔助函數
