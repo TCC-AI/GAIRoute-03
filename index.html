@@ -5948,14 +5948,16 @@ displayLastQueryReport(data) {
                 </tbody>
             </table>
         </div>
-        <div style="margin-top: 1rem; text-align: right;">
-            <button class="btn btn-primary btn-sm" onclick="app.exportLastQueryReport()">
-                <i class="fas fa-download"></i> 匯出報告
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="app.refreshLastQueryReport()" style="margin-left: 0.5rem;">
-                <i class="fas fa-sync-alt"></i> 重新整理
-            </button>
-        </div>
+        // 在 convertToRouteCards 函數的底部按鈕區域
+<div style="margin-top: 2rem; text-align: center; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+    <button class="btn btn-primary btn-sm" onclick="app.exportCurrentDayRouteSheet()" style="margin-right: 0.5rem;">
+        <i class="fas fa-download"></i> 匯出路線表
+    </button>
+    <button class="btn btn-secondary btn-sm" onclick="app.refreshRouteTable()">
+        <i class="fas fa-sync-alt"></i> 重新整理
+    </button>
+</div>
+
     `;
     
     container.innerHTML = tableHtml;
