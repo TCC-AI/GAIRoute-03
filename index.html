@@ -4253,14 +4253,16 @@ async handleAIPreplanCMode() {
                         </div>
                     </div>
                     ${cardsHtml}
-                    <div style="margin-top: 2rem; text-align: center; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
-                        <button class="btn btn-success btn-sm" onclick="app.exportRouteTableC()" style="margin-right: 0.5rem;">
-                            <i class="fas fa-download"></i> 匯出路線表(C)
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="app.refreshRouteTableC()">
-                            <i class="fas fa-sync-alt"></i> 重新整理
-                        </button>
-                    </div>
+                    // 在 convertToRouteCards 函數的底部按鈕區域
+<div style="margin-top: 2rem; text-align: center; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+    <button class="btn btn-primary btn-sm" onclick="app.exportCurrentDayRouteSheet()" style="margin-right: 0.5rem;">
+        <i class="fas fa-download"></i> 匯出路線表
+    </button>
+    <button class="btn btn-secondary btn-sm" onclick="app.refreshRouteTable()">
+        <i class="fas fa-sync-alt"></i> 重新整理
+    </button>
+</div>
+
                 </div>
             `;
             
@@ -4742,7 +4744,83 @@ showDataAnalysisReport() {
     this.hideGAIAssistantModal();
     this.switchPage('reports');
 }
+// 在 DispatchGAISystem 類別中添加
+/**
+ * 匯出當日各路線表為 Excel 檔案
+ */
+async exportCurrentDayRouteSheet() {
+    try {
+        this.showLoading('正在準備匯出檔案...');
+        
+        // 呼叫後端 API 匯出指定的 Google Sheet
+        const result = await this.apiCall('exportRouteSheetAsExcel', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '當日各路線表',
+            exportFormat: 'excel'
+        });
+        
+        if (result.success) {
+            // 創建下載連結
+            this.downloadFile(result.downloadUrl, result.filename);
+            this.showNotification('路線表匯出成功！', 'success');
+        } else {
+            throw new Error(result.message || '匯出失敗');
+        }
+        
+    } catch (error) {
+        console.error('匯出路線表失敗:', error);
+        this.showNotification(`匯出失敗: ${error.message}`, 'error');
+    } finally {
+        this.hideLoading();
+    }
+}
 
+/**
+ * 下載檔案的輔助函數
+ */
+downloadFile(url, filename) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || '當日各路線表.xlsx';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+// 在前端添加批次匯出功能
+async exportAllRouteTables() {
+    try {
+        this.showLoading('正在批次匯出所有路線表...');
+        
+        const result = await this.apiCall('exportAllRouteTablesAsExcel', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        
+        if (result.success && result.results) {
+            let successCount = 0;
+            
+            result.results.forEach(item => {
+                if (item.success) {
+                    successCount++;
+                    // 自動下載每個檔案
+                    setTimeout(() => {
+                        this.downloadFile(item.downloadUrl, item.filename);
+                    }, successCount * 1000); // 間隔1秒下載
+                }
+            });
+            
+            this.showNotification(`成功匯出 ${successCount} 個路線表！`, 'success');
+        }
+        
+    } catch (error) {
+        console.error('批次匯出失敗:', error);
+        this.showNotification(`批次匯出失敗: ${error.message}`, 'error');
+    } finally {
+        this.hideLoading();
+    }
+}
+
+            
 // 系統健康檢查
 async performSystemHealthCheck() {
     this.hideGAIAssistantModal();
