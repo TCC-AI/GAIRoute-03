@@ -8,6 +8,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* 格式保留提示動畫 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* 匯出按鈕增強樣式 */
+.export-btn-enhanced {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.export-btn-enhanced:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.export-btn-enhanced i {
+    margin-right: 0.5rem;
+}
+
         /* ===== 左右分割佈局 ===== */
 .gai-split-layout {
     display: flex;
@@ -4745,13 +4790,13 @@ showDataAnalysisReport() {
     this.switchPage('reports');
 }
 /**
- * 匯出當日各路線表為 Excel 檔案 - 修正版
+ * 匯出當日各路線表為 Excel 檔案 - 格式保留版
  */
 async exportCurrentDayRouteSheet() {
     try {
-        this.showLoading('正在準備匯出檔案...請稍候');
+        this.showLoading('正在準備匯出檔案...保留所有格式中，請稍候');
         
-        console.log('開始匯出當日各路線表...');
+        console.log('開始匯出當日各路線表（保留格式）...');
         
         // 呼叫後端 API 匯出指定的 Google Sheet
         const result = await this.apiCall('exportRouteSheetAsExcel', {
@@ -4763,18 +4808,17 @@ async exportCurrentDayRouteSheet() {
         console.log('API 返回結果:', result);
         
         if (result && result.success) {
-            // 直接使用返回的下載 URL
-            const link = document.createElement('a');
-            link.href = result.downloadUrl;
-            link.download = result.filename;
-            link.target = '_blank';
+            // 顯示格式保留確認
+            this.showFormatPreservationInfo(result);
             
-            // 觸發下載
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // 自動下載檔案
+            this.downloadExcelFile(result.downloadUrl, result.filename);
             
-            this.showNotification('路線表匯出成功！檔案將自動下載', 'success');
+            this.showNotification(
+                `路線表匯出成功！已保留所有格式，包含底色和樣式。檔案：${result.filename}`, 
+                'success', 
+                6000
+            );
             
         } else {
             throw new Error(result?.message || '匯出失敗，請稍後再試');
@@ -4791,6 +4835,178 @@ async exportCurrentDayRouteSheet() {
         this.hideLoading();
     }
 }
+
+/**
+ * 顯示格式保留資訊
+ */
+showFormatPreservationInfo(result) {
+    const info = document.createElement('div');
+    info.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        z-index: 10000;
+        max-width: 350px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    info.innerHTML = `
+        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+            <i class="fas fa-check-circle" style="margin-right: 0.5rem; font-size: 1.2rem;"></i>
+            <strong>格式完整保留</strong>
+        </div>
+        <div style="font-size: 0.8rem; opacity: 0.9;">
+            ✓ 欄位底色和背景<br>
+            ✓ 字體樣式和顏色<br>
+            ✓ 邊框和對齊方式<br>
+            ✓ 欄寬和列高設定<br>
+            <div style="margin-top: 0.5rem; font-weight: bold;">
+                資料：${result.dataRows} 列 × ${result.dataCols} 欄
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(info);
+    
+    // 3秒後自動移除
+    setTimeout(() => {
+        if (info.parentNode) {
+            info.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => info.remove(), 300);
+        }
+    }, 3000);
+}
+
+/**
+ * 下載 Excel 檔案
+ */
+downloadExcelFile(downloadUrl, filename) {
+    try {
+        // 創建隱藏的下載連結
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        link.target = '_blank';
+        link.style.display = 'none';
+        
+        // 添加到頁面並觸發下載
+        document.body.appendChild(link);
+        link.click();
+        
+        // 清理
+        setTimeout(() => {
+            document.body.removeChild(link);
+        }, 100);
+        
+        console.log(`開始下載檔案: ${filename}`);
+        
+    } catch (error) {
+        console.error('下載檔案失敗:', error);
+        // 備用方案：直接開啟 URL
+        window.open(downloadUrl, '_blank');
+    }
+}
+
+/**
+ * 增強的備用匯出選項
+ */
+showFallbackExportOptions() {
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = '匯出選項';
+    modalBody.innerHTML = `
+        <div style="text-align: center; padding: 1rem;">
+            <h4 style="color: #0ea5e9; margin-bottom: 1.5rem;">
+                <i class="fas fa-download"></i> 選擇匯出方式
+            </h4>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto;">
+                <button class="btn btn-primary" onclick="app.directExportGoogleSheet()" style="padding: 1rem;">
+                    <i class="fas fa-external-link-alt"></i> 直接開啟 Google Sheet
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.25rem;">
+                        在新視窗中開啟，可手動匯出並保留所有格式
+                    </div>
+                </button>
+                
+                <button class="btn btn-success" onclick="app.showManualExportGuide()" style="padding: 1rem;">
+                    <i class="fas fa-info-circle"></i> 格式保留匯出教學
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.25rem;">
+                        詳細步驟說明，確保完整保留格式
+                    </div>
+                </button>
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border-radius: 8px; font-size: 0.9rem; color: #92400e;">
+                <i class="fas fa-exclamation-triangle"></i> 
+                <strong>重要：</strong>為確保完整保留欄位底色和格式，建議使用手動匯出方式
+            </div>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+}
+
+/**
+ * 顯示手動匯出教學
+ */
+showManualExportGuide() {
+    const modalBody = document.getElementById('modalBody');
+    modalBody.innerHTML = `
+        <div style="padding: 1rem;">
+            <h4 style="color: #0ea5e9; margin-bottom: 1rem;">
+                <i class="fas fa-palette"></i> 格式保留匯出教學
+            </h4>
+            
+            <div style="text-align: left; line-height: 1.6;">
+                <div style="margin-bottom: 1rem; padding: 1rem; background: #f0f9ff; border-left: 4px solid #0ea5e9; border-radius: 0 8px 8px 0;">
+                    <strong style="color: #0ea5e9;">步驟 1：開啟 Google Sheet</strong><br>
+                    點擊下方按鈕開啟原始工作表
+                </div>
+                
+                <div style="margin-bottom: 1rem; padding: 1rem; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 0 8px 8px 0;">
+                    <strong style="color: #10b981;">步驟 2：選擇匯出格式</strong><br>
+                    在 Google Sheet 中：<br>
+                    • 點選「檔案」選單<br>
+                    • 選擇「下載」<br>
+                    • 點選「Microsoft Excel (.xlsx)」
+                </div>
+                
+                <div style="margin-bottom: 1rem; padding: 1rem; background: #fefce8; border-left: 4px solid #eab308; border-radius: 0 8px 8px 0;">
+                    <strong style="color: #ca8a04;">步驟 3：確認格式保留</strong><br>
+                    下載的 Excel 檔案將完整保留：<br>
+                    • ✓ 所有欄位底色<br>
+                    • ✓ 字體顏色和樣式<br>
+                    • ✓ 邊框和對齊設定<br>
+                    • ✓ 欄寬和列高
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button class="btn btn-primary btn-lg" onclick="app.directExportGoogleSheet()" style="margin-right: 0.5rem; padding: 0.75rem 2rem;">
+                    <i class="fas fa-external-link-alt"></i> 立即開啟 Google Sheet
+                </button>
+                <button class="btn btn-secondary" onclick="app.hideModal()" style="padding: 0.75rem 1.5rem;">
+                    <i class="fas fa-times"></i> 關閉
+                </button>
+            </div>
+            
+            <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; color: #64748b; text-align: center;">
+                <i class="fas fa-lightbulb"></i> 
+                提示：使用此方法可以 100% 保留所有原始格式和樣式
+            </div>
+        </div>
+    `;
+}
+
 
 /**
  * 備用匯出方案
