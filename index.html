@@ -4794,9 +4794,9 @@ showDataAnalysisReport() {
  */
 async exportCurrentDayRouteSheet() {
     try {
-        this.showLoading('正在準備匯出檔案...保留所有格式中，請稍候');
+        this.showLoading('正在準備匯出檔案，請稍候...');
         
-        console.log('開始匯出當日各路線表（保留格式）...');
+        console.log('開始匯出當日各路線表...');
         
         // 呼叫後端 API 匯出指定的 Google Sheet
         const result = await this.apiCall('exportRouteSheetAsExcel', {
@@ -4815,7 +4815,7 @@ async exportCurrentDayRouteSheet() {
             this.downloadExcelFile(result.downloadUrl, result.filename);
             
             this.showNotification(
-                `路線表匯出成功！已保留所有格式，包含底色和樣式。檔案：${result.filename}`, 
+                `路線表匯出成功！檔案：${result.filename}`, 
                 'success', 
                 6000
             );
