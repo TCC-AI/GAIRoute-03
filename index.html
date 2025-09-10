@@ -3178,6 +3178,11 @@ justify-content:flex-end; / 右靠齊 */
                     <i class="fas fa-route"></i>
                     <span>路線管理</span>
                 </li>
+                <!-- 👇 新增：各路線板數選單項目 -->
+<li class="menu-item" data-page="route-pallets" data-permission="route-management">
+    <i class="fas fa-clipboard-list"></i>
+    <span>各路線板數</span>
+</li>
                 <li class="menu-item" data-page="seasonal-routes" data-permission="seasonal-routes">
                     <i class="fas fa-calendar-alt"></i>
                     <span>季節性路線</span>
@@ -3706,6 +3711,37 @@ justify-content:flex-end; / 右靠齊 */
                     </div>
                 </div>
             </div>
+                <!-- 👇 新增：各路線板數頁面 -->
+<div id="route-pallets" class="page">
+    <div class="page-header">
+        <h2><i class="fas fa-clipboard-list"></i> 各路線板數</h2>
+        <div class="header-actions">
+            <button class="btn btn-primary" id="refreshRoutePallets">
+                <i class="fas fa-sync-alt"></i> 重新整理
+            </button>
+            <button class="btn btn-success" id="exportRoutePallets">
+                <i class="fas fa-download"></i> 匯出資料
+            </button>
+        </div>
+    </div>
+
+    <!-- 資料載入區域 -->
+    <div class="card">
+        <div class="card-header">
+            <h3>各路線板數統計</h3>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span id="routePalletsDataTime" style="font-size: 0.875rem; color: #64748b;"></span>
+                <span id="routePalletsStatus" class="fresh-badge">載入中</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="routePalletsTableContainer">
+                <!-- 資料表格將在這裡動態載入 -->
+            </div>
+        </div>
+    </div>
+</div>
+
 
             <!-- 季節性路線頁面 -->
             <div id="seasonal-routes" class="page">
@@ -3913,7 +3949,7 @@ justify-content:flex-end; / 右靠齊 */
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbzL-_o3KUpo0K_6TCqo_9NnoriQK_qjRSvxr9bzKIJaeDMPskvfvntqORbsx4Ll9hQN/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbw4vzFthBsYovtvUsvs9-m9UC4jYpWvHdFRiJQjwEGWtEA3AjIuJBbC8-9UNO02FLV_/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -5141,6 +5177,277 @@ async exportAllRouteTables() {
         this.hideLoading();
     }
 }
+// 在 loadPageData 方法中添加新的 case
+async loadPageData(pageName) {
+    // 檢查權限
+    if (!this.hasPermission(pageName)) {
+        this.showAccessDenied(pageName);
+        return;
+    }
+
+    // 隱藏存取被拒絕訊息
+    if (pageName === 'system-settings') {
+        document.getElementById('accessDenied').style.display = 'none';
+        document.getElementById('settingsContent').style.display = 'block';
+    } else if (pageName === 'reports') {
+        document.getElementById('reportsAccessDenied').style.display = 'none';
+        document.getElementById('reportsContent').style.display = 'block';
+    }
+
+    switch (pageName) {
+        case 'dashboard':
+            break;
+        case 'route-management':
+            await this.loadRouteManagement();
+            break;
+        case 'route-optimization':
+            await this.loadRouteOptimization();
+            break;
+        // 👇 新增：各路線板數頁面載入
+        case 'route-pallets':
+            await this.loadRoutePallets();
+            break;
+        case 'seasonal-routes':
+            await this.loadSeasonalRoutes();
+            break;
+        case 'cargo-vehicle':
+            await this.loadCargoVehicle();
+            break;
+        case 'real-time-monitor':
+            await this.loadRealTimeMonitor();
+            break;
+        case 'system-settings':
+            await this.loadSystemSettings();
+            break;
+        case 'reports':
+            await this.loadReports();
+            break;
+    }
+}
+
+// 👇 新增：載入各路線板數資料
+async loadRoutePallets() {
+    this.showPartialLoading('routePalletsTableContainer', '正在載入各路線板數資料...');
+    
+    try {
+        console.log('開始載入各路線板數資料...');
+        
+        // 更新狀態
+        const statusElement = document.getElementById('routePalletsStatus');
+        const timeElement = document.getElementById('routePalletsDataTime');
+        
+        if (statusElement) statusElement.textContent = '載入中';
+        if (timeElement) timeElement.textContent = '';
+        
+        // 呼叫 API 獲取外部 Google Sheet 資料
+        const result = await this.apiCall('getRoutePalletsData', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '各路線板數'
+        });
+        
+        console.log('各路線板數資料:', result);
+        
+        if (result && result.length > 0) {
+            this.displayRoutePalletsData(result);
+            
+            // 更新狀態
+            if (statusElement) {
+                statusElement.textContent = '最新';
+                statusElement.className = 'fresh-badge';
+            }
+            if (timeElement) {
+                timeElement.textContent = `資料更新時間: ${new Date().toLocaleString('zh-TW')}`;
+            }
+            
+            this.showNotification(`成功載入 ${result.length} 筆路線板數資料`, 'success');
+        } else {
+            this.showEmptyRoutePalletsState();
+            this.showNotification('暫無各路線板數資料', 'info');
+        }
+        
+    } catch (error) {
+        console.error('載入各路線板數資料失敗:', error);
+        this.showErrorState('routePalletsTableContainer', error.message);
+        
+        // 更新狀態為錯誤
+        const statusElement = document.getElementById('routePalletsStatus');
+        if (statusElement) {
+            statusElement.textContent = '載入失敗';
+            statusElement.className = 'fresh-badge expired';
+        }
+        
+        this.showNotification(`載入失敗: ${error.message}`, 'error');
+    }
+}
+
+// 👇 新增：顯示各路線板數資料
+displayRoutePalletsData(data) {
+    const container = document.getElementById('routePalletsTableContainer');
+    
+    if (!data || data.length === 0) {
+        this.showEmptyRoutePalletsState();
+        return;
+    }
+
+    // 生成表格 HTML
+    const headers = Object.keys(data[0]);
+    let tableHtml = `
+        <div style="margin-bottom: 1rem; padding: 1rem; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #0ea5e9;">
+                        <i class="fas fa-clipboard-list"></i> 各路線板數統計表
+                    </h4>
+                    <p style="margin: 0; color: #64748b; font-size: 0.875rem;">
+                        共 ${data.length} 條路線 | 資料來源: 外部 Google Sheet
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="app.toggleRoutePalletsView()" title="切換檢視模式">
+                        <i class="fas fa-table"></i>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="app.analyzeRoutePalletsData()" title="數據分析">
+                        <i class="fas fa-chart-bar"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div style="overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+    `;
+    
+    // 表頭
+    headers.forEach(header => {
+        tableHtml += `
+            <th style="
+                padding: 1rem 0.75rem; 
+                text-align: left; 
+                border-bottom: 2px solid #e2e8f0; 
+                font-weight: 600; 
+                color: #374151;
+                font-size: 0.875rem;
+                letter-spacing: 0.025em;
+            ">${header}</th>
+        `;
+    });
+    
+    tableHtml += `
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    // 表格內容
+    data.forEach((row, index) => {
+        const bgColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+        tableHtml += `<tr style="background-color: ${bgColor}; transition: all 0.2s ease;">`;
+        
+        headers.forEach((header, headerIndex) => {
+            let cellValue = row[header] || '';
+            
+            // 特殊處理不同欄位
+            let cellStyle = 'padding: 0.75rem; border-bottom: 1px solid #e2e8f0;';
+            
+            if (headerIndex === 0) {
+                // 第一欄（路線名稱）- 加粗顯示
+                cellStyle += ' font-weight: 600; color: #1e293b;';
+            } else if (headerIndex === 1) {
+                // 第二欄（板數總和）- 數字右對齊，特殊顏色
+                cellStyle += ' text-align: right; font-weight: 600; color: #059669;';
+                if (cellValue && !isNaN(cellValue)) {
+                    cellValue = `${cellValue} 板`;
+                }
+            } else if (header.includes('取貨') || header.includes('配送')) {
+                // 取貨/配送欄位 - 左對齊，較小字體
+                cellStyle += ' text-align: left; font-size: 0.875rem; color: #64748b;';
+            } else {
+                // 其他欄位 - 預設樣式
+                cellStyle += ' text-align: left;';
+            }
+            
+            tableHtml += `<td style="${cellStyle}">${cellValue}</td>`;
+        });
+        tableHtml += '</tr>';
+    });
+    
+    tableHtml += `
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 1.5rem; text-align: center; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+            <button class="btn btn-primary btn-sm" onclick="app.exportRoutePalletsData()" style="margin-right: 0.5rem;">
+                <i class="fas fa-download"></i> 匯出 Excel
+            </button>
+            <button class="btn btn-success btn-sm" onclick="app.refreshRoutePallets()" style="margin-right: 0.5rem;">
+                <i class="fas fa-sync-alt"></i> 重新整理
+            </button>
+            <button class="btn btn-info btn-sm" onclick="app.openExternalSheet()">
+                <i class="fas fa-external-link-alt"></i> 開啟原始工作表
+            </button>
+        </div>
+    `;
+    
+    container.innerHTML = tableHtml;
+}
+
+// 👇 新增：顯示空狀態
+showEmptyRoutePalletsState() {
+    const container = document.getElementById('routePalletsTableContainer');
+    container.innerHTML = `
+        <div style="text-align: center; padding: 4rem 2rem; color: #64748b;">
+            <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 1.5rem; opacity: 0.5;"></i>
+            <h3 style="margin-bottom: 1rem; color: #374151;">暫無各路線板數資料</h3>
+            <p style="margin-bottom: 2rem; line-height: 1.6;">
+                目前沒有找到各路線板數統計資料<br>
+                請檢查外部 Google Sheet 是否包含相關資料
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="app.refreshRoutePallets()">
+                    <i class="fas fa-sync-alt"></i> 重新載入
+                </button>
+                <button class="btn btn-secondary" onclick="app.openExternalSheet()">
+                    <i class="fas fa-external-link-alt"></i> 檢查原始資料
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// 👇 新增：重新整理各路線板數
+async refreshRoutePallets() {
+    await this.loadRoutePallets();
+}
+
+// 👇 新增：匯出各路線板數資料
+exportRoutePalletsData() {
+    this.showNotification('正在準備匯出檔案...', 'info');
+    
+    // 這裡可以實作匯出功能
+    setTimeout(() => {
+        this.showNotification('匯出功能開發中，請直接開啟原始工作表進行匯出', 'warning');
+    }, 1000);
+}
+
+// 👇 新增：開啟外部 Google Sheet
+openExternalSheet() {
+    const url = 'https://docs.google.com/spreadsheets/d/1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc/edit#gid=0';
+    window.open(url, '_blank');
+    this.showNotification('已在新視窗中開啟外部 Google Sheet', 'info');
+}
+
+// 👇 新增：切換檢視模式
+toggleRoutePalletsView() {
+    this.showNotification('檢視模式切換功能開發中...', 'info');
+}
+
+// 👇 新增：分析路線板數資料
+analyzeRoutePalletsData() {
+    this.showNotification('數據分析功能開發中...', 'info');
+}
 
             
 // 系統健康檢查
@@ -5598,6 +5905,14 @@ hideOrderAnalysisModal() {
                 document.getElementById('calculateMatrix')?.addEventListener('click', () => {
                     this.calculateDistanceMatrix();
                 });
+                // 👇 新增：各路線板數頁面事件
+    document.getElementById('refreshRoutePallets')?.addEventListener('click', () => {
+        this.refreshRoutePallets();
+    });
+
+    document.getElementById('exportRoutePallets')?.addEventListener('click', () => {
+        this.exportRoutePalletsData();
+    });
 
                 document.getElementById('optimizeRoute')?.addEventListener('click', () => {
                     this.optimizeCurrentRoute();
