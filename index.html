@@ -3981,7 +3981,7 @@ justify-content:flex-end; / 右靠齊 */
             's2': {
                 level: 2,
                 name: '次要執行者',
-                pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor']
+                pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'route-pallets']
             },
             's1': {
                 level: 1,
@@ -4871,6 +4871,21 @@ async exportCurrentDayRouteSheet() {
         this.hideLoading();
     }
 }
+            // 檢查用戶級別
+checkUserLevel(requiredLevel) {
+    const levelHierarchy = {
+        's1': 1,  // 初階使用者
+        's2': 2,  // 次要執行者
+        's3': 3,  // 主要執行者
+        's4': 4   // 管理者
+    };
+    
+    const userLevelNum = levelHierarchy[currentUser.level] || 0;
+    const requiredLevelNum = levelHierarchy[requiredLevel] || 999;
+    
+    return userLevelNum >= requiredLevelNum;
+}
+
 
 /**
  * 顯示格式保留資訊
@@ -5179,6 +5194,13 @@ async exportAllRouteTables() {
 }
 // 在 loadPageData 方法中添加新的 case
 async loadPageData(pageName) {
+    // 👇 新增：各路線板數頁面權限檢查
+    if (pageName === 'route-pallets') {
+        if (!this.hasPermission('route-management') || !this.checkUserLevel('s2')) {
+            this.showAccessDenied(pageName);
+            return;
+        }
+    }
     // 檢查權限
     if (!this.hasPermission(pageName)) {
         this.showAccessDenied(pageName);
