@@ -8,6 +8,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* Google Sheet 格式保留樣式 */
+.formatted-route-table {
+    font-family: 'Microsoft JhengHei', Arial, sans-serif !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+}
+
+.formatted-route-table th,
+.formatted-route-table td {
+    border: 1px solid #d0d7de !important;
+    padding: 8px 12px !important;
+    vertical-align: middle !important;
+    font-size: 14px !important;
+}
+
+.formatted-route-table th {
+    background-color: #f6f8fa !important;
+    font-weight: bold !important;
+    text-align: center !important;
+}
+
+/* 保持 Google Sheet 的顏色樣式 */
+.gs-header-row { background-color: #4285f4 !important; color: white !important; }
+.gs-data-row-even { background-color: #ffffff !important; }
+.gs-data-row-odd { background-color: #f8f9fa !important; }
+.gs-highlight-cell { background-color: #fff3cd !important; }
+.gs-warning-cell { background-color: #f8d7da !important; }
+.gs-success-cell { background-color: #d1edff !important; }
+
+/* 響應式表格 */
+@media (max-width: 768px) {
+    .formatted-route-table {
+        font-size: 12px !important;
+    }
+    
+    .formatted-route-table th,
+    .formatted-route-table td {
+        padding: 6px 8px !important;
+    }
+}
+
         /* 響應式調整 */
 @media (max-width: 768px) {
     #deliveryPointsPanel .card-body > div:first-child {
@@ -4086,7 +4127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbw4vzFthBsYovtvUsvs9-m9UC4jYpWvHdFRiJQjwEGWtEA3AjIuJBbC8-9UNO02FLV_/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbxRoM7O0qaDoQIWo0wd7mwuZmHS1AVfh1-rSiCpnaJwxS-TgVc0vhYo05SM99SvbvF5/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -4779,6 +4820,299 @@ async checkLatestOrderInfo() {
         }
     } catch (error) {
         this.showNotification('檢查訂單資訊時發生錯誤', 'error');
+    }
+}
+/**
+ * 獲取當日各路線表資料並保持原始格式
+ * @param {string} shiftType - 班別類型（早班/晚班）
+ */
+async fetchCurrentDayRouteTable(shiftType = '') {
+    const container = document.getElementById('deliveryPointsTableContainer');
+    
+    // 顯示載入狀態
+    this.showPartialLoading('deliveryPointsTableContainer', `正在載入${shiftType}當日各路線表資料...`);
+    
+    try {
+        console.log(`開始獲取當日各路線表資料 (${shiftType})...`);
+        
+        // 🔥 調用後端 API 獲取帶格式的工作表資料
+        const result = await this.apiCall('getCurrentDayRouteTableWithFormat', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '當日各路線表',
+            preserveFormat: true, // 保持原始格式
+            includeStyles: true   // 包含樣式資訊
+        });
+        
+        console.log('API 返回結果:', result);
+        
+        if (result && (result.data || result.htmlTable)) {
+            // 顯示格式化的表格資料
+            this.displayFormattedRouteTable(result, shiftType);
+            this.showNotification(`${shiftType}當日各路線表載入完成`, 'success');
+        } else {
+            throw new Error('無法取得當日各路線表資料或資料為空');
+        }
+        
+    } catch (error) {
+        console.error('載入當日各路線表失敗:', error);
+        this.showErrorState('deliveryPointsTableContainer', `載入${shiftType}資料失敗: ${error.message}`);
+        this.showNotification(`載入${shiftType}資料失敗`, 'error');
+    }
+}
+
+/**
+ * 顯示保持原始格式的路線表
+ * @param {Object} result - API 返回的結果
+ * @param {string} shiftType - 班別類型
+ */
+displayFormattedRouteTable(result, shiftType) {
+    const container = document.getElementById('deliveryPointsTableContainer');
+    
+    let tableHtml = '';
+    
+    // 檢查是否有預處理的 HTML 表格
+    if (result.htmlTable) {
+        tableHtml = result.htmlTable;
+    } else if (result.data && Array.isArray(result.data)) {
+        // 如果沒有預處理的 HTML，則手動生成表格
+        tableHtml = this.generateFormattedTable(result.data, result.styles);
+    } else {
+        throw new Error('資料格式錯誤');
+    }
+    
+    // 包裝表格並添加標題和操作按鈕
+    container.innerHTML = `
+        <div style="margin-bottom: 1rem; padding: 1.5rem; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; border-left: 4px solid #0ea5e9;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                    <h4 style="margin: 0; color: #0ea5e9; font-size: 1.5rem; font-weight: 700;">
+                        <i class="fas fa-table"></i> ${shiftType}當日各路線表
+                    </h4>
+                    <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.875rem;">
+                        資料更新時間: ${new Date().toLocaleString('zh-TW')} | 
+                        來源: Google Sheet (格式完整保留)
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="app.toggleTableView()" title="切換檢視模式">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="app.refreshCurrentRouteTable('${shiftType}')" title="重新整理">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 表格容器 - 保持原始格式 -->
+        <div style="overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); background: white;">
+            ${tableHtml}
+        </div>
+        
+        <!-- 操作按鈕區 -->
+        <div style="margin-top: 1.5rem; text-align: center; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+            <button class="btn btn-primary btn-sm" onclick="app.exportCurrentRouteTable('${shiftType}')" style="margin-right: 0.5rem;">
+                <i class="fas fa-download"></i> 匯出 Excel (保留格式)
+            </button>
+            <button class="btn btn-success btn-sm" onclick="app.openGoogleSheet()" style="margin-right: 0.5rem;">
+                <i class="fas fa-external-link-alt"></i> 開啟原始工作表
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="app.printRouteTable()">
+                <i class="fas fa-print"></i> 列印表格
+            </button>
+        </div>
+    `;
+    
+    // 隱藏展開按鈕（因為顯示的是完整表格）
+    const toggleBtn = document.getElementById('toggleDeliveryPoints');
+    if (toggleBtn) {
+        toggleBtn.style.display = 'none';
+    }
+}
+
+/**
+ * 手動生成格式化表格 (當後端沒有提供 HTML 時使用)
+ * @param {Array} data - 表格資料
+ * @param {Object} styles - 樣式資訊
+ */
+generateFormattedTable(data, styles = {}) {
+    if (!data || data.length === 0) {
+        return '<p style="text-align: center; padding: 2rem; color: #64748b;">暫無資料</p>';
+    }
+    
+    const headers = Object.keys(data[0]);
+    
+    let tableHtml = `
+        <table style="
+            width: 100%; 
+            border-collapse: collapse; 
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: white;
+        ">
+            <thead>
+                <tr style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+    `;
+    
+    // 生成表頭
+    headers.forEach((header, index) => {
+        const headerStyle = styles.headers?.[index] || {};
+        tableHtml += `
+            <th style="
+                padding: 1rem 0.75rem; 
+                text-align: center; 
+                border: 1px solid #d1d5db; 
+                font-weight: 700; 
+                color: #374151;
+                background-color: ${headerStyle.backgroundColor || '#f8fafc'};
+                color: ${headerStyle.color || '#374151'};
+                font-size: 0.875rem;
+                white-space: nowrap;
+            ">${header}</th>
+        `;
+    });
+    
+    tableHtml += `
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    // 生成資料列
+    data.forEach((row, rowIndex) => {
+        const rowStyle = styles.rows?.[rowIndex] || {};
+        const bgColor = rowIndex % 2 === 0 ? '#ffffff' : '#f9fafb';
+        
+        tableHtml += `<tr style="background-color: ${rowStyle.backgroundColor || bgColor};">`;
+        
+        headers.forEach((header, colIndex) => {
+            const cellValue = row[header] || '';
+            const cellStyle = styles.cells?.[rowIndex]?.[colIndex] || {};
+            
+            tableHtml += `
+                <td style="
+                    padding: 0.75rem; 
+                    border: 1px solid #e5e7eb; 
+                    text-align: ${cellStyle.textAlign || 'left'};
+                    background-color: ${cellStyle.backgroundColor || 'inherit'};
+                    color: ${cellStyle.color || '#374151'};
+                    font-weight: ${cellStyle.fontWeight || 'normal'};
+                    font-size: 0.875rem;
+                    vertical-align: middle;
+                ">${cellValue}</td>
+            `;
+        });
+        
+        tableHtml += '</tr>';
+    });
+    
+    tableHtml += `
+            </tbody>
+        </table>
+    `;
+    
+    return tableHtml;
+}
+
+/**
+ * 重新整理當前路線表
+ * @param {string} shiftType - 班別類型
+ */
+refreshCurrentRouteTable(shiftType) {
+    this.fetchCurrentDayRouteTable(shiftType);
+}
+
+/**
+ * 匯出當前路線表 (保留格式)
+ * @param {string} shiftType - 班別類型
+ */
+async exportCurrentRouteTable(shiftType) {
+    try {
+        this.showLoading('正在準備匯出檔案，請稍候...');
+        
+        const result = await this.apiCall('exportRouteTableWithFormat', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '當日各路線表',
+            exportFormat: 'excel',
+            preserveFormat: true,
+            filename: `${shiftType}當日各路線表_${new Date().toISOString().split('T')[0]}.xlsx`
+        });
+        
+        if (result && result.success) {
+            this.downloadExcelFile(result.downloadUrl, result.filename);
+            this.showNotification(`${shiftType}路線表匯出成功！`, 'success');
+        } else {
+            throw new Error('匯出失敗');
+        }
+        
+    } catch (error) {
+        console.error('匯出路線表失敗:', error);
+        this.showNotification(`匯出失敗: ${error.message}`, 'error');
+        // 提供備用方案
+        this.openGoogleSheet();
+    } finally {
+        this.hideLoading();
+    }
+}
+
+/**
+ * 開啟 Google Sheet 原始工作表
+ */
+openGoogleSheet() {
+    const url = 'https://docs.google.com/spreadsheets/d/1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc/edit#gid=0';
+    window.open(url, '_blank');
+    this.showNotification('已在新視窗中開啟 Google Sheet', 'info');
+}
+
+/**
+ * 列印路線表
+ */
+printRouteTable() {
+    const tableContainer = document.getElementById('deliveryPointsTableContainer');
+    if (!tableContainer) {
+        this.showNotification('沒有可列印的表格', 'warning');
+        return;
+    }
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>當日各路線表</title>
+            <style>
+                body { font-family: 'Microsoft JhengHei', Arial, sans-serif; margin: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                th { background-color: #f5f5f5; font-weight: bold; }
+                @media print { body { margin: 0; } }
+            </style>
+        </head>
+        <body>
+            <h2>當日各路線表</h2>
+            <p>列印時間: ${new Date().toLocaleString('zh-TW')}</p>
+            ${tableContainer.innerHTML}
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+/**
+ * 切換表格檢視模式
+ */
+toggleTableView() {
+    const tableContainer = document.querySelector('#deliveryPointsTableContainer > div:last-child');
+    if (!tableContainer) return;
+    
+    if (tableContainer.style.maxHeight) {
+        tableContainer.style.maxHeight = '';
+        tableContainer.style.overflow = 'visible';
+        this.showNotification('已切換為完整檢視', 'info');
+    } else {
+        tableContainer.style.maxHeight = '400px';
+        tableContainer.style.overflow = 'auto';
+        this.showNotification('已切換為緊湊檢視', 'info');
     }
 }
 
@@ -6115,6 +6449,15 @@ hideOrderAnalysisModal() {
                         this.hideGAIAssistantModal();
                     }
                 });
+                                // 👇 在這個位置添加早班和晚班按鈕事件
+                document.getElementById('morningOrderBtn')?.addEventListener('click', async () => {
+                    await this.fetchCurrentDayRouteTable('早班');
+                });
+                
+                document.getElementById('eveningOrderBtn')?.addEventListener('click', async () => {
+                    await this.fetchCurrentDayRouteTable('晚班');
+                });
+
 
                 
                 
@@ -7246,7 +7589,7 @@ refreshDeliveryReport() {
 
 // 執行外部 GAS 的 executeSteps1to5WithMemoryCleanup 程序（修正 CORS 版本）
 async executeSteps1to5WithMemoryCleanup() {
-    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbzUERTOI-YGDJJ3_BjM4on4Sm0IZ-d4DRTssGtpQ6ZulKuyafKmwFf5mNE0lVifz_Y7mQ/exec';
+    const externalGasUrl = 'https://script.google.com/macros/s/AKfycbyk0t4-wWkAOeMQB__gEHxMb3NdHeIYbLX-P3KfnPSDLWLrkDbWj6IA8kOp3LfhmqDbbw/exec';
     
     try {
         // 先測試 GET 請求確認服務可用
