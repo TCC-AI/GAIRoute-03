@@ -8,6 +8,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* 響應式調整 */
+@media (max-width: 768px) {
+    #deliveryPointsPanel .card-body > div:first-child {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    #deliveryPointsPanel h3 {
+        font-size: 1.5rem !important;
+    }
+    
+    #morningOrderBtn, #eveningOrderBtn {
+        font-size: 1rem !important;
+        padding: 1rem 1.5rem !important;
+        min-height: 60px !important;
+    }
+}
+
         /* 格式保留提示動畫 */
 @keyframes slideInRight {
     from {
@@ -3527,31 +3545,95 @@ justify-content:flex-end; / 右靠齊 */
                     <h1 style="color: #e3299f;"><i class="fas fa-brain"></i> GAI-精準智慧物流路徑規劃</h1>
                 </div>
                                 <!-- 派車收送點清單區塊 -->
-                <div id="deliveryPointsPanel" class="card" style="margin-bottom: 1.5rem;">
-                  <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                      <h2 style="margin: 0; color: #02adeb;">1.【客戶下單】收送點資料</h2>
-                    </div>
-                    <div>
-                      <input type="date" id="deliveryDatePicker" class="form-input" style="width: auto;">
-                      <button class="btn btn-primary btn-sm" id="fetchDeliveryPointsBtn">
-                        <i class="fas fa-search"></i> 查詢
-                      </button>
-                                         <!-- 新增上次查詢按鈕 -->
-                        <button class="btn btn-info btn-sm" id="lastQueryBtn">
-                          <i class="fas fa-history"></i> 歷史查詢
-                        </button>
-                    </div>
-                  </div>
-                  <div class="card-body" style="padding: 1rem;">
-                    <div id="deliveryPointsTableContainer">
-                      <!-- 資料表格將由 JS 動態產生 -->
-                    </div>
-                    <button id="toggleDeliveryPoints" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem; display: none;">
-                      展開更多
-                    </button>
-                  </div>
-                </div>
+<!-- 重新設計的客戶下單收送點資料區塊 -->
+<div id="deliveryPointsPanel" class="card" style="margin-bottom: 1.5rem;">
+  <div class="card-header">
+    <h2 style="margin: 0; color: #02adeb; font-size: 1.5rem; font-weight: 700;">
+      1.【客戶下單】收送點資料
+    </h2>
+  </div>
+  <div class="card-body" style="padding: 2rem;">
+    
+    <!-- 今日日期顯示區域 -->
+    <div style="text-align: center; margin-bottom: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+      <h3 style="margin: 0; font-size: 2rem; font-weight: 700; color: #1e293b; letter-spacing: -0.5px;">
+        今日日期：<span style="color: #0ea5e9;" id="currentDateDisplay">2025/09/14</span>
+      </h3>
+    </div>
+
+    <!-- 按鈕區域 -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+      <!-- 早班訂單資訊按鈕 -->
+      <div style="text-align: center;">
+        <button id="morningOrderBtn" style="
+          background: linear-gradient(135deg, #fbbf24, #f59e0b);
+          color: white;
+          border: none;
+          padding: 1.5rem 2rem;
+          border-radius: 16px;
+          font-size: 1.25rem;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 100%;
+          min-height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+        " 
+        onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 35px rgba(251, 191, 36, 0.4)';"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(251, 191, 36, 0.3)';">
+          <i class="fas fa-sun" style="font-size: 1.5rem;"></i>
+          早班訂單資訊
+        </button>
+        <div style="margin-top: 0.75rem; font-size: 0.875rem; color: #64748b; font-weight: 500;">
+          每日下午18:00結算
+        </div>
+      </div>
+
+      <!-- 晚班訂單資訊按鈕 -->
+      <div style="text-align: center;">
+        <button id="eveningOrderBtn" style="
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          color: white;
+          border: none;
+          padding: 1.5rem 2rem;
+          border-radius: 16px;
+          font-size: 1.25rem;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 100%;
+          min-height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+        "
+        onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 35px rgba(59, 130, 246, 0.4)';"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(59, 130, 246, 0.3)';">
+          <i class="fas fa-moon" style="font-size: 1.5rem;"></i>
+          晚班訂單資訊
+        </button>
+        <div style="margin-top: 0.75rem; font-size: 0.875rem; color: #64748b; font-weight: 500;">
+          每日下午16:30、19:00各結算一次
+        </div>
+      </div>
+    </div>
+
+    <!-- 資料顯示區域 -->
+    <div id="deliveryPointsTableContainer">
+      <!-- 資料表格將由 JS 動態產生 -->
+    </div>
+    <button id="toggleDeliveryPoints" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem; display: none;">
+      展開更多
+    </button>
+  </div>
+</div>
+
                                 <!-- 【GAI智慧預排】當日路線區塊 -->
                 <div id="gai-route-section" style="margin-top:2em; border:1px solid #e2e8f0; border-radius:8px; padding:1em; background:#fff;">
                   <h3 style="margin-bottom:1em;">2.【GAI智慧預排】當日路線</h3>
@@ -3891,6 +3973,61 @@ justify-content:flex-end; / 右靠齊 */
     </div>
 
     <script>
+        // 更新當前日期顯示
+function updateCurrentDateDisplay() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateString = `${year}/${month}/${day}`;
+    
+    const dateElement = document.getElementById('currentDateDisplay');
+    if (dateElement) {
+        dateElement.textContent = dateString;
+    }
+}
+
+// 早班訂單按鈕事件
+document.getElementById('morningOrderBtn')?.addEventListener('click', function() {
+    app.showNotification('正在載入早班訂單資訊...', 'info');
+    // 這裡添加早班訂單的處理邏輯
+    fetchMorningOrders();
+});
+
+// 晚班訂單按鈕事件
+document.getElementById('eveningOrderBtn')?.addEventListener('click', function() {
+    app.showNotification('正在載入晚班訂單資訊...', 'info');
+    // 這裡添加晚班訂單的處理邏輯
+    fetchEveningOrders();
+});
+
+// 早班訂單處理函數
+async function fetchMorningOrders() {
+    try {
+        // 實作早班訂單邏輯
+        console.log('載入早班訂單...');
+    } catch (error) {
+        app.showNotification('載入早班訂單失敗', 'error');
+    }
+}
+
+// 晚班訂單處理函數
+async function fetchEveningOrders() {
+    try {
+        // 實作晚班訂單邏輯
+        console.log('載入晚班訂單...');
+    } catch (error) {
+        app.showNotification('載入晚班訂單失敗', 'error');
+    }
+}
+
+// 頁面載入時更新日期
+document.addEventListener('DOMContentLoaded', function() {
+    updateCurrentDateDisplay();
+    // 每天午夜更新日期
+    setInterval(updateCurrentDateDisplay, 60000); // 每分鐘檢查一次
+});
+
           // ==================== Google Maps API 動態載入 ====================
     let mapsApiLoaded = false;
     let mapsApiLoading = false;
