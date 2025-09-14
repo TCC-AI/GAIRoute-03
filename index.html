@@ -233,13 +233,28 @@
 }
 
 .gai-secretary-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
+    width: 180px;
+    height: 180px;
+    border-radius: 20%;
     object-fit: cover;
     border: 3px solid rgba(14, 165, 233, 0.2);
     box-shadow: 0 8px 25px rgba(14, 165, 233, 0.2);
     transition: all 0.3s ease;
+}
+        /* 平板尺寸 */
+@media (max-width: 768px) {
+    .gai-secretary-avatar {
+        width: 150px;
+        height: 150px;
+    }
+}
+
+/* 手機尺寸 */
+@media (max-width: 480px) {
+    .gai-secretary-avatar {
+        width: 100px;
+        height: 100px;
+    }
 }
 
 .gai-secretary-avatar:hover {
