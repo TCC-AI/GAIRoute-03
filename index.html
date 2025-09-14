@@ -3299,11 +3299,13 @@ justify-content:flex-end; / 右靠齊 */
     <div style="
         flex: 0 0 30%;
         display: flex;
+        flex-direction: column; /* 👈 新增：垂直排列 */
         justify-content: center;
         align-items: center;
         position: relative;
         z-index: 1;
         padding-left: 10rem; /* 👈 新增：增加左側內邊距 */
+        gap: 0.8rem; /* 👈 新增：圖片與文字間距 */
     ">
         <img src="R2.png" alt="TCC-GAI派車中心數位主任" style="
             width: 220px;
@@ -3315,6 +3317,19 @@ justify-content:flex-end; / 右靠齊 */
             transition: all 0.3s ease;
             cursor: pointer;
         " onclick="app.showGAISecretaryModal()">
+         <!-- 文字標籤 -->
+        <div style="
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        " onclick="app.showGAISecretaryModal()">
+            TCC-GAI派車中心<br>數位主任
+        </div>
     </div>
     
     <!-- 背景裝飾保持不變 -->
