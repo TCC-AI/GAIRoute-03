@@ -4021,6 +4021,235 @@ async function fetchEveningOrders() {
     }
 }
 
+        /**
+ * 顯示當日各路線表資料
+ */
+async function showCurrentDayRouteTable() {
+    const container = document.getElementById('deliveryPointsTableContainer');
+    
+    // 顯示載入狀態
+    app.showPartialLoading('deliveryPointsTableContainer', '正在載入當日各路線表...');
+    
+    try {
+        console.log('開始獲取當日各路線表...');
+        
+        const result = await app.apiCall('getCurrentDayRouteTable', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
+        });
+        
+        console.log('API 返回結果:', result);
+        
+        if (result && result.length > 0) {
+            displayRouteTableData(result);
+            app.showNotification(`成功載入當日各路線表，共 ${result.length} 筆資料`, 'success');
+        } else {
+            showEmptyRouteTableState();
+            app.showNotification('當日各路線表暫無資料', 'info');
+        }
+        
+    } catch (error) {
+        console.error('載入當日各路線表失敗:', error);
+        app.showErrorState('deliveryPointsTableContainer', error.message);
+        app.showNotification(`載入失敗: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * 顯示當日各路線表資料
+ */
+function displayRouteTableData(data) {
+    const container = document.getElementById('deliveryPointsTableContainer');
+    
+    if (!data || data.length === 0) {
+        showEmptyRouteTableState();
+        return;
+    }
+
+    // 生成表格 HTML（保持 Google Sheet 的格式）
+    const headers = Object.keys(data[0]);
+    let tableHtml = `
+        <div style="margin-bottom: 1rem; padding: 1rem; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 8px; border-left: 4px solid #0ea5e9;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #0ea5e9;">
+                        <i class="fas fa-route"></i> 當日各路線表
+                    </h4>
+                    <p style="margin: 0; color: #64748b; font-size: 0.875rem;">
+                        資料更新時間: ${new Date().toLocaleString('zh-TW')} | 共 ${data.length} 筆資料
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="toggleRouteTableView()" title="切換檢視模式">
+                        <i class="fas fa-table"></i>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="exportRouteTableData()" title="匯出資料">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div style="overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+    `;
+
+    // 表頭
+    headers.forEach(header => {
+        tableHtml += `
+            <th style="
+                padding: 1rem 0.75rem; 
+                text-align: left; 
+                border-bottom: 2px solid #e2e8f0; 
+                font-weight: 600; 
+                color: #374151;
+                font-size: 0.875rem;
+                letter-spacing: 0.025em;
+            ">${header}</th>
+        `;
+    });
+
+    tableHtml += `
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    // 表格內容
+    data.forEach((row, index) => {
+        const bgColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+        
+        // 檢查是否為路線分隔符
+        const isRouteSeparator = row['路線名稱'] && row['路線名稱'].includes('結束');
+        const separatorStyle = isRouteSeparator ? 
+            'background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); font-weight: 600; color: #92400e;' : 
+            `background-color: ${bgColor};`;
+            
+        tableHtml += `<tr style="${separatorStyle} transition: all 0.2s ease;">`;
+        
+        headers.forEach((header, headerIndex) => {
+            let cellValue = row[header] || '';
+            
+            // 特殊處理不同欄位
+            let cellStyle = 'padding: 0.75rem; border-bottom: 1px solid #e2e8f0;';
+            
+            if (header === '路線名稱') {
+                // 路線名稱欄位 - 加粗顯示
+                cellStyle += ' font-weight: 600; color: #1e293b;';
+                if (isRouteSeparator) {
+                    cellStyle += ' text-align: center; font-style: italic;';
+                }
+            } else if (header === '板位' || header === '板數' || header === '商品棧板') {
+                // 板位相關欄位 - 數字右對齊，特殊顏色
+                cellStyle += ' text-align: right; font-weight: 600; color: #059669;';
+            } else if (header === '配送狀態') {
+                // 配送狀態 - 根據狀態顯示不同顏色
+                if (cellValue.includes('完成')) {
+                    cellStyle += ' color: #059669; font-weight: 600;';
+                } else if (cellValue.includes('進行') || cellValue.includes('配送中')) {
+                    cellStyle += ' color: #0ea5e9; font-weight: 600;';
+                } else if (cellValue.includes('待')) {
+                    cellStyle += ' color: #f59e0b; font-weight: 600;';
+                }
+            } else if (header === '日期' || header === '下單日期') {
+                // 日期欄位 - 特殊格式
+                cellStyle += ' font-family: monospace; font-size: 0.85rem;';
+            }
+            
+            tableHtml += `<td style="${cellStyle}">${cellValue}</td>`;
+        });
+        tableHtml += '</tr>';
+    });
+
+    tableHtml += `
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 1.5rem; text-align: center; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+            <button class="btn btn-primary btn-sm" onclick="exportRouteTableData()" style="margin-right: 0.5rem;">
+                <i class="fas fa-download"></i> 匯出 Excel
+            </button>
+            <button class="btn btn-success btn-sm" onclick="refreshRouteTableData()" style="margin-right: 0.5rem;">
+                <i class="fas fa-sync-alt"></i> 重新整理
+            </button>
+            <button class="btn btn-info btn-sm" onclick="openRouteTableSheet()">
+                <i class="fas fa-external-link-alt"></i> 開啟原始工作表
+            </button>
+        </div>
+    `;
+
+    container.innerHTML = tableHtml;
+
+    // 隱藏展開按鈕（因為現在顯示的是不同的資料）
+    const toggleBtn = document.getElementById('toggleDeliveryPoints');
+    if (toggleBtn) {
+        toggleBtn.style.display = 'none';
+    }
+}
+
+/**
+ * 顯示空狀態
+ */
+function showEmptyRouteTableState() {
+    const container = document.getElementById('deliveryPointsTableContainer');
+    container.innerHTML = `
+        <div style="text-align: center; padding: 4rem 2rem; color: #64748b;">
+            <i class="fas fa-route" style="font-size: 3rem; margin-bottom: 1.5rem; opacity: 0.5;"></i>
+            <h3 style="margin-bottom: 1rem; color: #374151;">暫無當日各路線表資料</h3>
+            <p style="margin-bottom: 2rem; line-height: 1.6;">
+                目前沒有找到當日各路線表資料<br>
+                請檢查 Google Sheet 是否包含相關資料
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="refreshRouteTableData()">
+                    <i class="fas fa-sync-alt"></i> 重新載入
+                </button>
+                <button class="btn btn-secondary" onclick="openRouteTableSheet()">
+                    <i class="fas fa-external-link-alt"></i> 檢查原始資料
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * 匯出當日各路線表資料
+ */
+function exportRouteTableData() {
+    app.showNotification('正在準備匯出檔案...', 'info');
+    // 這裡可以實作匯出功能，或直接開啟原始工作表
+    setTimeout(() => {
+        app.showNotification('匯出功能開發中，請直接開啟原始工作表進行匯出', 'warning');
+        openRouteTableSheet();
+    }, 1000);
+}
+
+/**
+ * 重新整理當日各路線表
+ */
+function refreshRouteTableData() {
+    showCurrentDayRouteTable();
+}
+
+/**
+ * 開啟原始 Google Sheet
+ */
+function openRouteTableSheet() {
+    const url = 'https://docs.google.com/spreadsheets/d/1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc/edit#gid=0';
+    window.open(url, '_blank');
+    app.showNotification('已在新視窗中開啟 Google Sheet', 'info');
+}
+
+/**
+ * 切換檢視模式
+ */
+function toggleRouteTableView() {
+    app.showNotification('檢視模式切換功能開發中...', 'info');
+}
+
+
 // 頁面載入時更新日期
 document.addEventListener('DOMContentLoaded', function() {
     updateCurrentDateDisplay();
@@ -6064,14 +6293,14 @@ hideOrderAnalysisModal() {
                 document.getElementById('calculateMatrix')?.addEventListener('click', () => {
                     this.calculateDistanceMatrix();
                 });
-                // 👇 新增：各路線板數頁面事件
-    document.getElementById('refreshRoutePallets')?.addEventListener('click', () => {
-        this.refreshRoutePallets();
-    });
-
-    document.getElementById('exportRoutePallets')?.addEventListener('click', () => {
-        this.exportRoutePalletsData();
-    });
+                            // 👇 新增：各路線板數頁面事件
+                document.getElementById('refreshRoutePallets')?.addEventListener('click', () => {
+                    this.refreshRoutePallets();
+                });
+            
+                document.getElementById('exportRoutePallets')?.addEventListener('click', () => {
+                    this.exportRoutePalletsData();
+                });
 
                 document.getElementById('optimizeRoute')?.addEventListener('click', () => {
                     this.optimizeCurrentRoute();
@@ -6115,6 +6344,18 @@ hideOrderAnalysisModal() {
                         this.hideGAIAssistantModal();
                     }
                 });
+                                // 早班訂單按鈕事件 - 修改為顯示當日各路線表
+                document.getElementById('morningOrderBtn')?.addEventListener('click', async function() {
+                    app.showNotification('正在載入當日各路線表...', 'info');
+                    await showCurrentDayRouteTable();
+                });
+                
+                // 晚班訂單按鈕事件 - 修改為顯示當日各路線表  
+                document.getElementById('eveningOrderBtn')?.addEventListener('click', async function() {
+                    app.showNotification('正在載入當日各路線表...', 'info');
+                    await showCurrentDayRouteTable();
+                });
+
 
                 
                 
