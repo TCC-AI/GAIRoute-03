@@ -4822,31 +4822,19 @@ async checkLatestOrderInfo() {
         this.showNotification('檢查訂單資訊時發生錯誤', 'error');
     }
 }
-/**
- * 獲取當日各路線表資料並保持原始格式
- * @param {string} shiftType - 班別類型（早班/晚班）
- */
+// 在 HTML 中找到並修正這些函數
 async fetchCurrentDayRouteTable(shiftType = '') {
-    const container = document.getElementById('deliveryPointsTableContainer');
-    
-    // 顯示載入狀態
-    this.showPartialLoading('deliveryPointsTableContainer', `正在載入${shiftType}當日各路線表資料...`);
-    
     try {
-        console.log(`開始獲取當日各路線表資料 (${shiftType})...`);
-        
-        // 🔥 調用後端 API 獲取帶格式的工作表資料
-        const result = await this.apiCall('getCurrentDayRouteTableWithFormat', {
+        // 🔥 修正：統一 API 操作名稱
+        const result = await this.apiCall('getCurrentDayRouteTable', {  // 移除 WithFormat
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
             sheetName: '當日各路線表',
-            preserveFormat: true, // 保持原始格式
-            includeStyles: true   // 包含樣式資訊
+            shiftType: shiftType
         });
         
         console.log('API 返回結果:', result);
         
-        if (result && (result.data || result.htmlTable)) {
-            // 顯示格式化的表格資料
+        if (result && result.length > 0) {
             this.displayFormattedRouteTable(result, shiftType);
             this.showNotification(`${shiftType}當日各路線表載入完成`, 'success');
         } else {
@@ -4859,6 +4847,99 @@ async fetchCurrentDayRouteTable(shiftType = '') {
         this.showNotification(`載入${shiftType}資料失敗`, 'error');
     }
 }
+// 修正 apiCall 方法中的錯誤處理
+async apiCall(action, data = {}) {
+    const payload = {
+        action,
+        data,
+        timestamp: new Date().getTime(),
+        user: currentUser.username || 'anonymous'
+    };
+
+    try {
+        const response = await fetch(CONFIG.GAS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            body: JSON.stringify(payload),
+            mode: 'cors',
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const textResult = await response.text();
+        
+        // 🔥 增強 JSON 解析錯誤處理
+        let result;
+        try {
+            result = JSON.parse(textResult);
+        } catch (parseError) {
+            console.error('JSON 解析失敗:', textResult);
+            throw new Error('伺服器回應格式錯誤');
+        }
+        
+        if (!result.success) {
+            // 🔥 特殊錯誤處理
+            if (result.error && result.error.includes('未知的操作')) {
+                throw new Error(`API 操作不存在: ${action}。請檢查後端是否支援此操作。`);
+            }
+            throw new Error(result.error || '未知錯誤');
+        }
+
+        // 連線成功，更新狀態
+        if (!this.isOnline) {
+            this.isOnline = true;
+            this.updateConnectionStatus('online', '已連線');
+            CONFIG.USE_MOCK_DATA = false;
+        }
+
+        return result.data;
+        
+    } catch (error) {
+        console.error('API 呼叫失敗:', error);
+        
+        // 🔥 特定錯誤類型處理
+        if (error.message.includes('未知的操作')) {
+            // 嘗試使用備用 API 操作名稱
+            const alternativeActions = {
+                'getCurrentDayRouteTableWithFormat': 'getCurrentDayRouteTable',
+                'getCurrentDayRouteTableB': 'getCurrentDayRouteTable',
+                'getCurrentDayRouteTableC': 'getCurrentDayRouteTable'
+            };
+            
+            if (alternativeActions[action]) {
+                console.log(`嘗試使用備用操作: ${alternativeActions[action]}`);
+                return this.apiCall(alternativeActions[action], data);
+            }
+        }
+        
+        // ChatGPT 特定錯誤處理
+        if (action === 'processChatGPTQuery') {
+            if (error.message.includes('API key') || error.message.includes('401')) {
+                throw new Error('AI 服務認證失敗，請聯繫系統管理員');
+            } else if (error.message.includes('quota') || error.message.includes('429')) {
+                throw new Error('AI 服務使用額度已達上限，請稍後再試');
+            } else if (error.message.includes('timeout')) {
+                throw new Error('AI 服務回應超時，請稍後再試');
+            }
+        }
+        
+        // 網路錯誤處理
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            this.isOnline = false;
+            this.updateConnectionStatus('offline', '離線模式');
+            CONFIG.USE_MOCK_DATA = true;
+            console.warn('切換至離線模式，使用模擬資料');
+            return this.getMockData(action);
+        }
+        
+        throw error;
+    }
+}
+
 
 /**
  * 顯示保持原始格式的路線表
@@ -6449,14 +6530,25 @@ hideOrderAnalysisModal() {
                         this.hideGAIAssistantModal();
                     }
                 });
-                                // 👇 在這個位置添加早班和晚班按鈕事件
+                                                // 修正早班和晚班按鈕事件
                 document.getElementById('morningOrderBtn')?.addEventListener('click', async () => {
-                    await this.fetchCurrentDayRouteTable('早班');
+                    try {
+                        await app.fetchCurrentDayRouteTable('早班');
+                    } catch (error) {
+                        console.error('早班資料載入失敗:', error);
+                        app.showNotification('早班資料載入失敗，請稍後再試', 'error');
+                    }
                 });
                 
                 document.getElementById('eveningOrderBtn')?.addEventListener('click', async () => {
-                    await this.fetchCurrentDayRouteTable('晚班');
+                    try {
+                        await app.fetchCurrentDayRouteTable('晚班');
+                    } catch (error) {
+                        console.error('晚班資料載入失敗:', error);
+                        app.showNotification('晚班資料載入失敗，請稍後再試', 'error');
+                    }
                 });
+
 
 
                 
