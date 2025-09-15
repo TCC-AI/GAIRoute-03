@@ -228,39 +228,104 @@
     text-align: center;
 }
 
-.gai-secretary-avatar-container {
-    margin-bottom: 1rem;
-}
-
 .gai-secretary-avatar {
     width: 220px;
     height: 220px;
-    border-radius: 20%;
+    border-radius: 30%;
     object-fit: cover;
-    border: 3px solid rgba(14, 165, 233, 0.2);
-    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.2);
-    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    /* 添加動畫基礎 */
+    animation: r2-breathing 4s ease-in-out infinite;
 }
-        /* 平板尺寸 */
-@media (max-width: 768px) {
-    .gai-secretary-avatar {
-        width: 150px;
-        height: 150px;
+
+/* R2 呼吸動畫 */
+@keyframes r2-breathing {
+    0%, 100% { 
+        transform: scale(1);
+        filter: brightness(1) saturate(1);
+    }
+    50% { 
+        transform: scale(1.02);
+        filter: brightness(1.1) saturate(1.1);
     }
 }
 
-/* 手機尺寸 */
-@media (max-width: 480px) {
-    .gai-secretary-avatar {
-        width: 100px;
-        height: 100px;
+/* R2 表情狀態 */
+.gai-secretary-avatar.happy {
+    animation: r2-happy 1s ease-in-out;
+    filter: brightness(1.2) saturate(1.3) hue-rotate(10deg);
+}
+
+.gai-secretary-avatar.thinking {
+    animation: r2-thinking 2s ease-in-out infinite;
+}
+
+.gai-secretary-avatar.working {
+    animation: r2-working 1.5s ease-in-out infinite;
+    filter: brightness(0.9) saturate(1.2) hue-rotate(-10deg);
+}
+
+/* R2 開心動畫 */
+@keyframes r2-happy {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+    }
+    25% { 
+        transform: scale(1.1) rotate(-2deg);
+    }
+    75% { 
+        transform: scale(1.1) rotate(2deg);
     }
 }
 
+/* R2 思考動畫 */
+@keyframes r2-thinking {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1) saturate(1);
+    }
+    25% { 
+        transform: scale(0.98) rotate(-1deg);
+        filter: brightness(0.95) saturate(0.9);
+    }
+    75% { 
+        transform: scale(0.98) rotate(1deg);
+        filter: brightness(0.95) saturate(0.9);
+    }
+}
+
+/* R2 工作動畫 */
+@keyframes r2-working {
+    0%, 100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.8;
+        transform: scale(0.98);
+    }
+}
+
+/* R2 懸停效果 */
 .gai-secretary-avatar:hover {
     transform: scale(1.05);
-    box-shadow: 0 12px 35px rgba(14, 165, 233, 0.3);
+    box-shadow: 0 12px 35px rgba(14, 165, 233, 0.4);
+    animation: r2-hover 0.6s ease-in-out;
 }
+
+@keyframes r2-hover {
+    0%, 100% { 
+        transform: scale(1.05);
+    }
+    50% { 
+        transform: scale(1.08) rotate(1deg);
+    }
+}
+
 
 .gai-functions-content {
     flex: 1;
@@ -4047,6 +4112,102 @@ justify-content:flex-end; / 右靠齊 */
     </div>
 
     <script>
+        // R2 角色控制類別
+class R2Character {
+    constructor() {
+        this.element = null;
+        this.currentEmotion = 'normal';
+        this.isAnimating = false;
+        this.init();
+    }
+    
+    init() {
+        // 找到所有 R2 圖片元素
+        this.elements = document.querySelectorAll('.gai-secretary-avatar, img[src*="R2.png"]');
+        this.bindEvents();
+    }
+    
+    bindEvents() {
+        this.elements.forEach(element => {
+            // 點擊互動
+            element.addEventListener('click', () => {
+                this.showEmotion(element, 'happy');
+                // 觸發 GAI 對話框
+                if (typeof app !== 'undefined' && app.showGAISecretaryModal) {
+                    setTimeout(() => app.showGAISecretaryModal(), 300);
+                }
+            });
+            
+            // 滑鼠懸停
+            element.addEventListener('mouseenter', () => {
+                if (!this.isAnimating) {
+                    this.showEmotion(element, 'thinking');
+                }
+            });
+            
+            element.addEventListener('mouseleave', () => {
+                this.resetEmotion(element);
+            });
+        });
+    }
+    
+    showEmotion(element, emotion) {
+        if (!element) return;
+        
+        this.isAnimating = true;
+        
+        // 移除所有表情類別
+        element.classList.remove('happy', 'thinking', 'working', 'normal');
+        
+        // 添加新表情
+        element.classList.add(emotion);
+        this.currentEmotion = emotion;
+        
+        // 動畫結束後重置
+        setTimeout(() => {
+            this.isAnimating = false;
+        }, emotion === 'happy' ? 1000 : 2000);
+    }
+    
+    resetEmotion(element) {
+        if (!element || this.isAnimating) return;
+        
+        element.classList.remove('happy', 'thinking', 'working');
+        element.classList.add('normal');
+        this.currentEmotion = 'normal';
+    }
+    
+    // 工作狀態（AI 正在思考時）
+    setWorkingState() {
+        this.elements.forEach(element => {
+            this.showEmotion(element, 'working');
+        });
+    }
+    
+    // 開心狀態
+    setHappyState() {
+        this.elements.forEach(element => {
+            this.showEmotion(element, 'happy');
+        });
+    }
+    
+    // 思考狀態
+    setThinkingState() {
+        this.elements.forEach(element => {
+            this.showEmotion(element, 'thinking');
+        });
+    }
+    
+    // 隨機表情
+    randomEmotion() {
+        const emotions = ['happy', 'thinking'];
+        const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
+        this.elements.forEach(element => {
+            this.showEmotion(element, randomEmotion);
+        });
+    }
+}
+
         // 更新當前日期顯示
 function updateCurrentDateDisplay() {
     const now = new Date();
@@ -5001,6 +5162,7 @@ refreshRouteTableC() {
                 this.weatherService = new WeatherService();
                 this.isMapViewActive = false;
                 this.currentWaypoints = [];
+                this.r2Character = null;
                  this.routePalletSumCache = {
                     value: 0,
                     timestamp: 0,
@@ -5017,7 +5179,11 @@ refreshRouteTableC() {
             init() {
                 this.bindEvents();
                 this.checkLoginStatus();
-            }
+                // 初始化 R2 角色
+            setTimeout(() => {
+                this.r2Character = new R2Character();
+            }, 1000);
+}
             // 獲取非零次數的快取方法
 async getRoutePalletNonZeroCountWithCache() {
     const now = Date.now();
@@ -5107,6 +5273,11 @@ async sendChatMessage() {
     
     // 添加用戶訊息到對話歷史
     this.addChatMessage('user', userMessage);
+    // 👇 新增：R2 開始思考動畫
+    if (this.r2Character) {
+        this.r2Character.setWorkingState();
+        console.log('R2 進入工作狀態');
+    }
     
     try {
         // 🔥 調用後端 ChatGPT API（已包含快問快答邏輯）
@@ -5119,18 +5290,36 @@ async sendChatMessage() {
         // 🔥 處理回應並顯示模式標識
         if (response && response.reply) {
             this.addChatMessage('assistant', response.reply, response.mode);
+            // 👇 新增：R2 變開心（表示成功回應）
+            if (this.r2Character) {
+                this.r2Character.setHappyState();
+                console.log('R2 進入開心狀態');
+            }
         } else {
             throw new Error('API 回應格式錯誤');
         }
         
+        
     } catch (error) {
         console.error('ChatGPT查詢失敗:', error);
         this.addChatMessage('system', '抱歉，查詢時發生錯誤，請稍後再試。');
+                // 👇 新增：錯誤時 R2 也要恢復正常
+        if (this.r2Character) {
+            this.r2Character.resetEmotion();
+            console.log('R2 因錯誤恢復正常狀態');
+        }
     } finally {
         // 恢復按鈕狀態
         sendBtn.disabled = false;
         sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         chatInput.focus();
+        // 👇 新增：2秒後 R2 恢復正常狀態
+        setTimeout(() => {
+            if (this.r2Character) {
+                this.r2Character.resetEmotion();
+                console.log('R2 恢復正常狀態');
+            }
+        }, 2000);
     }
 }
 
