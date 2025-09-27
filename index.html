@@ -5825,12 +5825,16 @@ async exportAllRouteTables() {
 async loadPageData(pageName) {
     // 👇 新增：各路線板數頁面權限檢查
     if (pageName === 'route-pallets') {
-    // 檢查是否有路線管理權限 且 用戶等級是 s2 或以上
-    if (!this.hasPermission('route-management') || !this.isUserLevelAtLeast('s2')) {
+    const allowedLevels = ['s2', 's3', 's4'];
+    const userLevel = this.getCurrentUserLevel();
+    
+    if (!this.hasPermission('route-management') || !allowedLevels.includes(userLevel)) {
+        console.log(`用戶等級 ${userLevel} 不被允許訪問路線板數頁面`);
         this.showAccessDenied(pageName);
         return;
     }
 }
+
     // 檢查權限
     if (!this.hasPermission(pageName)) {
         this.showAccessDenied(pageName);
