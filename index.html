@@ -3280,7 +3280,7 @@ justify-content:flex-end; / 右靠齊 */
                     <span>路線管理</span>
                 </li>
                 <!-- 👇 在【各路線板數】之前插入這個新項目 -->
-    <li class="menu-item" data-page="route-pallets-overview" data-permission="route-management">
+    <li class="menu-item" data-page="route-pallets-overview" data-permission="basic">
         <i class="fas fa-table"></i>
         <span>各路線板數一覽</span>
     </li>
@@ -4607,22 +4607,22 @@ document.addEventListener('DOMContentLoaded', function() {
             's4': {
                 level: 4,
                 name: '管理者',
-                pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'system-settings', 'reports', 'route-pallets']
+                pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'system-settings', 'reports', 'route-pallets', 'route-pallets-overview']
             },
             's3': {
                 level: 3,
                 name: '主要執行者',
-                pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'reports', 'route-pallets']
+                pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'reports', 'route-pallets', 'route-pallets-overview']
             },
             's2': {
                 level: 2,
                 name: '次要執行者',
-                pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'route-pallets']
+                pages: ['dashboard', 'route-management', 'route-optimization', 'seasonal-routes', 'cargo-vehicle', 'real-time-monitor', 'route-pallets', 'route-pallets-overview']
             },
             's1': {
                 level: 1,
                 name: '初階使用者',
-                pages: ['dashboard']
+                pages: ['dashboard', 'route-pallets-overview']
             }
         };
 
@@ -5858,21 +5858,7 @@ async exportAllRouteTables() {
 }
 // 在 loadPageData 方法中添加新的 case
 async loadPageData(pageName) {
-     // 👇 在權限檢查區域加入新的檢查
-        if (pageName === 'route-management') {
-            if (!this.hasPermission('route-management') || !this.checkUserLevel('s2')) {
-                this.showAccessDenied(pageName);
-                return;
-            }
-        }
-        
-        // 👇 在這裡加入新的權限檢查
-        if (pageName === 'route-pallets-overview') {
-            if (!this.hasPermission('route-management') || !this.checkUserLevel('s2')) {
-                this.showAccessDenied(pageName);
-                return;
-            }
-        }
+     
     // 👇 新增：各路線板數頁面權限檢查
     if (pageName === 'route-pallets') {
         if (!this.hasPermission('route-management') || !this.checkUserLevel('s2')) {
