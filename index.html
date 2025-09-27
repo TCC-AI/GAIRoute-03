@@ -5840,11 +5840,7 @@ async loadPageData(pageName) {
 }
 
 
-    // 檢查權限
-    if (!this.hasPermission(pageName)) {
-        this.showAccessDenied(pageName);
-        return;
-    }
+    
 
     // 隱藏存取被拒絕訊息
     if (pageName === 'system-settings') {
