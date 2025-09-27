@@ -5213,7 +5213,6 @@ async getRoutePalletNonZeroCountWithCache() {
         return this.routePalletNonZeroCountCache.value || 0;
     }
 }
-            
 async getLatestOrderAnalysis() {
     try {
         const result = await this.apiCall('getLatestOrderAnalysis', {
@@ -5250,10 +5249,6 @@ async checkLatestOrderInfo() {
     } catch (error) {
         this.showNotification('檢查訂單資訊時發生錯誤', 'error');
     }
-}
-// 在 DispatchGAISystem 類別中添加這個方法
-getCurrentUserLevel() {
-    return currentUser.level || 's1';
 }
 
 // 顯示每日訂單分析
@@ -5827,9 +5822,15 @@ async exportAllRouteTables() {
     }
 }
 // 在 loadPageData 方法中添加新的 case
-// 載入頁面資料
 async loadPageData(pageName) {
-    // 👇 修正：簡化權限檢查，避免阻擋載入
+    // 👇 新增：各路線板數頁面權限檢查
+    if (pageName === 'route-pallets') {
+        if (!this.hasPermission('route-management') || !this.checkUserLevel('s2')) {
+            this.showAccessDenied(pageName);
+            return;
+        }
+    }
+    // 檢查權限
     if (!this.hasPermission(pageName)) {
         this.showAccessDenied(pageName);
         return;
@@ -5853,7 +5854,8 @@ async loadPageData(pageName) {
         case 'route-optimization':
             await this.loadRouteOptimization();
             break;
-        case 'route-pallets':  // 👈 確保這個 case 存在
+        // 👇 新增：各路線板數頁面載入
+        case 'route-pallets':
             await this.loadRoutePallets();
             break;
         case 'seasonal-routes':
@@ -5874,19 +5876,8 @@ async loadPageData(pageName) {
     }
 }
 
-
 // 👇 新增：載入各路線板數資料
 async loadRoutePallets() {
-    // 👈 新增：檢查必要的 DOM 元素是否存在
-    const container = document.getElementById('routePalletsTableContainer');
-    const statusElement = document.getElementById('routePalletsStatus');
-    const timeElement = document.getElementById('routePalletsDataTime');
-    
-    if (!container) {
-        console.error('找不到 routePalletsTableContainer 元素');
-        this.showNotification('頁面元素載入失敗', 'error');
-        return;
-    }
     this.showPartialLoading('routePalletsTableContainer', '正在載入各路線板數資料...');
     
     try {
@@ -5939,7 +5930,6 @@ async loadRoutePallets() {
         this.showNotification(`載入失敗: ${error.message}`, 'error');
     }
 }
-
 
 // 👇 新增：顯示各路線板數資料
 displayRoutePalletsData(data) {
@@ -6502,20 +6492,6 @@ hideOrderAnalysisModal() {
                         }
                     });
                 });
-                // 👈 修改：安全的事件綁定
-    const refreshRoutePalletsBtn = document.getElementById('refreshRoutePallets');
-    if (refreshRoutePalletsBtn) {
-        refreshRoutePalletsBtn.addEventListener('click', () => {
-            this.refreshRoutePallets();
-        });
-    }
-
-    const exportRoutePalletsBtn = document.getElementById('exportRoutePallets');
-    if (exportRoutePalletsBtn) {
-        exportRoutePalletsBtn.addEventListener('click', () => {
-            this.exportRoutePalletsData();
-        });
-    }
 
                 // 主控台按鈕事件
                 document.getElementById('refreshDashboard')?.addEventListener('click', () => {
@@ -9517,10 +9493,6 @@ async showRouteAddresses(routeName) {
             // 檢查權限
             hasPermission(permission) {
                 if (!currentUser.permissions) return false;
-                // 👈 新增：如果是 route-pallets，檢查是否有 route-management 權限
-    if (permission === 'route-pallets') {
-        return currentUser.permissions.includes('route-management');
-    }
                 return currentUser.permissions.includes(permission);
             }
             // 顯示登入錯誤
