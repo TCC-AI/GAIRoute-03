@@ -6740,14 +6740,7 @@ hideOrderAnalysisModal() {
                             this.showGAIAssistantModal();
                             return;
                         }
-                                     if (page) {
-                        // 👇 basic 權限或有對應權限的用戶都可以訪問
-                        if (permission === 'basic' || this.hasPermission(permission)) {
-                            this.switchPage(page);
-                        } else {
-                            this.showNotification('您沒有權限存取此頁面', 'warning');
-                        }
-                    
+                        
                         if (this.hasPermission(permission)) {
                             this.switchPage(page);
                         } else {
@@ -9764,10 +9757,6 @@ async showRouteAddresses(routeName) {
             // 檢查權限
             hasPermission(permission) {
                 if (!currentUser.permissions) return false;
-                // 👇 添加：basic 權限所有登入用戶都有
-    if (permission === 'basic') {
-        return true; // 所有登入用戶都可以訪問
-    }
                 return currentUser.permissions.includes(permission);
             }
             // 顯示登入錯誤
