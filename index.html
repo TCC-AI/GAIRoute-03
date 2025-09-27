@@ -5823,17 +5823,22 @@ async exportAllRouteTables() {
 }
 // 在 loadPageData 方法中添加新的 case
 async loadPageData(pageName) {
-    // 👇 新增：各路線板數頁面權限檢查
-    if (pageName === 'route-pallets') {
-    const allowedLevels = ['s2', 's3', 's4'];
+   if (pageName === 'route-pallets') {
+    const hasRoutePermission = this.hasPermission('route-management');
     const userLevel = this.getCurrentUserLevel();
+    const allowedLevels = ['s2', 's3', 's4'];
     
-    if (!this.hasPermission('route-management') || !allowedLevels.includes(userLevel)) {
-        console.log(`用戶等級 ${userLevel} 不被允許訪問路線板數頁面`);
+    console.log(`檢查路線板數頁面權限 - 用戶等級: ${userLevel}, 路線權限: ${hasRoutePermission}`);
+    
+    if (!hasRoutePermission || !allowedLevels.includes(userLevel)) {
+        console.log(`拒絕訪問 - 權限不足`);
         this.showAccessDenied(pageName);
         return;
     }
+    
+    console.log(`允許訪問路線板數頁面`);
 }
+
 
     // 檢查權限
     if (!this.hasPermission(pageName)) {
