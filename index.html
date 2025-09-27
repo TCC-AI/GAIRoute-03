@@ -5213,6 +5213,7 @@ async getRoutePalletNonZeroCountWithCache() {
         return this.routePalletNonZeroCountCache.value || 0;
     }
 }
+            
 async getLatestOrderAnalysis() {
     try {
         const result = await this.apiCall('getLatestOrderAnalysis', {
@@ -5249,6 +5250,10 @@ async checkLatestOrderInfo() {
     } catch (error) {
         this.showNotification('檢查訂單資訊時發生錯誤', 'error');
     }
+}
+// 在 DispatchGAISystem 類別中添加這個方法
+getCurrentUserLevel() {
+    return currentUser.level || 's1';
 }
 
 // 顯示每日訂單分析
@@ -5822,25 +5827,13 @@ async exportAllRouteTables() {
     }
 }
 // 在 loadPageData 方法中添加新的 case
+// 載入頁面資料
 async loadPageData(pageName) {
-   if (pageName === 'route-pallets') {
-    const hasRoutePermission = this.hasPermission('route-management');
-    const userLevel = this.getCurrentUserLevel();
-    const allowedLevels = ['s2', 's3', 's4'];
-    
-    console.log(`檢查路線板數頁面權限 - 用戶等級: ${userLevel}, 路線權限: ${hasRoutePermission}`);
-    
-    if (!hasRoutePermission || !allowedLevels.includes(userLevel)) {
-        console.log(`拒絕訪問 - 權限不足`);
+    // 👇 修正：簡化權限檢查，避免阻擋載入
+    if (!this.hasPermission(pageName)) {
         this.showAccessDenied(pageName);
         return;
     }
-    
-    console.log(`允許訪問路線板數頁面`);
-}
-
-
-    
 
     // 隱藏存取被拒絕訊息
     if (pageName === 'system-settings') {
@@ -5860,7 +5853,6 @@ async loadPageData(pageName) {
         case 'route-optimization':
             await this.loadRouteOptimization();
             break;
-        // 👇 新增：各路線板數頁面載入
         case 'route-pallets':
             await this.loadRoutePallets();
             break;
@@ -5881,6 +5873,7 @@ async loadPageData(pageName) {
             break;
     }
 }
+
 
 // 👇 新增：載入各路線板數資料
 async loadRoutePallets() {
@@ -5936,6 +5929,7 @@ async loadRoutePallets() {
         this.showNotification(`載入失敗: ${error.message}`, 'error');
     }
 }
+
 
 // 👇 新增：顯示各路線板數資料
 displayRoutePalletsData(data) {
