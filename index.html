@@ -5877,8 +5877,10 @@ async loadPageData(pageName) {
     }
 }
 
-// 👇 新增：載入各路線板數資料
 async loadRoutePallets() {
+    // 🔧 新增：自動切換到各路線板數頁面
+    this.showPage('route-pallets');
+    
     this.showPartialLoading('routePalletsTableContainer', '正在載入各路線板數資料...');
     
     try {
@@ -5899,8 +5901,6 @@ async loadRoutePallets() {
         });
         
         console.log('API 呼叫完成，返回結果:', result);
-        console.log('結果類型:', typeof result);
-        console.log('結果長度:', Array.isArray(result) ? result.length : '非陣列');
         
         // 檢查結果是否為陣列且有資料
         if (Array.isArray(result) && result.length > 0) {
