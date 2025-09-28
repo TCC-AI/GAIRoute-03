@@ -5163,29 +5163,7 @@ refreshRouteTableC() {
                 this.weatherService = new WeatherService();
                 this.isMapViewActive = false;
                 this.currentWaypoints = [];
-                // 確保 showPage 方法存在
-        this.showPage = this.showPage.bind(this);
-    }
-    
-    showPage(pageId) {
-        console.log('切換到頁面:', pageId);
-        
-        // 隱藏所有頁面
-        document.querySelectorAll('.page').forEach(page => {
-            page.style.display = 'none';
-        });
-        
-        // 顯示目標頁面
-        const targetPage = document.getElementById(pageId);
-        if (targetPage) {
-            targetPage.style.display = 'block';
-            console.log('成功顯示頁面:', pageId);
-        } else {
-            console.error('找不到頁面元素:', pageId);
-        }
-    }
                 this.r2Character = null;
-                
                  this.routePalletSumCache = {
                     value: 0,
                     timestamp: 0,
