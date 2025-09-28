@@ -5878,72 +5878,129 @@ async loadPageData(pageName) {
 }
 
 async loadRoutePallets() {
-    // 🔧 新增：自動切換到各路線板數頁面
-    this.showPage('route-pallets');
-    
-    this.showPartialLoading('routePalletsTableContainer', '正在載入各路線板數資料...');
+    console.log('=== 開始載入各路線板數頁面 ===');
     
     try {
-        console.log('開始載入各路線板數資料...');
+        // 1. 頁面切換和權限檢查
+        this.showPage('route-pallets');
         
-        // 更新狀態
+        // 2. 權限驗證
+        console.log('檢查用戶權限...');
+        console.log('當前用戶:', {
+            username: currentUser.username,
+            level: currentUser.level,
+            permissions: currentUser.permissions
+        });
+        
+        if (!this.hasPermission('route-management')) {
+            console.error('權限檢查失敗: 缺少 route-management 權限');
+            this.showAccessDenied('route-pallets');
+            return;
+        }
+        
+        if (!this.checkUserLevel('s2')) {
+            console.error('權限檢查失敗: 用戶級別不足 s2');
+            this.showAccessDenied('route-pallets');
+            return;
+        }
+        
+        console.log('✅ 權限檢查通過');
+        
+        // 3. 顯示載入狀態
+        this.showPartialLoading('routePalletsTableContainer', '正在載入各路線板數資料...');
+        
+        // 4. 更新狀態元素
         const statusElement = document.getElementById('routePalletsStatus');
         const timeElement = document.getElementById('routePalletsDataTime');
         
-        if (statusElement) statusElement.textContent = '載入中';
-        if (timeElement) timeElement.textContent = '';
-        
-        // 呼叫 API 獲取外部 Google Sheet 資料
-        console.log('準備呼叫 API: getRoutePalletsData');
-        const result = await this.apiCall('getRoutePalletsData', {
-            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
-            sheetName: '各路線板數'
-        });
-        
-        console.log('API 呼叫完成，返回結果:', result);
-        
-        // 檢查結果是否為陣列且有資料
-        if (Array.isArray(result) && result.length > 0) {
-            console.log('資料有效，準備顯示表格');
-            this.displayRoutePalletsData(result);
-            
-            // 更新狀態
-            if (statusElement) {
-                statusElement.textContent = '最新';
-                statusElement.className = 'fresh-badge';
-            }
-            if (timeElement) {
-                timeElement.textContent = `資料更新時間: ${new Date().toLocaleString('zh-TW')}`;
-            }
-            
-            this.showNotification(`成功載入 ${result.length} 筆路線板數資料`, 'success');
-        } else {
-            console.warn('API 返回空資料或格式錯誤:', result);
-            this.showEmptyRoutePalletsState();
-            this.showNotification('API 返回空資料，請檢查資料來源', 'warning');
+        if (statusElement) {
+            statusElement.textContent = '載入中';
+            statusElement.className = 'fresh-badge';
+        }
+        if (timeElement) {
+            timeElement.textContent = '正在載入...';
         }
         
-    } catch (error) {
-        console.error('載入各路線板數資料失敗:', error);
+        // 5. API 參數準備
+        const apiParams = {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '各路線板數'
+        };
         
-        // 顯示詳細錯誤資訊
-        const errorMessage = `載入失敗: ${error.message}`;
-        console.error('詳細錯誤資訊:', {
-            message: error.message,
+        console.log('API 調用參數:', apiParams);
+        
+        // 6. 調用 API 獲取資料
+        console.log('準備呼叫 API: getRoutePalletsData');
+        
+        let result;
+        if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
+            console.log('使用模擬資料模式');
+            result = this.getMockRoutePalletsData();
+        } else {
+            console.log('調用真實 API...');
+            result = await this.apiCall('getRoutePalletsData', apiParams);
+        }
+        
+        console.log('API 返回結果:', {
+            type: typeof result,
+            isArray: Array.isArray(result),
+            length: result ? result.length : 0,
+            firstItem: result && result.length > 0 ? result[0] : null
+        });
+        
+        // 7. 資料驗證
+        if (!result) {
+            console.warn('API 返回 null 或 undefined');
+            throw new Error('API 返回空值，請檢查後端服務');
+        }
+        
+        if (!Array.isArray(result)) {
+            console.error('API 返回資料格式錯誤:', typeof result);
+            throw new Error(`API 返回資料格式錯誤，期望陣列但收到 ${typeof result}`);
+        }
+        
+        if (result.length === 0) {
+            console.warn('API 返回空陣列');
+            this.showEmptyRoutePalletsState();
+            this.updateRoutePalletsStatus('無資料', '暫無資料', 'expired');
+            this.showNotification('各路線板數工作表暫無資料', 'info');
+            return;
+        }
+        
+        // 8. 資料處理成功
+        console.log(`✅ 成功獲取 ${result.length} 筆各路線板數資料`);
+        
+        // 9. 顯示資料
+        this.displayRoutePalletsData(result);
+        
+        // 10. 更新狀態為成功
+        this.updateRoutePalletsStatus('最新', new Date().toLocaleString('zh-TW'), 'fresh');
+        
+        // 11. 顯示成功通知
+        this.showNotification(`✅ 成功載入 ${result.length} 筆路線板數資料`, 'success');
+        
+        console.log('=== 各路線板數頁面載入完成 ===');
+        
+    } catch (error) {
+        // 12. 錯誤處理
+        console.error('=== 載入各路線板數資料失敗 ===');
+        console.error('錯誤詳情:', {
             name: error.name,
+            message: error.message,
             stack: error.stack
         });
         
-        this.showErrorState('routePalletsTableContainer', errorMessage);
+        // 13. 顯示錯誤狀態
+        this.showErrorState('routePalletsTableContainer', this.formatErrorMessage(error));
         
-        // 更新狀態為錯誤
-        const statusElement = document.getElementById('routePalletsStatus');
-        if (statusElement) {
-            statusElement.textContent = '載入失敗';
-            statusElement.className = 'fresh-badge expired';
-        }
+        // 14. 更新狀態為錯誤
+        this.updateRoutePalletsStatus('載入失敗', '發生錯誤', 'expired');
         
-        this.showNotification(errorMessage, 'error');
+        // 15. 顯示錯誤通知
+        this.showNotification(`❌ 載入失敗: ${this.formatErrorMessage(error)}`, 'error');
+        
+        // 16. 根據錯誤類型提供建議
+        this.showErrorSuggestions(error);
     }
 }
 
