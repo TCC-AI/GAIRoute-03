@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -2830,7 +2831,7 @@
   font-size:.25rem;
   color:#64748b;
   flex-wrap:wrap;
-justify-content:flex-end; / 右靠齊 */
+justify-content:flex-end; /* 右靠齊 */
     
 }
 .dashboard-data-meta .fresh-badge {
@@ -8475,6 +8476,7 @@ async loadDashboard() {
             
             // 同時獲取各項數據
             try {
+                console.log('開始獲取各路線板數資料...');
                 const [palletSum, nonZeroPercentage, lastBValue, alertValue] = await Promise.all([
                     this.apiCall('getRoutePalletSum', {
                         targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc'
@@ -8490,6 +8492,13 @@ async loadDashboard() {
                     })
                 ]);
                 
+                console.log('獲取到的資料:', {
+                    palletSum,
+                    nonZeroPercentage,
+                    lastBValue,
+                    alertValue
+                });
+                
                 routePalletSum = palletSum;
                 routePalletNonZeroPercentage = nonZeroPercentage;
                 routeTableLastBValue = lastBValue;
@@ -8497,6 +8506,7 @@ async loadDashboard() {
                 
             } catch (error) {
                 console.error('獲取外部資料失敗:', error);
+                this.showNotification(`獲取各路線板數資料失敗: ${error.message}`, 'error');
                 routePalletSum = 0;
                 routePalletNonZeroPercentage = 0;
                 routeTableLastBValue = 0;
