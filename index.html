@@ -9490,32 +9490,11 @@ async showRouteAddresses(routeName) {
                 });
             }
 
-            // 檢查權限 - 增強版
-hasPermission(permission) {
-    // 如果沒有傳入權限參數，返回 true（允許訪問）
-    if (!permission) {
-        return true;
-    }
-    
-    // 如果用戶未登入，返回 false
-    if (!currentUser || !currentUser.username) {
-        console.log('用戶未登入，拒絕訪問');
-        return false;
-    }
-    
-    // 如果用戶沒有權限資料，返回 true（預設允許，避免鎖死）
-    if (!currentUser.permissions || !Array.isArray(currentUser.permissions)) {
-        console.log('用戶權限資料未載入，預設允許訪問');
-        return true;
-    }
-    
-    // 檢查用戶是否有指定權限
-    const hasAccess = currentUser.permissions.includes(permission);
-    console.log(`權限檢查 ${permission}: ${hasAccess ? '✅ 允許' : '❌ 拒絕'}`);
-    
-    return hasAccess;
-}
-
+            // 檢查權限
+            hasPermission(permission) {
+                if (!currentUser.permissions) return false;
+                return currentUser.permissions.includes(permission);
+            }
             // 顯示登入錯誤
             showLoginError(message) {
                 elements.loginError.textContent = message;
