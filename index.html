@@ -5892,14 +5892,19 @@ async loadRoutePallets() {
         if (timeElement) timeElement.textContent = '';
         
         // 呼叫 API 獲取外部 Google Sheet 資料
+        console.log('準備呼叫 API: getRoutePalletsData');
         const result = await this.apiCall('getRoutePalletsData', {
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
             sheetName: '各路線板數'
         });
         
-        console.log('各路線板數資料:', result);
+        console.log('API 呼叫完成，返回結果:', result);
+        console.log('結果類型:', typeof result);
+        console.log('結果長度:', Array.isArray(result) ? result.length : '非陣列');
         
-        if (result && result.length > 0) {
+        // 檢查結果是否為陣列且有資料
+        if (Array.isArray(result) && result.length > 0) {
+            console.log('資料有效，準備顯示表格');
             this.displayRoutePalletsData(result);
             
             // 更新狀態
@@ -5913,13 +5918,23 @@ async loadRoutePallets() {
             
             this.showNotification(`成功載入 ${result.length} 筆路線板數資料`, 'success');
         } else {
+            console.warn('API 返回空資料或格式錯誤:', result);
             this.showEmptyRoutePalletsState();
-            this.showNotification('暫無各路線板數資料', 'info');
+            this.showNotification('API 返回空資料，請檢查資料來源', 'warning');
         }
         
     } catch (error) {
         console.error('載入各路線板數資料失敗:', error);
-        this.showErrorState('routePalletsTableContainer', error.message);
+        
+        // 顯示詳細錯誤資訊
+        const errorMessage = `載入失敗: ${error.message}`;
+        console.error('詳細錯誤資訊:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+        });
+        
+        this.showErrorState('routePalletsTableContainer', errorMessage);
         
         // 更新狀態為錯誤
         const statusElement = document.getElementById('routePalletsStatus');
@@ -5928,9 +5943,10 @@ async loadRoutePallets() {
             statusElement.className = 'fresh-badge expired';
         }
         
-        this.showNotification(`載入失敗: ${error.message}`, 'error');
+        this.showNotification(errorMessage, 'error');
     }
 }
+
 
 // 👇 新增：顯示各路線板數資料
 displayRoutePalletsData(data) {
