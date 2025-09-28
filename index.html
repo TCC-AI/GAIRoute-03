@@ -5856,7 +5856,7 @@ async loadPageData(pageName) {
             break;
         // 👇 新增：各路線板數頁面載入
         case 'route-pallets':
-            await this.loadRoutePallets();
+            await this.loadRoutePalletsOverview(); 
             break;
         case 'seasonal-routes':
             await this.loadSeasonalRoutes();
