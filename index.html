@@ -5971,8 +5971,24 @@ async loadRoutePallets() {
 }
 
 
-// 👇 在這裡加入所有新的方法
 async loadRoutePalletsOverview() {
+    console.log('🔍 開始載入各路線板數一覽'); // 👈 添加這行
+    
+    // 👇 添加這段測試代碼
+    const container = document.getElementById('routePalletsOverviewContainer');
+    container.innerHTML = `
+        <div style="padding: 2rem; text-align: center; background: #f0f9ff; border-radius: 8px;">
+            <h4 style="color: #0ea5e9;">測試：頁面載入成功！</h4>
+            <p>如果您看到這個訊息，表示頁面切換正常，問題在於 API 載入</p>
+            <button onclick="console.log('按鈕點擊測試成功')" class="btn btn-primary">測試按鈕</button>
+        </div>
+    `;
+    
+    // 👇 暫時註解掉原有的載入邏輯，先測試頁面切換是否正常
+    return; // 👈 添加這行，暫時跳出方法
+    
+    // 👇 以下是原有代碼（暫時不執行）
+    /*
     this.showPartialLoading('routePalletsOverviewContainer', '正在載入各路線板數一覽資料...');
     
     try {
@@ -6025,7 +6041,9 @@ async loadRoutePalletsOverview() {
         
         this.showNotification(`載入失敗: ${error.message}`, 'error');
     }
+    */
 }
+
 
 displayRoutePalletsOverviewData(data) {
     const container = document.getElementById('routePalletsOverviewContainer');
