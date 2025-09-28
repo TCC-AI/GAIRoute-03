@@ -5878,72 +5878,37 @@ async loadPageData(pageName) {
 }
 
 async loadRoutePallets() {
-    // 🔧 新增：自動切換到各路線板數頁面
-    this.showPage('route-pallets');
-    
     this.showPartialLoading('routePalletsTableContainer', '正在載入各路線板數資料...');
     
     try {
-        console.log('開始載入各路線板數資料...');
+        // 👇 添加權限檢查日誌
+        console.log('檢查權限:', {
+            hasRouteManagement: this.hasPermission('route-management'),
+            userLevel: currentUser.level,
+            checkLevel: this.checkUserLevel('s2')
+        });
         
-        // 更新狀態
-        const statusElement = document.getElementById('routePalletsStatus');
-        const timeElement = document.getElementById('routePalletsDataTime');
+        // 👇 添加 API 調用前的檢查
+        console.log('準備調用 API...');
+        console.log('目標工作表ID:', '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc');
+        console.log('工作表名稱:', '各路線板數');
         
-        if (statusElement) statusElement.textContent = '載入中';
-        if (timeElement) timeElement.textContent = '';
-        
-        // 呼叫 API 獲取外部 Google Sheet 資料
-        console.log('準備呼叫 API: getRoutePalletsData');
         const result = await this.apiCall('getRoutePalletsData', {
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
             sheetName: '各路線板數'
         });
         
-        console.log('API 呼叫完成，返回結果:', result);
-        
-        // 檢查結果是否為陣列且有資料
-        if (Array.isArray(result) && result.length > 0) {
-            console.log('資料有效，準備顯示表格');
-            this.displayRoutePalletsData(result);
-            
-            // 更新狀態
-            if (statusElement) {
-                statusElement.textContent = '最新';
-                statusElement.className = 'fresh-badge';
-            }
-            if (timeElement) {
-                timeElement.textContent = `資料更新時間: ${new Date().toLocaleString('zh-TW')}`;
-            }
-            
-            this.showNotification(`成功載入 ${result.length} 筆路線板數資料`, 'success');
-        } else {
-            console.warn('API 返回空資料或格式錯誤:', result);
-            this.showEmptyRoutePalletsState();
-            this.showNotification('API 返回空資料，請檢查資料來源', 'warning');
-        }
-        
+        // ... 其餘代碼
     } catch (error) {
-        console.error('載入各路線板數資料失敗:', error);
-        
-        // 顯示詳細錯誤資訊
-        const errorMessage = `載入失敗: ${error.message}`;
-        console.error('詳細錯誤資訊:', {
+        // 👇 更詳細的錯誤信息
+        console.error('完整錯誤信息:', {
             message: error.message,
-            name: error.name,
-            stack: error.stack
+            stack: error.stack,
+            name: error.name
         });
         
-        this.showErrorState('routePalletsTableContainer', errorMessage);
-        
-        // 更新狀態為錯誤
-        const statusElement = document.getElementById('routePalletsStatus');
-        if (statusElement) {
-            statusElement.textContent = '載入失敗';
-            statusElement.className = 'fresh-badge expired';
-        }
-        
-        this.showNotification(errorMessage, 'error');
+        this.showErrorState('routePalletsTableContainer', error.message);
+        this.showNotification(`載入失敗: ${error.message}`, 'error');
     }
 }
 
