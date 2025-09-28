@@ -5856,7 +5856,7 @@ async loadPageData(pageName) {
             break;
         // 👇 新增：各路線板數頁面載入
         case 'route-pallets':
-            await this.loadRoutePalletsOverview(); 
+            await this.loadRoutePallets(); 
             break;
         case 'seasonal-routes':
             await this.loadSeasonalRoutes();
@@ -9586,6 +9586,13 @@ async showRouteAddresses(routeName) {
 
             // 載入頁面資料
             async loadPageData(pageName) {
+                             // 👇 新增：各路線板數頁面權限檢查
+                if (pageName === 'route-pallets') {
+                    if (!this.hasPermission('route-management') || !this.checkUserLevel('s2')) {
+                        this.showAccessDenied(pageName);
+                        return;
+                    }
+                }
                 // 檢查權限
                 if (!this.hasPermission(pageName)) {
                     this.showAccessDenied(pageName);
