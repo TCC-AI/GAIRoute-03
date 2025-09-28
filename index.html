@@ -6003,7 +6003,65 @@ async loadRoutePallets() {
         this.showErrorSuggestions(error);
     }
 }
-
+**
+ * 更新路線板數狀態
+ */
+updateRoutePalletsStatus(statusText, timeText, statusClass) {
+    const statusElement = document.getElementById('routePalletsStatus');
+    const timeElement = document.getElementById('routePalletsDataTime');
+    
+    if (statusElement) {
+        statusElement.textContent = statusText;
+        statusElement.className = `fresh-badge ${statusClass}`;
+    }
+    
+    if (timeElement) {
+        timeElement.textContent = `資料更新時間: ${timeText}`;
+    }
+}
+            formatErrorMessage(error) {
+    if (error.message.includes('fetch')) {
+        return '網路連線失敗，請檢查網路狀態';
+    } else if (error.message.includes('權限')) {
+        return '存取權限不足，請聯繫系統管理員';
+    } else if (error.message.includes('找不到工作表')) {
+        return '目標工作表不存在，請檢查工作表設定';
+    } else if (error.message.includes('API')) {
+        return 'API 服務異常，請稍後再試';
+    } else {
+        return error.message || '未知錯誤';
+    }
+}
+            showErrorSuggestions(error) {
+    const suggestions = [];
+    
+    if (error.message.includes('fetch') || error.message.includes('網路')) {
+        suggestions.push('檢查網路連線');
+        suggestions.push('嘗試重新整理頁面');
+    }
+    
+    if (error.message.includes('權限')) {
+        suggestions.push('確認用戶權限設定');
+        suggestions.push('聯繫系統管理員');
+    }
+    
+    if (error.message.includes('工作表')) {
+        suggestions.push('檢查 Google Sheet 是否存在');
+        suggestions.push('確認工作表名稱正確');
+    }
+    
+    if (suggestions.length > 0) {
+        console.warn('錯誤解決建議:', suggestions);
+        
+        // 可選：顯示建議對話框
+        setTimeout(() => {
+            const suggestionText = suggestions.map(s => `• ${s}`).join('\n');
+            if (confirm(`載入失敗，建議嘗試以下操作：\n\n${suggestionText}\n\n是否要重新載入？`)) {
+                this.loadRoutePallets();
+            }
+        }, 2000);
+    }
+}
 
 // 👇 新增：顯示各路線板數資料
 displayRoutePalletsData(data) {
@@ -6122,11 +6180,29 @@ displayRoutePalletsData(data) {
 // 👇 新增：顯示空狀態
 showEmptyRoutePalletsState() {
     const container = document.getElementById('routePalletsTableContainer');
+    if (!container) return;
+    
     container.innerHTML = `
-        <div style="text-align: center; padding: 4rem 2rem; color: #64748b;">
-            <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 1.5rem; opacity: 0.5;"></i>
-            <h3 style="margin-bottom: 1rem; color: #374151;">暫無各路線板數資料</h3>
-            <p style="margin-bottom: 2rem; line-height: 1.6;">
+        <div style="
+            text-align: center; 
+            padding: 4rem 2rem; 
+            color: #64748b;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        ">
+            <div style="margin-bottom: 2rem;">
+                <i class="fas fa-clipboard-list" style="
+                    font-size: 4rem; 
+                    margin-bottom: 1rem; 
+                    opacity: 0.4;
+                    color: #94a3b8;
+                "></i>
+            </div>
+            <h3 style="margin-bottom: 1rem; color: #374151; font-weight: 600;">
+                暫無各路線板數資料
+            </h3>
+            <p style="margin-bottom: 2rem; line-height: 1.6; color: #64748b;">
                 目前沒有找到各路線板數統計資料<br>
                 請檢查外部 Google Sheet 是否包含相關資料
             </p>
@@ -6137,9 +6213,47 @@ showEmptyRoutePalletsState() {
                 <button class="btn btn-secondary" onclick="app.openExternalSheet()">
                     <i class="fas fa-external-link-alt"></i> 檢查原始資料
                 </button>
+                <button class="btn btn-info" onclick="app.showRoutePalletsHelp()">
+                    <i class="fas fa-question-circle"></i> 獲取幫助
+                </button>
             </div>
         </div>
     `;
+}
+            showRoutePalletsHelp() {
+    this.showModal('各路線板數幫助', `
+        <div style="text-align: left; line-height: 1.6;">
+            <h5 style="color: #0ea5e9; margin-bottom: 1rem;">
+                <i class="fas fa-info-circle"></i> 功能說明
+            </h5>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <h6>資料來源</h6>
+                <p style="margin: 0.5rem 0; color: #64748b;">
+                    • 工作表 ID: 1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc<br>
+                    • 工作表名稱: 各路線板數<br>
+                    • 更新頻率: 即時
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <h6>權限要求</h6>
+                <p style="margin: 0.5rem 0; color: #64748b;">
+                    • 需要 route-management 權限<br>
+                    • 用戶級別需達到 s2 以上
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <h6>常見問題</h6>
+                <p style="margin: 0.5rem 0; color: #64748b;">
+                    • 如果顯示空白，請檢查 Google Sheet 是否有資料<br>
+                    • 載入失敗時，請檢查網路連線<br>
+                    • 權限不足時，請聯繫系統管理員
+                </p>
+            </div>
+        </div>
+    `);
 }
 
 // 👇 新增：重新整理各路線板數
@@ -10861,7 +10975,6 @@ showPartialLoading(containerId, message = '載入中...') {
     container.innerHTML = loadingHtml;
 }
 
-// 錯誤狀態顯示
 showErrorState(containerId, errorMessage) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -10872,15 +10985,53 @@ showErrorState(containerId, errorMessage) {
             padding: 3rem 2rem;
             color: #dc2626;
             border: 2px dashed #fecaca;
-            border-radius: 8px;
-            background: #fef2f2;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         ">
-            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-            <h4 style="margin-bottom: 0.5rem;">載入失敗</h4>
-            <p style="margin-bottom: 1rem; color: #991b1b;">${errorMessage}</p>
-            <button class="btn btn-secondary btn-sm" onclick="location.reload()">
-                <i class="fas fa-redo"></i> 重新載入頁面
-            </button>
+            <div style="margin-bottom: 1.5rem;">
+                <i class="fas fa-exclamation-triangle" style="
+                    font-size: 3rem; 
+                    color: #ef4444;
+                    animation: pulse 2s infinite;
+                "></i>
+            </div>
+            <h4 style="margin-bottom: 1rem; color: #991b1b; font-weight: 600;">
+                載入失敗
+            </h4>
+            <p style="margin-bottom: 2rem; color: #991b1b; line-height: 1.6;">
+                ${errorMessage}
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="app.loadRoutePallets()" style="
+                    background: linear-gradient(135deg, #dc2626, #b91c1c);
+                    border: none;
+                    color: white;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                ">
+                    <i class="fas fa-sync-alt"></i> 重新載入
+                </button>
+                <button class="btn btn-secondary" onclick="app.openExternalSheet()" style="
+                    background: #6b7280;
+                    border: none;
+                    color: white;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                ">
+                    <i class="fas fa-external-link-alt"></i> 檢查原始資料
+                </button>
+            </div>
+            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                <p style="margin: 0; font-size: 0.875rem; color: #7f1d1d;">
+                    <i class="fas fa-info-circle"></i> 
+                    如果問題持續發生，請聯繫系統管理員或檢查網路連線
+                </p>
+            </div>
         </div>
     `;
 }
