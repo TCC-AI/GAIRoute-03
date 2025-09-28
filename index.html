@@ -5884,6 +5884,22 @@ async loadRoutePallets() {
     this.showPartialLoading('routePalletsTableContainer', '正在載入各路線板數資料...');
     
     try {
+        // 👇 添加權限檢查日誌
+        console.log('檢查權限:', {
+            hasRouteManagement: this.hasPermission('route-management'),
+            userLevel: currentUser.level,
+            checkLevel: this.checkUserLevel('s2')
+        });
+        
+        // 👇 添加 API 調用前的檢查
+        console.log('準備調用 API...');
+        console.log('目標工作表ID:', '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc');
+        console.log('工作表名稱:', '各路線板數');
+        
+        const result = await this.apiCall('getRoutePalletsData', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '各路線板數'
+        });
         console.log('開始載入各路線板數資料...');
         
         // 更新狀態
@@ -5924,7 +5940,13 @@ async loadRoutePallets() {
         }
         
     } catch (error) {
-        console.error('載入各路線板數資料失敗:', error);
+        
+        // 👇 更詳細的錯誤信息
+        console.error('完整錯誤信息:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         
         // 顯示詳細錯誤資訊
         const errorMessage = `載入失敗: ${error.message}`;
