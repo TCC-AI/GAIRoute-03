@@ -5467,7 +5467,7 @@ async exportCurrentDayRouteSheet() {
         // 呼叫後端 API 匯出指定的 Google Sheet
         const result = await this.apiCall('exportRouteSheetAsExcel', {
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
-            sheetName: '當日各路線表',
+            sheetNames: ['當日各路線表', '各路線板數'], // 改為陣列，包含兩個工作表
             exportFormat: 'excel'
         });
         
