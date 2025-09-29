@@ -4551,7 +4551,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbztkQccjdRUYqIJv-7bIOz85tpVgev4yUCxXV4tawLFuRJM8vJJHD02d0MfxojU3JrB/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbwEB6H1K4JVRUggGceERbBggOxA9d7ihEA5eRNwkJXckDbLb8CNR9c0MoF6zL3cnb9o/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -5470,6 +5470,7 @@ const result = await this.apiCall('exportRouteSheetAsExcel', {
     sheetNames: ['當日各路線表', '各路線板數'], // 改為陣列，包含兩個工作表
     exportFormat: 'excel',
     multiSheet: true // 新增參數，表示要匯出多個工作表
+    preserveFormat: preserveFormat // 🔥 格式保留參數
 });
 
         
