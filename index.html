@@ -4550,7 +4550,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbzzpelkhFmSnL0HoC8JgPBRm0COsGJd6jdLf8wcTw0hRfR5NaJS0DBbpJcXo5_IVnGJ/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbyoXjI0GrvpHW9XPEgmwqmwVtI5zXO6LSLTV2J1O0Vxgjuf8Yal9IEs3IZ8y9HRgosN/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -5454,38 +5454,49 @@ showDataAnalysisReport() {
     this.hideGAIAssistantModal();
     this.switchPage('reports');
 }
-/**
- * 修改現有的匯出函數，加入格式保留選項
- */
+// 🚀 優化前端載入提示
 async exportCurrentDayRouteSheet(preserveFormat = true) {
     try {
-        this.showLoading('正在準備匯出檔案，請稍候...');
+        // 🎯 根據模式顯示不同的載入訊息
+        const loadingMessage = preserveFormat 
+            ? '正在保留格式匯出，預計需要 10-15 秒...' 
+            : '正在快速匯出，請稍候...';
+            
+        this.showLoading(loadingMessage);
+        
+        // 🎯 顯示進度提示
+        let progressCounter = 0;
+        const progressInterval = setInterval(() => {
+            progressCounter += 2;
+            if (progressCounter <= 100) {
+                const dots = '.'.repeat((progressCounter / 10) % 4);
+                const message = preserveFormat 
+                    ? `正在保留格式匯出${dots} (${progressCounter}%)` 
+                    : `正在快速匯出${dots} (${progressCounter}%)`;
+                this.updateLoadingMessage(message);
+            }
+        }, 1000);
         
         console.log('開始匯出當日各路線表...');
         
-        // 🔥 呼叫修改後的 API，加入格式保留參數
         const result = await this.apiCall('exportRouteSheetAsExcel', {
             targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
             sheetNames: ['當日各路線表', '各路線板數'],
             exportFormat: 'excel',
             multiSheet: true,
-            preserveFormat: preserveFormat // 🔥 格式保留參數
+            preserveFormat: preserveFormat
         });
+        
+        clearInterval(progressInterval);
         
         console.log('API 返回結果:', result);
         
         if (result && result.success) {
-            // 🎨 根據是否保留格式顯示不同的確認訊息
-            if (preserveFormat && result.formatPreserved) {
-                this.showFormatPreservationInfo(result);
-            }
-            
-            // 自動下載檔案
             this.downloadExcelFile(result.downloadUrl, result.filename);
             
             const message = preserveFormat 
                 ? `✅ 格式保留匯出成功！檔案：${result.filename}` 
-                : `✅ 匯出成功！檔案：${result.filename}`;
+                : `✅ 快速匯出成功！檔案：${result.filename}`;
                 
             this.showNotification(message, 'success', 6000);
             
@@ -5496,12 +5507,20 @@ async exportCurrentDayRouteSheet(preserveFormat = true) {
     } catch (error) {
         console.error('匯出路線表失敗:', error);
         this.showNotification(`❌ 匯出失敗: ${error.message}`, 'error');
-        this.showFallbackExportOptions();
         
     } finally {
         this.hideLoading();
     }
 }
+
+// 🚀 新增更新載入訊息的方法
+updateLoadingMessage(message) {
+    const loadingElement = document.querySelector('.loading-message');
+    if (loadingElement) {
+        loadingElement.textContent = message;
+    }
+}
+
 
 // 🔥 新增兩個不同的匯出選項
 async exportCurrentDayRouteSheetWithFormat() {
