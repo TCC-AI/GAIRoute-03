@@ -5465,11 +5465,25 @@ async exportCurrentDayRouteSheet() {
         console.log('開始匯出當日各路線表...');
         
         // 呼叫後端 API 匯出指定的 Google Sheet
-        const result = await this.apiCall('exportRouteSheetAsExcel', {
-            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
-            sheetNames: ['當日各路線表', '各路線板數'], // 改為陣列，包含兩個工作表
-            exportFormat: 'excel'
-        });
+       // 呼叫後端 API 匯出指定的 Google Sheet (多工作表版本)
+const result = await this.apiCall('exportRouteSheetAsExcel', {
+    targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+    exportConfig: {
+        sheets: [
+            {
+                name: '當日各路線表',
+                includeFormatting: true
+            },
+            {
+                name: '各路線板數',
+                includeFormatting: true
+            }
+        ],
+        exportFormat: 'excel',
+        filename: `路線表_${new Date().toLocaleDateString('zh-TW').replace(/\//g, '')}.xlsx`
+    }
+});
+
         
         console.log('API 返回結果:', result);
         
