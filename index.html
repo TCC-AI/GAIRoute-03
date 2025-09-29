@@ -5456,37 +5456,39 @@ showDataAnalysisReport() {
     this.switchPage('reports');
 }
 /**
- * 匯出當日各路線表為 Excel 檔案 - 格式保留版
+ * 修改現有的匯出函數，加入格式保留選項
  */
-async exportCurrentDayRouteSheet() {
+async exportCurrentDayRouteSheet(preserveFormat = true) {
     try {
         this.showLoading('正在準備匯出檔案，請稍候...');
         
         console.log('開始匯出當日各路線表...');
         
-       // 呼叫後端 API 匯出指定的 Google Sheet (包含多個工作表)
-const result = await this.apiCall('exportRouteSheetAsExcel', {
-    targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
-    sheetNames: ['當日各路線表', '各路線板數'], // 改為陣列，包含兩個工作表
-    exportFormat: 'excel',
-    multiSheet: true // 新增參數，表示要匯出多個工作表
-});
-
+        // 🔥 呼叫修改後的 API，加入格式保留參數
+        const result = await this.apiCall('exportRouteSheetAsExcel', {
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetNames: ['當日各路線表', '各路線板數'],
+            exportFormat: 'excel',
+            multiSheet: true,
+            preserveFormat: preserveFormat // 🔥 格式保留參數
+        });
         
         console.log('API 返回結果:', result);
         
         if (result && result.success) {
-            // 顯示格式保留確認
-            this.showFormatPreservationInfo(result);
+            // 🎨 根據是否保留格式顯示不同的確認訊息
+            if (preserveFormat && result.formatPreserved) {
+                this.showFormatPreservationInfo(result);
+            }
             
             // 自動下載檔案
             this.downloadExcelFile(result.downloadUrl, result.filename);
             
-            this.showNotification(
-                `路線表匯出成功！檔案：${result.filename}`, 
-                'success', 
-                6000
-            );
+            const message = preserveFormat 
+                ? `✅ 格式保留匯出成功！檔案：${result.filename}` 
+                : `✅ 匯出成功！檔案：${result.filename}`;
+                
+            this.showNotification(message, 'success', 6000);
             
         } else {
             throw new Error(result?.message || '匯出失敗，請稍後再試');
@@ -5494,15 +5496,23 @@ const result = await this.apiCall('exportRouteSheetAsExcel', {
         
     } catch (error) {
         console.error('匯出路線表失敗:', error);
-        this.showNotification(`匯出失敗: ${error.message}`, 'error');
-        
-        // 提供備用方案
+        this.showNotification(`❌ 匯出失敗: ${error.message}`, 'error');
         this.showFallbackExportOptions();
         
     } finally {
         this.hideLoading();
     }
 }
+
+// 🔥 新增兩個不同的匯出選項
+async exportCurrentDayRouteSheetWithFormat() {
+    return this.exportCurrentDayRouteSheet(true); // 保留格式
+}
+
+async exportCurrentDayRouteSheetDataOnly() {
+    return this.exportCurrentDayRouteSheet(false); // 只匯出資料
+}
+
             // 檢查用戶級別
 checkUserLevel(requiredLevel) {
     const levelHierarchy = {
