@@ -5469,8 +5469,7 @@ const result = await this.apiCall('exportRouteSheetAsExcel', {
     targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
     sheetNames: ['當日各路線表', '各路線板數'], // 改為陣列，包含兩個工作表
     exportFormat: 'excel',
-    multiSheet: true, // 新增參數，表示要匯出多個工作表
-    preserveFormat: preserveFormat, // 🔥 格式保留參數
+    multiSheet: true // 新增參數，表示要匯出多個工作表
 });
 
         
