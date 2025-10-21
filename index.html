@@ -4550,7 +4550,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const CONFIG = {
             SPREADSHEET_ID: '1miCf_ZTVyzmA1MNbbZM3uUdZjluk99gZUH5w2q_XWs8',
             EXTERNAL_SPREADSHEET_ID: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc', // 第二個檔案ID（外部資料、GAI分析等）
-            GAS_URL: 'https://script.google.com/macros/s/AKfycbwsdzFWXvpV3CpeNaYQdDvhZXDy40LKAPkZmug6M4KnOvU8czZcsj2Df1DZ_U6zb5Pk/exec',
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbzWAIXVmhdSiNDb4c7KS4ug_sZoL9OemRL7RjaNTn0lCwNoZGH5ZKM1i95rEqhaOYBq/exec',
             USE_MOCK_DATA: false,
             MAPS_API_KEY: 'AIzaSyDtP8oDCXfr0CPLyVv_WrAqmk2V9QgteLI',
             WEATHER_API_KEY: 'a4806bc2577c0c227f9acd8bccb566a5',
@@ -5257,7 +5257,7 @@ async showDailyOrderAnalysis() {
     await this.showLatestOrderNotification();
 }
 // 發送聊天訊息
-// 🔥 優化版：支援串流回應
+// 🔥 修改後的發送聊天訊息函數 - 整合快問快答
 async sendChatMessage() {
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendChatBtn');
@@ -5271,143 +5271,57 @@ async sendChatMessage() {
     sendBtn.disabled = true;
     sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     
-    // 添加用戶訊息
+    // 添加用戶訊息到對話歷史
     this.addChatMessage('user', userMessage);
-    
-    // 👇 R2 開始思考動畫
+    // 👇 新增：R2 開始思考動畫
     if (this.r2Character) {
         this.r2Character.setWorkingState();
+        console.log('R2 進入工作狀態');
     }
     
-    // 🔥 創建 AI 回應容器（立即顯示「正在思考...」）
-    const aiMessageDiv = document.createElement('div');
-    aiMessageDiv.className = 'chat-message assistant-message';
-    aiMessageDiv.style.cssText = `
-        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-        padding: 0.75rem;
-        border-radius: 12px;
-        margin-bottom: 0.75rem;
-        font-size: 0.875rem;
-        color: #166534;
-        animation: messageSlideIn 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    `;
-    
-    aiMessageDiv.innerHTML = `
-        <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
-            <i class="fas fa-robot" style="margin-top: 0.125rem; flex-shrink: 0; font-size: 1rem;"></i>
-            <div style="flex: 1;">
-                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                    <strong>GAI秘書</strong>
-                    <span style="margin-left: auto; font-size: 0.7rem; opacity: 0.7;">
-                        ${new Date().toLocaleTimeString('zh-TW')}
-                    </span>
-                </div>
-                <div class="message-text" style="white-space: pre-wrap; line-height: 1.5;">
-                    <i class="fas fa-spinner fa-spin"></i> 正在思考...
-                </div>
-            </div>
-        </div>
-    `;
-    
-    chatHistory.appendChild(aiMessageDiv);
-    chatHistory.scrollTop = chatHistory.scrollHeight;
-    
-    const messageTextDiv = aiMessageDiv.querySelector('.message-text');
-    
     try {
-        // 🔥 準備精簡的上下文資料（只傳最近 10 筆）
-        const recentData = await this.getRecentOrderData(10);
-        
-        // 🔥 使用 Fetch API 串流處理
-        const response = await fetch(this.config.GAS_URL || CONFIG.GAS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain',
-            },
-            body: JSON.stringify({
-                action: 'processChatGPTQueryStreaming', // 新的串流端點
-                data: {
-                    userMessage: userMessage,
-                    recentData: recentData,
-                    timestamp: new Date().toISOString()
-                }
-            })
+        // 🔥 調用後端 ChatGPT API（已包含快問快答邏輯）
+        const response = await this.apiCall('processChatGPTQuery', {
+            userMessage: userMessage,
+            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
+            sheetName: '託收託運回報'
         });
         
-        if (!response.ok) {
-            throw new Error(`API 請求失敗: ${response.status}`);
+        // 🔥 處理回應並顯示模式標識
+        if (response && response.reply) {
+            this.addChatMessage('assistant', response.reply, response.mode);
+            // 👇 新增：R2 變開心（表示成功回應）
+            if (this.r2Character) {
+                this.r2Character.setHappyState();
+                console.log('R2 進入開心狀態');
+            }
+        } else {
+            throw new Error('API 回應格式錯誤');
         }
         
-        // 🔥 處理串流回應
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullResponse = '';
-        
-        // 清除「正在思考...」
-        messageTextDiv.innerHTML = '';
-        
-        while (true) {
-            const { done, value } = await reader.read();
-            
-            if (done) break;
-            
-            // 解碼並顯示新的文字片段
-            const chunk = decoder.decode(value, { stream: true });
-            fullResponse += chunk;
-            
-            // 即時更新顯示（支援 Markdown）
-            messageTextDiv.innerHTML = this.formatChatMessage(fullResponse);
-            
-            // 自動捲動到底部
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-        
-        // 👇 R2 變開心
-        if (this.r2Character) {
-            this.r2Character.setHappyState();
-        }
         
     } catch (error) {
         console.error('ChatGPT查詢失敗:', error);
-        messageTextDiv.innerHTML = `
-            <i class="fas fa-exclamation-triangle" style="color: #dc2626;"></i>
-            抱歉，查詢時發生錯誤，請稍後再試。
-        `;
-        
+        this.addChatMessage('system', '抱歉，查詢時發生錯誤，請稍後再試。');
+                // 👇 新增：錯誤時 R2 也要恢復正常
         if (this.r2Character) {
             this.r2Character.resetEmotion();
+            console.log('R2 因錯誤恢復正常狀態');
         }
     } finally {
         // 恢復按鈕狀態
         sendBtn.disabled = false;
         sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         chatInput.focus();
-        
-        // 2秒後 R2 恢復正常
+        // 👇 新增：2秒後 R2 恢復正常狀態
         setTimeout(() => {
             if (this.r2Character) {
                 this.r2Character.resetEmotion();
+                console.log('R2 恢復正常狀態');
             }
         }, 2000);
     }
 }
-
-// 🔥 新增：獲取最近訂單資料（限制數量）
-async getRecentOrderData(limit = 10) {
-    try {
-        const result = await this.apiCall('getFilteredDeliveryReport', {
-            targetSpreadsheetId: '1YMYLTvbAZjUxtOrtavzOCSTt0U5NfZN7S825TQmflbc',
-            limit: limit // 只取最近 N 筆
-        });
-        
-        return result || [];
-    } catch (error) {
-        console.error('獲取最近訂單資料失敗:', error);
-        return [];
-    }
-}
-
 
 
 // 🔥 增強版聊天訊息添加函數 - 支持快問快答模式顯示
@@ -9750,7 +9664,13 @@ async showRouteAddresses(routeName) {
                 // 載入頁面特定資料
                 this.loadPageData(pageName);
                 
-                
+                // 如果切換到主控台頁面，自動顯示GAI秘書對話框
+                if (pageName === 'dashboard') {
+                    // 延遲1秒顯示，讓頁面切換動畫完成
+                    setTimeout(() => {
+                        this.showGAISecretaryModal();
+                    }, 1000);
+                }
              }
 
 
@@ -10047,7 +9967,7 @@ async loadDashboard() {
             }
             
             // 顯示快取提示（可選）
-            this.showNotification('數據已驅動', 'info', 2000);
+            this.showNotification('使用快取資料（30分鐘內有效）', 'info', 2000);
             
             return; // 直接返回，不再載入
         }
