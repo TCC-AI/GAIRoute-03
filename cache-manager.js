@@ -1,6 +1,6 @@
 // ============================================
 // 快取管理器 - 獨立檔案
-// 用途：加速頁面切換，不影響現有功能
+// 用途：加速主控台載入，不影響現有功能
 // ============================================
 
 const DashboardCache = {
@@ -19,13 +19,17 @@ const DashboardCache = {
       
       // 檢查是否過期
       if (Date.now() - timestamp > this.CACHE_DURATION) {
+        console.log('📦 快取已過期');
         this.clear();
         return null;
       }
 
+      const remainingMinutes = Math.floor((this.CACHE_DURATION - (Date.now() - timestamp)) / 1000 / 60);
+      console.log(`✅ 快取有效（剩餘 ${remainingMinutes} 分鐘）`);
+      
       return data;
     } catch (error) {
-      console.error('讀取快取失敗:', error);
+      console.error('❌ 讀取快取失敗:', error);
       return null;
     }
   },
@@ -40,8 +44,9 @@ const DashboardCache = {
         timestamp: Date.now()
       };
       sessionStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
+      console.log('💾 資料已快取');
     } catch (error) {
-      console.error('儲存快取失敗:', error);
+      console.error('❌ 儲存快取失敗:', error);
     }
   },
 
@@ -50,6 +55,7 @@ const DashboardCache = {
    */
   clear() {
     sessionStorage.removeItem(this.CACHE_KEY);
+    console.log('🗑️ 快取已清除');
   },
 
   /**
