@@ -9945,7 +9945,37 @@ async showRouteAddresses(routeName) {
 
 // 載入主控台資料 (修改版)
 async loadDashboard() {
-     this.showLoading('正在載入主控台資料...', true); // 允許互動
+    // 🔥 新增：先檢查快取（只在線上模式且非模擬資料時使用）
+    if (!CONFIG.USE_MOCK_DATA && this.isOnline) {
+        const cachedData = DashboardCache.get();
+        
+        if (cachedData) {
+            console.log('⚡ 使用快取資料，立即顯示');
+            
+            // 立即更新 UI（使用快取資料）
+            document.getElementById('todayDeliveries').textContent = cachedData.routePalletSum;
+            document.getElementById('vehicleUsage').textContent = `${cachedData.routePalletNonZeroPercentage}%`;
+            document.getElementById('onTimeRate').textContent = cachedData.routeTableLastBValue;
+            document.getElementById('alertCount').textContent = cachedData.routeTableAlertValue;
+            
+            // 更新異常警示樣式
+            const alertElement = document.getElementById('alertCount');
+            if (cachedData.routeTableAlertValue > 2) {
+                alertElement.classList.add('alert');
+            } else {
+                alertElement.classList.remove('alert');
+            }
+            
+            // 顯示快取提示（可選）
+            this.showNotification('使用快取資料（30分鐘內有效）', 'info', 2000);
+            
+            return; // 直接返回，不再載入
+        }
+    }
+    
+    // 原本的載入邏輯（完全不變）
+    this.showLoading('正在載入主控台資料...', true);
+    
     try {
         let dashboardData;
         let routePalletSum = 0;
@@ -9955,10 +9985,10 @@ async loadDashboard() {
         
         if (CONFIG.USE_MOCK_DATA || !this.isOnline) {
             dashboardData = this.getMockData('getDashboardData');
-            routePalletSum = 163; // 模擬資料
-            routePalletNonZeroPercentage = 10; // 模擬百分比
-            routeTableLastBValue = 7436.04; // 模擬路線表B欄位最後值
-            routeTableAlertValue = 2.01; // 模擬異常警示值 (7436.04 × 0.27 ÷ 1000)
+            routePalletSum = 163;
+            routePalletNonZeroPercentage = 10;
+            routeTableLastBValue = 7436.04;
+            routeTableAlertValue = 2.01;
             if (!this.isOnline) {
                 this.showNotification('目前使用離線模式', 'warning');
             }
@@ -10004,17 +10034,28 @@ async loadDashboard() {
                 routeTableLastBValue = 0;
                 routeTableAlertValue = 0;
             }
+            
+            // 🔥 新增：儲存到快取（只在線上模式且非模擬資料時）
+            if (!CONFIG.USE_MOCK_DATA && this.isOnline) {
+                DashboardCache.set({
+                    routePalletSum,
+                    routePalletNonZeroPercentage,
+                    routeTableLastBValue,
+                    routeTableAlertValue
+                });
+                console.log('💾 資料已快取（30分鐘有效）');
+            }
         }
         
-        // 更新統計數據
+        // 更新統計數據（原本的邏輯）
         document.getElementById('todayDeliveries').textContent = routePalletSum;
         document.getElementById('vehicleUsage').textContent = `${routePalletNonZeroPercentage}%`;
         document.getElementById('onTimeRate').textContent = routeTableLastBValue;
-        document.getElementById('alertCount').textContent = routeTableAlertValue; // 顯示計算後的異常警示值
+        document.getElementById('alertCount').textContent = routeTableAlertValue;
 
-        // 根據異常警示值更新樣式
+        // 根據異常警示值更新樣式（原本的邏輯）
         const alertElement = document.getElementById('alertCount');
-        if (routeTableAlertValue > 2) { // 可以根據需要調整閾值
+        if (routeTableAlertValue > 2) {
             alertElement.classList.add('alert');
         } else {
             alertElement.classList.remove('alert');
@@ -10027,6 +10068,7 @@ async loadDashboard() {
         this.hideLoading();
     }
 }
+
 
 
 
