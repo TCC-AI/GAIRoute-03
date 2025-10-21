@@ -9664,13 +9664,7 @@ async showRouteAddresses(routeName) {
                 // 載入頁面特定資料
                 this.loadPageData(pageName);
                 
-                // 如果切換到主控台頁面，自動顯示GAI秘書對話框
-                if (pageName === 'dashboard') {
-                    // 延遲1秒顯示，讓頁面切換動畫完成
-                    setTimeout(() => {
-                        this.showGAISecretaryModal();
-                    }, 1000);
-                }
+                
              }
 
 
